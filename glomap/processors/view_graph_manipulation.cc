@@ -154,7 +154,7 @@ image_t ViewGraphManipulater::EstablishStrongClusters(
     int num_img = view_graph.KeepLargestConnectedComponents(images);
 
     std::cout << "Clustering take " << iteration << " iterations. " << num_img
-    << "images are kept after strong-clustering" << std::endl;
+    << " images are kept after strong-clustering" << std::endl;
 
     return num_img;
 }
