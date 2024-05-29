@@ -1,6 +1,7 @@
 #include "global_mapper.h"
 #include "glomap/processors/image_pair_inliers.h"
 #include "glomap/processors/image_undistorter.h"
+#include "glomap/processors/reconstruction_pruning.h"
 #include "glomap/processors/relpose_filter.h"
 #include "glomap/processors/track_filter.h"
 #include "glomap/processors/view_graph_manipulation.h"
@@ -207,6 +208,24 @@ bool GlobalMapper::Solve(ViewGraph& view_graph,
             }
             run_timer.PrintSeconds();
         }
+    }
+
+    // 8. Postprocessing
+    if (!options_.skip_postprocessing) {
+        std::cout << "-------------------------------------" << std::endl;
+        std::cout << "Running postprocessing ..." << std::endl;
+        std::cout << "-------------------------------------" << std::endl;
+
+        // Filter tracks based on the estatimation
+        UndistortImages(cameras, images, true);
+        std::cout << "Filtering tracks by reprojection ..." << std::endl;
+        TrackFilter::FilterTracksByReprojection(
+                    view_graph, cameras, images, tracks, options_.inlier_thresholds.max_reprojection_error);
+        TrackFilter::FilterTrackTriangulationAngle(
+                    view_graph, images, tracks, options_.inlier_thresholds.min_triangulation_angle);
+
+        // Prune weakly connected images
+        PruneWeaklyConnectedImages(images, tracks);
     }
 
     return true;
