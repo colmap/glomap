@@ -65,8 +65,7 @@ target_link_libraries(
         Eigen3::Eigen
         Ceres::ceres
         colmap::colmap
-        ${THEIA_LIBRARIES}
-        ${BOOST_LIBRARIES} 
+        ${SuiteSparse_LIBRARIES}
 )
 
 target_compile_features(glomap PRIVATE cxx_std_17)

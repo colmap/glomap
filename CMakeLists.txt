@@ -29,12 +29,13 @@ find_package(colmap REQUIRED)
 find_package(SuiteSparse QUIET)
 
 find_package(Theia REQUIRED)
-find_package(Boost REQUIRED)
 
 
 
-include_directories( ${THEIA_INCLUDE_DIRS} )
-INCLUDE_DIRECTORIES( ${BOOST_INCLUDE_DIR} )
+
+# Include directories for SuiteSparse
+include_directories(${SuiteSparse_INCLUDE_DIRS})
+
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
@@ -83,13 +84,10 @@ target_link_libraries(debug
   PUBLIC
     ${CERES_LIBRARIES}
   PUBLIC
-    ${THEIA_LIBRARIES}
-  PUBLIC
-    ${BOOST_LIBRARIES} 
-  PUBLIC
     colmap::colmap
   PUBLIC 
     PoseLib::PoseLib
   PUBLIC Eigen3::Eigen
   PUBLIC glomap::glomap
-)
+  PUBLIC ${SuiteSparse_LIBRARIES}
+  )
