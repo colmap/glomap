@@ -4,6 +4,7 @@
 #include "glomap/estimators/bundle_adjustment.h"
 #include "glomap/estimators/global_positioning.h"
 #include "glomap/estimators/global_rotation_averaging.h"
+#include "glomap/estimators/relpose_estimation.h"
 #include "glomap/estimators/view_graph_calibration.h"
 
 #include "glomap/controllers/track_retriangulation.h"
@@ -15,6 +16,7 @@ namespace glomap {
 struct GlobalMapperOptions {
     // Options for each component
     ViewGraphCalibratorOptions opt_vgcalib;
+    RelativePoseEstimationOptions opt_relpose;
     RotationEstimatorOptions opt_ra;
     TrackEstablishmentOptions opt_track;
     GlobalPositionerOptions opt_gp;
@@ -50,10 +52,6 @@ public:
                         std::unordered_map<track_t, Track>& tracks);
 
 private:
-    void EstimateRelativePoses(ViewGraph& view_graph,
-                        std::unordered_map<camera_t, Camera>& cameras,
-                        std::unordered_map<image_t, Image>& images);
-
     GlobalMapperOptions& options_;
 };
 

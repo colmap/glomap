@@ -5,6 +5,7 @@ set(SOURCES
     estimators/bundle_adjustment.cc
     estimators/global_positioning.cc
     estimators/global_rotation_averaging.cc
+    estimators/relpose_estimation.cc
     estimators/view_graph_calibration.cc
     io/colmap_converter.cc
     io/colmap_io.cc
@@ -31,6 +32,7 @@ set(HEADERS_PUBLIC
     estimators/cost_function.h
     estimators/global_positioning.h
     estimators/global_rotation_averaging.h
+    estimators/relpose_estimation.h
     estimators/optimization_base.h
     estimators/view_graph_calibration.h
     io/colmap_converter.h

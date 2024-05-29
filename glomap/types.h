@@ -23,7 +23,6 @@ struct InlierThresholds {
     double min_triangulation_angle = 1.; // in degree, for triangulation
 
     // Thresholds for image_pair
-    double max_epipolar_error_E_RANSAC = 1.;
     double max_epipolar_error_E = 1.;
     double max_epipolar_error_F = 4.;
     double max_epipolar_error_H = 4.;

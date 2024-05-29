@@ -1,8 +1,5 @@
-#pragma once
 #ifndef GLOMAP_PROCESSORS_TRACK_FILTER_H_
 #define GLOMAP_PROCESSORS_TRACK_FILTER_H_
-
-#include <unordered_map>
 
 #include "glomap/scene/types_sfm.h"
 
