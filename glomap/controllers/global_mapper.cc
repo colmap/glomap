@@ -16,9 +16,16 @@ bool GlobalMapper::Solve(ViewGraph& view_graph,
 
     // 0. Preprocessing
     if (!options_.skip_preprocessing) {
+        std::cout << "-------------------------------------" << std::endl;
+        std::cout << "Running preprocessing ..." << std::endl;
+        std::cout << "-------------------------------------" << std::endl;
+
+        colmap::Timer run_timer;
+        run_timer.Start();
         // If camera intrinscs seem to be good, force the pair to use essential matrix
         ViewGraphManipulater::UpdateImagePairsConfig(view_graph, cameras, images);
         ViewGraphManipulater::DecomposeRelPose(view_graph, cameras, images);
+        run_timer.PrintSeconds();
     }
 
     // 1. Run view graph calibration
@@ -39,6 +46,8 @@ bool GlobalMapper::Solve(ViewGraph& view_graph,
         std::cout << "Running relative pose estimation ..." << std::endl;
         std::cout << "-------------------------------------" << std::endl;
 
+        colmap::Timer run_timer;
+        run_timer.Start();
         // Relative pose relies on the undistorted images
         UndistortImages(cameras, images, true);
         EstimateRelativePoses(view_graph, cameras, images, options_.opt_relpose);
@@ -52,17 +61,19 @@ bool GlobalMapper::Solve(ViewGraph& view_graph,
         RelPoseFilter::FilterInlierRatio(view_graph, options_.inlier_thresholds.min_inlier_ratio);
 
         view_graph.KeepLargestConnectedComponents(images);
+
+        run_timer.PrintSeconds();
     }
 
     // 3. Run rotation averaging for three times
     if (!options_.skip_rotation_averaging) {
+        std::cout << "-------------------------------------" << std::endl;
+        std::cout << "Running rotation averaging ..." << std::endl;
+        std::cout << "-------------------------------------" << std::endl;
 
         colmap::Timer run_timer;
         run_timer.Start();
 
-        std::cout << "-------------------------------------" << std::endl;
-        std::cout << "Running rotation averaging ..." << std::endl;
-        std::cout << "-------------------------------------" << std::endl;
         RotationEstimator ra_engine(options_.opt_ra);
         // The first run is for initialization
         ra_engine.EstimateRotations(view_graph, images);
@@ -104,12 +115,13 @@ bool GlobalMapper::Solve(ViewGraph& view_graph,
 
     // 5. Global positioning
     if (!options_.skip_global_positioning) {
-        colmap::Timer run_timer;
-        run_timer.Start();
-
         std::cout << "-------------------------------------" << std::endl;
         std::cout << "Running global positioning ..." << std::endl;
         std::cout << "-------------------------------------" << std::endl;
+
+        colmap::Timer run_timer;
+        run_timer.Start();
+        
         GlobalPositioner gp_engine(options_.opt_gp);
         if (!gp_engine.Solve(view_graph, cameras, images, tracks)) {
             return false;
@@ -124,11 +136,13 @@ bool GlobalMapper::Solve(ViewGraph& view_graph,
 
     // 6. Bundle adjustment
     if (!options_.skip_bundle_adjustment) {
-        colmap::Timer run_timer;
-        run_timer.Start();
         std::cout << "-------------------------------------" << std::endl;
         std::cout << "Running bundle adjustment ..." << std::endl;
         std::cout << "-------------------------------------" << std::endl;
+
+        colmap::Timer run_timer;
+        run_timer.Start();
+
         for (int ite = 0; ite < options_.num_iteration_bundle_adjustment; ite++) {
             BundleAdjuster ba_engine(options_.opt_ba);
 
@@ -208,6 +222,9 @@ bool GlobalMapper::Solve(ViewGraph& view_graph,
         std::cout << "Running postprocessing ..." << std::endl;
         std::cout << "-------------------------------------" << std::endl;
 
+        colmap::Timer run_timer;
+        run_timer.Start();
+
         // Filter tracks based on the estatimation
         UndistortImages(cameras, images, true);
         std::cout << "Filtering tracks by reprojection ..." << std::endl;
@@ -218,6 +235,8 @@ bool GlobalMapper::Solve(ViewGraph& view_graph,
 
         // Prune weakly connected images
         PruneWeaklyConnectedImages(images, tracks);
+        
+        run_timer.PrintSeconds();
     }
 
     return true;
