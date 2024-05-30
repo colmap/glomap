@@ -19,7 +19,6 @@ set(SOURCES
     processors/track_filter.cc
     processors/view_graph_manipulation.cc
     scene/view_graph.cc
-    test/prepare_experiment.cc
 )
 
 
@@ -55,7 +54,6 @@ set(HEADERS_PUBLIC
     scene/track.h
     scene/types_sfm.h
     scene/types.h
-    test/prepare_experiment.h
 )
 
 # library configuration
