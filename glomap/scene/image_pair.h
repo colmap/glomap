@@ -1,5 +1,4 @@
-#ifndef GLOMAP_SCENE_IMAGE_PAIR_H_
-#define GLOMAP_SCENE_IMAGE_PAIR_H_
+#pragma once
 
 #include "glomap/scene/rigid3d.h"
 #include "glomap/scene/types.h"
@@ -76,5 +75,3 @@ void ImagePair::PairIdToImagePair(const image_pair_t pair_id,
 }
 
 }  // namespace glomap
-
-#endif  // GLOMAP_SCENE_IMAGE_PAIR_H_

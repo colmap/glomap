@@ -1,5 +1,4 @@
-#ifndef GLOMAP_ESTIMATORS_RELPOSE_ESTIMATION_H_
-#define GLOMAP_ESTIMATORS_RELPOSE_ESTIMATION_H_
+#pragma once
 
 #include "glomap/scene/types_sfm.h"
 
@@ -21,5 +20,3 @@ void EstimateRelativePoses(ViewGraph& view_graph,
                            const RelativePoseEstimationOptions& options);
 
 }  // namespace glomap
-
-#endif  // GLOMAP_ESTIMATORS_RELPOSE_ESTIMATION_H_

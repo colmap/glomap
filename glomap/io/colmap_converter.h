@@ -1,5 +1,4 @@
-#ifndef GLOMAP_IO_COLMAP_CONVERTER_H_
-#define GLOMAP_IO_COLMAP_CONVERTER_H_
+#pragma once
 #include "glomap/scene/types_sfm.h"
 
 #include <colmap/scene/reconstruction.h>
@@ -27,5 +26,3 @@ void ConvertDatabaseToGlomap(const std::string& database_path,
                              std::unordered_map<image_t, Image>& images);
 
 }  // namespace glomap
-
-#endif  // GLOMAP_IO_COLMAP_CONVERTER_H_

@@ -1,5 +1,4 @@
-#ifndef GLOMAP_PROCESSORS_IMAGE_PAIR_INLIERS_H_
-#define GLOMAP_PROCESSORS_IMAGE_PAIR_INLIERS_H_
+#pragma once
 
 #include "glomap/math/rigid3d.h"
 #include "glomap/scene/types_sfm.h"
@@ -44,5 +43,4 @@ void ImagePairsInlierCount(ViewGraph& view_graph,
                            const InlierThresholds& options,
                            bool clean_inliers);
 
-};      // namespace glomap
-#endif  // GLOMAP_PROCESSORS_IMAGE_PAIR_INLIERS_H_
+}  // namespace glomap

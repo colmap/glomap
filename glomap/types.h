@@ -1,5 +1,4 @@
-#ifndef GLOMAP_TYPES_H_
-#define GLOMAP_TYPES_H_
+#pragma once
 
 #include <iostream>
 #include <limits>
@@ -31,5 +30,4 @@ struct InlierThresholds {
   double max_roation_error = 10.;  // in degree, for rotation averaging
 };
 
-};      // namespace glomap
-#endif  // GLOMAP_TYPES_H_
+}  // namespace glomap

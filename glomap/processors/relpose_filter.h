@@ -1,6 +1,5 @@
 
-#ifndef GLOMAP_PROCESSORS_RELPOSE_FILTER_H_
-#define GLOMAP_PROCESSORS_RELPOSE_FILTER_H_
+#pragma once
 
 #include "glomap/scene/types_sfm.h"
 
@@ -24,5 +23,3 @@ struct RelPoseFilter {
 };
 
 }  // namespace glomap
-
-#endif  // GLOMAP_PROCESSORS_RELPOSE_FILTER_H_

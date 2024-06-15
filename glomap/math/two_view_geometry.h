@@ -1,5 +1,4 @@
-#ifndef GLOMAP_MATH_TWO_VIEW_GEOMETRY_H_
-#define GLOMAP_MATH_TWO_VIEW_GEOMETRY_H_
+#pragma once
 
 #include "glomap/scene/camera.h"
 #include "glomap/scene/rigid3d.h"
@@ -48,5 +47,3 @@ double HomographyError(const Eigen::Matrix3d& H,
                        const Eigen::Vector2d& x2);
 
 }  // namespace glomap
-
-#endif  // GLOMAP_MATH_TWO_VIEW_GEOMETRY_H_

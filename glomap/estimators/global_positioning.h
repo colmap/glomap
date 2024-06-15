@@ -1,5 +1,4 @@
-#ifndef GLOMAP_ESTIMATORS_GLOBAL_POSITIONING_H_
-#define GLOMAP_ESTIMATORS_GLOBAL_POSITIONING_H_
+#pragma once
 
 #include "glomap/estimators/optimization_base.h"
 #include "glomap/scene/types_sfm.h"
@@ -113,5 +112,3 @@ class GlobalPositioner {
 };
 
 }  // namespace glomap
-
-#endif  // GLOMAP_ESTIMATORS_GLOBAL_POSITIONING_H_

@@ -1,9 +1,9 @@
-#ifndef GLOMAP_MATH_UNION_FIND_H_
-#define GLOMAP_MATH_UNION_FIND_H_
+#pragma once
 #include <cstdint>
 #include <unordered_map>
 
 namespace glomap {
+
 // UnionFind class to maintain disjoint sets for creating tracks
 template <typename DataType>
 class UnionFind {
@@ -36,5 +36,4 @@ class UnionFind {
   std::unordered_map<DataType, DataType> parent;
 };
 
-};      // namespace glomap
-#endif  // GLOMAP_MATH_UNION_FIND_H_
+}  // namespace glomap

@@ -1,9 +1,9 @@
-#ifndef GLOMAP_PROCESSORS_VIEW_GRAPH_MANIPULATION_H_
-#define GLOMAP_PROCESSORS_VIEW_GRAPH_MANIPULATION_H_
+#pragma once
 
 #include "glomap/scene/types_sfm.h"
 
 namespace glomap {
+
 struct ViewGraphManipulater {
   enum StrongClusterCriteria {
     INLIER_NUM,
@@ -32,5 +32,3 @@ struct ViewGraphManipulater {
 };
 
 }  // namespace glomap
-
-#endif  // GLOMAP_PROCESSORS_VIEW_GRAPH_MANIPULATION_H_

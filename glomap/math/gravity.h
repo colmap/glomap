@@ -1,5 +1,4 @@
-#ifndef GLOMAP_SCENE_GRAVITY_H_
-#define GLOMAP_SCENE_GRAVITY_H_
+#pragma once
 
 #include <Eigen/Core>
 
@@ -16,5 +15,3 @@ double RotUpToAngle(const Eigen::Matrix3d& R_up);
 Eigen::Matrix3d AngleToRotUp(double angle);
 
 }  // namespace glomap
-
-#endif  // GLOMAP_SCENE_GRAVITY_H_

@@ -1,5 +1,4 @@
-#ifndef GLOMAP_PROCESSOR_IMAGE_UNDISTORTER_H_
-#define GLOMAP_PROCESSOR_IMAGE_UNDISTORTER_H_
+#pragma once
 
 #include "glomap/scene/types_sfm.h"
 
@@ -10,5 +9,3 @@ void UndistortImages(std::unordered_map<camera_t, Camera>& cameras,
                      bool clean_points = true);
 
 }  // namespace glomap
-
-#endif  // GLOMAP_PROCESSOR_IMAGE_UNDISTORTER_H_

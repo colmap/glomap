@@ -1,5 +1,4 @@
-#ifndef GLOMAP_ESTIMATE_GLOBAL_ROTATION_AVERAGING_H_
-#define GLOMAP_ESTIMATE_GLOBAL_ROTATION_AVERAGING_H_
+#pragma once
 
 #include "glomap/math/l1_solver.h"
 #include "glomap/scene/types_sfm.h"
@@ -141,4 +140,3 @@ class RotationEstimator {
 };
 
 }  // namespace glomap
-#endif  // GLOMAP_ESTIMATE_GLOBAL_ROTATION_AVERAGING_H_

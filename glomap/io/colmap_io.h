@@ -1,10 +1,10 @@
-#ifndef GLOMAP_IO_COLMAP_IO_H_
-#define GLOMAP_IO_COLMAP_IO_H_
+#pragma once
 
 #include "glomap/io/colmap_converter.h"
 #include "glomap/scene/types_sfm.h"
 
 namespace glomap {
+
 void WriteGlomapReconstruction(
     const std::string& reconstruction_path,
     const std::unordered_map<camera_t, Camera>& cameras,
@@ -15,5 +15,3 @@ void WriteColmapReconstruction(const std::string& reconstruction_path,
                                const colmap::Reconstruction& reconstruction);
 
 }  // namespace glomap
-
-#endif  // GLOMAP_IO_COLMAP_IO_H_

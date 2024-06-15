@@ -1,6 +1,5 @@
 #pragma once
-#ifndef GLOMAP_ESTIMATORS_BUNDLE_ADJUSTMENT_H_
-#define GLOMAP_ESTIMATORS_BUNDLE_ADJUSTMENT_H_
+#pragma once
 
 #include "glomap/estimators/optimization_base.h"
 #include "glomap/scene/types_sfm.h"
@@ -70,5 +69,3 @@ class BundleAdjuster {
 };
 
 }  // namespace glomap
-
-#endif  // GLOMAP_ESTIMATORS_BUNDLE_ADJUSTMENT_H_

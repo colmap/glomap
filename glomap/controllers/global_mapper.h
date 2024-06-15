@@ -1,5 +1,4 @@
-#ifndef GLOMAP_CONTROLLERS_GLOBAL_MAPPER_H_
-#define GLOMAP_CONTROLLERS_GLOBAL_MAPPER_H_
+#pragma once
 
 #include "glomap/controllers/track_establishment.h"
 #include "glomap/controllers/track_retriangulation.h"
@@ -54,5 +53,4 @@ class GlobalMapper {
   GlobalMapperOptions& options_;
 };
 
-};      // namespace glomap
-#endif  // GLOMAP_CONTROLLERS_GLOBAL_MAPPER_H_
+}  // namespace glomap

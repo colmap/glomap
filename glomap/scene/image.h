@@ -1,5 +1,4 @@
-#ifndef GLOMAP_SCENE_IMAGE_H_
-#define GLOMAP_SCENE_IMAGE_H_
+#pragma once
 
 #include "glomap/math/gravity.h"
 #include "glomap/scene/rigid3d.h"
@@ -62,5 +61,3 @@ void Image::SetGravityInfo(const Eigen::Vector3d& g) {
   gravity_info.has_gravity = true;
 }
 }  // namespace glomap
-
-#endif  // GLOMAP_SCENE_IMAGE_H_

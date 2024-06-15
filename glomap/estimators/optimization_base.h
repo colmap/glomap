@@ -1,11 +1,11 @@
 
-#ifndef GLOMAP_ESTIMATORS_OPTIMIZATION_BASE_H_
-#define GLOMAP_ESTIMATORS_OPTIMIZATION_BASE_H_
+#pragma once
 
 #include <Eigen/Core>
 #include <ceres/ceres.h>
 
 namespace glomap {
+
 struct OptimizationBaseOptions {
   // Logging control
   bool verbose = false;
@@ -28,5 +28,3 @@ struct OptimizationBaseOptions {
 };
 
 }  // namespace glomap
-
-#endif  // GLOMAP_ESTIMATORS_OPTIMIZATION_BASE_H_

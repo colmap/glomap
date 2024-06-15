@@ -1,7 +1,6 @@
 
 #pragma once
-#ifndef GLOMAP_CONTROLLERS_TRACK_RETRIANGULATION_H_
-#define GLOMAP_CONTROLLERS_TRACK_RETRIANGULATION_H_
+#pragma once
 
 #include "glomap/scene/types_sfm.h"
 
@@ -23,5 +22,3 @@ bool RetriangulateTracks(const TriangulatorOptions& options,
                          std::unordered_map<track_t, Track>& tracks);
 
 }  // namespace glomap
-
-#endif  // GLOMAP_CONTROLLERS_TRACK_RETRIANGULATION_H_

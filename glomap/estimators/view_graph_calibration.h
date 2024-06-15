@@ -1,6 +1,5 @@
 #pragma once
-#ifndef GLOMAP_ESTIMATOR_VIEW_GRAPH_CALIBRATION_H_
-#define GLOMAP_ESTIMATOR_VIEW_GRAPH_CALIBRATION_H_
+#pragma once
 
 #include "glomap/estimators/optimization_base.h"
 #include "glomap/scene/types_sfm.h"
@@ -63,4 +62,3 @@ class ViewGraphCalibrator {
 };
 
 }  // namespace glomap
-#endif  // GLOMAP_ESTIMATOR_VIEW_GRAPH_CALIBRATION_H_

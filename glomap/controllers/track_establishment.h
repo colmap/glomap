@@ -1,6 +1,5 @@
 
-#ifndef GLOMAP_CONTROLLERS_TRACK_ESTABLISHMENT_H_
-#define GLOMAP_CONTROLLERS_TRACK_ESTABLISHMENT_H_
+#pragma once
 
 #include "glomap/math/union_find.h"
 #include "glomap/scene/types_sfm.h"
@@ -58,5 +57,3 @@ class TrackEngine {
 };
 
 }  // namespace glomap
-
-#endif  // GLOMAP_CONTROLLERS_TRACK_ESTABLISHMENT_H_

@@ -1,7 +1,6 @@
 
 #pragma once
-#ifndef GLOMAP_ESTIMATORS_COST_FUNCTION_H_
-#define GLOMAP_ESTIMATORS_COST_FUNCTION_H_
+#pragma once
 
 #include <Eigen/Core>
 #include <ceres/ceres.h>
@@ -218,5 +217,3 @@ class FetzerFocalLengthSameCameraCost {
 };
 
 }  // namespace glomap
-
-#endif  // GLOMAP_ESTIMATORS_COST_FUNCTION_H_

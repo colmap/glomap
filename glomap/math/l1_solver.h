@@ -3,8 +3,7 @@
 // with its original L1 solver adtped from
 //  "https://web.stanford.edu/~boyd/papers/admm/least_abs_deviations/lad.html"
 
-#ifndef GLOMAP_MATH_L1_SOLVER_H_
-#define GLOMAP_MATH_L1_SOLVER_H_
+#pragma once
 
 #include <Eigen/Cholesky>
 #include <Eigen/CholmodSupport>
@@ -139,5 +138,3 @@ class L1Solver {
   }
 };
 }  // namespace glomap
-
-#endif  // GLOMAP_MATH_L1_SOLVER_H_

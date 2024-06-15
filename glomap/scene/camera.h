@@ -1,5 +1,4 @@
-#ifndef GLOMAP_SCENE_CAMERA_H_
-#define GLOMAP_SCENE_CAMERA_H_
+#pragma once
 
 #include "glomap/types.h"
 
@@ -46,5 +45,3 @@ inline poselib::Camera ColmapCameraToPoseLibCamera(const Camera& camera) {
 }
 
 }  // namespace glomap
-
-#endif  // GLOMAP_SCENE_CAMERA_H_

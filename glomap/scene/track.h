@@ -1,5 +1,4 @@
-#ifndef GLOMAP_SCENE_TRACK_H_
-#define GLOMAP_SCENE_TRACK_H_
+#pragma once
 
 #include "glomap/scene/types.h"
 
@@ -28,5 +27,3 @@ struct Track {
 };
 
 }  // namespace glomap
-
-#endif  // GLOMAP_SCENE_TRACK_H_

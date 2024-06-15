@@ -1,5 +1,4 @@
-#ifndef GLOMAP_SCENE_RIG3D_H_
-#define GLOMAP_SCENE_RIG3D_H_
+#pragma once
 #include <colmap/geometry/rigid3.h>
 
 namespace glomap {
@@ -28,5 +27,3 @@ inline std::ostream& operator<<(std::ostream& output, Rigid3d& pose) {
 }
 
 }  // namespace glomap
-
-#endif  // GLOMAP_SCENE_RIG3D_H_

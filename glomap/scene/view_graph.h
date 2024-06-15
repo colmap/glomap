@@ -1,5 +1,4 @@
-#ifndef GLOMAP_SCENE_VIEW_GRAPH_H_
-#define GLOMAP_SCENE_VIEW_GRAPH_H_
+#pragma once
 
 #include "glomap/scene/camera.h"
 #include "glomap/scene/image.h"
@@ -54,5 +53,3 @@ void ViewGraph::RemoveInvalidPair(image_pair_t pair_id) {
 }
 
 }  // namespace glomap
-
-#endif  // GLOMAP_SCENE_VIEW_GRAPH_H_
