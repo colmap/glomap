@@ -2,6 +2,7 @@
 #include "glomap/math/two_view_geometry.h"
 
 namespace glomap {
+
 void ConvertGlomapToColmap(const std::unordered_map<camera_t, Camera>& cameras,
                         const std::unordered_map<image_t, Image>& images,
                         const std::unordered_map<track_t, Track>& tracks,
@@ -75,7 +76,6 @@ void ConvertGlomapToColmap(const std::unordered_map<camera_t, Camera>& cameras,
         image_colmap.SetRegistered(image.is_registered);
         image_colmap.SetName(image.file_name);
         image_colmap.CamFromWorld() = image.cam_from_world;
-        image_colmap.SetUp(reconstruction.Camera(image.camera_id));
 
         if (image_to_point3D.find(image_id) != image_to_point3D.end()) {
             image_colmap.SetPoints2D(image.features);

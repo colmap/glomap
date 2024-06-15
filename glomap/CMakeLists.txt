@@ -21,8 +21,6 @@ set(SOURCES
     scene/view_graph.cc
 )
 
-
-# Set HEADERS_PUBLIC variabled
 set(HEADERS_PUBLIC
     controllers/global_mapper.h
     controllers/track_establishment.h
@@ -56,8 +54,8 @@ set(HEADERS_PUBLIC
     scene/types.h
 )
 
-# library configuration
 include(${PROJECT_SOURCE_DIR}/cmake/LibraryConfig.cmake)
+
 target_link_libraries(
     glomap
     PUBLIC
@@ -67,5 +65,11 @@ target_link_libraries(
         colmap::colmap
         ${SuiteSparse_LIBRARIES}
 )
-
-target_compile_features(glomap PRIVATE cxx_std_17)
+target_include_directories(
+    glomap
+    PUBLIC
+        ${SuiteSparse_INCLUDE_DIRS}
+)
+if(OPENMP_FOUND)
+  target_link_libraries(glomap PUBLIC OpenMP::OpenMP_CXX)
+endif()

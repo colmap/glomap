@@ -21,6 +21,7 @@ bool RetriangulateTracks(const TriangulatorOptions& options,
     std::cout << options.database_dir << std::endl;
 
 
+    // TODO(joschonb): This looks like a no-op? Can we get rid of the "reconstruction" object?
     for (size_t i = 0; i < reconstruction.RegImageIds().size(); ++i) {
         std::cout << "\r Triangulating image " << i + 1
                 << " / " << reconstruction.RegImageIds().size() << std::flush;
@@ -84,11 +85,13 @@ bool RetriangulateTracks(const TriangulatorOptions& options,
         ba_config.AddImage(image_id);
     }
 
+    colmap::ObservationManager observation_manager(*reconstruction_ptr);
+
     for (int i = 0; i < options_colmap.ba_global_max_refinements; ++i) {
         std::cout << "\r Global bundle adjustment iteration " << i + 1
                 << " / " << options_colmap.ba_global_max_refinements << std::flush;
         // Avoid degeneracies in bundle adjustment.
-        reconstruction_ptr->FilterObservationsWithNegativeDepth();
+        observation_manager.FilterObservationsWithNegativeDepth();
 
         const size_t num_observations = reconstruction_ptr->ComputeNumObservations();
 

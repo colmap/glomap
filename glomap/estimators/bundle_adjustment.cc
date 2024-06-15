@@ -160,7 +160,7 @@ void BundleAdjuster::ParameterizeVariables(
     int counter = 0;
     for (auto &[image_id, image] : images) {
         if (problem_->HasParameterBlock(image.cam_from_world.rotation.coeffs().data())) {
-            problem_->SetManifold(image.cam_from_world.rotation.coeffs().data(), new ceres::EigenQuaternionManifold());
+            colmap::SetQuaternionManifold(problem_.get(), image.cam_from_world.rotation.coeffs().data());
 
             if (counter == 0) {
                 center = image_id;
@@ -185,7 +185,7 @@ void BundleAdjuster::ParameterizeVariables(
                 for (auto idx : camera.PrincipalPointIdxs()) {
                     principal_point_idxs.push_back(idx);
                 }
-                problem_->SetManifold(camera.params.data(), new ceres::SubsetManifold(camera.params.size(), principal_point_idxs));
+                colmap::SetSubsetManifold(camera.params.size(), principal_point_idxs, problem_.get(), camera.params.data());
             }
         }
 
@@ -205,4 +205,5 @@ void BundleAdjuster::ParameterizeVariables(
         }
     }
 }
+
 } // namespace glomap
