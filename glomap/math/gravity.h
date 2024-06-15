@@ -15,6 +15,6 @@ double RotUpToAngle(const Eigen::Matrix3d& R_up);
 // Get the upright rotation matrix from a rotation angle
 Eigen::Matrix3d AngleToRotUp(double angle);
 
-}; // glomap
+}  // namespace glomap
 
-#endif // GLOMAP_SCENE_GRAVITY_H_
+#endif  // GLOMAP_SCENE_GRAVITY_H_

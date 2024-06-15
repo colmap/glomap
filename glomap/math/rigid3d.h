@@ -1,8 +1,8 @@
 #ifndef GLOMAP_MATH_RIGID3D_H_
 #define GLOMAP_MATH_RIGID3D_H_
 
-#include <glomap/scene/rigid3d.h>
-#include <glomap/types.h>
+#include "glomap/scene/rigid3d.h"
+#include "glomap/types.h"
 
 #include <Eigen/Geometry>
 
@@ -31,6 +31,5 @@ Eigen::Vector3d RotationToAngleAxis(const Eigen::Matrix3d& rot);
 // Convert angle axis to rotation matrix
 Eigen::Matrix3d AngleAxisToRotation(const Eigen::Vector3d& aa);
 
-
-}; // glomap
-#endif // GLOMAP_MATH_RIGID3D_H_
+};      // namespace glomap
+#endif  // GLOMAP_MATH_RIGID3D_H_
