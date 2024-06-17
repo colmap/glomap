@@ -1,6 +1,5 @@
 
 #pragma once
-#pragma once
 
 #include "glomap/scene/types_sfm.h"
 

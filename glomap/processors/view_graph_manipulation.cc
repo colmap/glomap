@@ -178,12 +178,12 @@ void ViewGraphManipulater::UpdateImagePairsConfig(
     if (!camera1.has_prior_focal_length || !camera2.has_prior_focal_length)
       continue;
 
-    if (image_pair.config == 2) {
+    if (image_pair.config == colmap::TwoViewGeometry::CALIBRATED) {
       camera_counter[camera_id1].first++;
       camera_counter[camera_id2].first++;
       camera_counter[camera_id1].second++;
       camera_counter[camera_id2].second++;
-    } else if (image_pair.config == 3) {
+    } else if (image_pair.config == colmap::TwoViewGeometry::UNCALIBRATED) {
       camera_counter[camera_id1].first++;
       camera_counter[camera_id2].first++;
     }
@@ -204,7 +204,7 @@ void ViewGraphManipulater::UpdateImagePairsConfig(
 
   for (auto& [pair_id, image_pair] : view_graph.image_pairs) {
     if (image_pair.is_valid == false) continue;
-    if (image_pair.config != 3) continue;
+    if (image_pair.config != colmap::TwoViewGeometry::UNCALIBRATED) continue;
 
     camera_t camera_id1 = images.at(image_pair.image_id1).camera_id;
     camera_t camera_id2 = images.at(image_pair.image_id2).camera_id;
@@ -215,7 +215,7 @@ void ViewGraphManipulater::UpdateImagePairsConfig(
         cameras.at(images.at(image_pair.image_id2).camera_id);
 
     if (camera_validity[camera_id1] && camera_validity[camera_id2]) {
-      image_pair.config = 2;
+      image_pair.config = colmap::TwoViewGeometry::CALIBRATED;
       FundamentalFromMotionAndCameras(
           camera1, camera2, image_pair.cam2_from_cam1, &image_pair.F);
     }
@@ -230,8 +230,6 @@ void ViewGraphManipulater::DecomposeRelPose(
   std::vector<image_pair_t> image_pair_ids;
   for (auto& [pair_id, image_pair] : view_graph.image_pairs) {
     if (image_pair.is_valid == false) continue;
-    // if (image_pair.config == 2)
-    if (image_pair.config != 6) continue;
     if (!cameras[images[image_pair.image_id1].camera_id]
              .has_prior_focal_length ||
         !cameras[images[image_pair.image_id2].camera_id].has_prior_focal_length)
@@ -264,10 +262,10 @@ void ViewGraphManipulater::DecomposeRelPose(
                                         &two_view_geometry);
 
     // if it planar, then use the estimated relative pose
-    if (two_view_geometry.config == 4 &&
+    if (image_pair.config == colmap::TwoViewGeometry::PLANAR &&
         cameras[camera_id1].has_prior_focal_length &&
         cameras[camera_id2].has_prior_focal_length) {
-      image_pair.config = 2;
+      image_pair.config = colmap::TwoViewGeometry::CALIBRATED;
       continue;
     } else if (!(cameras[camera_id1].has_prior_focal_length &&
                  cameras[camera_id2].has_prior_focal_length))
@@ -284,7 +282,9 @@ void ViewGraphManipulater::DecomposeRelPose(
   size_t counter = 0;
   for (size_t idx = 0; idx < image_pair_ids.size(); idx++) {
     ImagePair& image_pair = view_graph.image_pairs.at(image_pair_ids[idx]);
-    if (image_pair.config != 2 && image_pair.config != 6) counter++;
+    if (image_pair.config != colmap::TwoViewGeometry::CALIBRATED &&
+        image_pair.config != colmap::TwoViewGeometry::PLANAR_OR_PANORAMIC)
+      counter++;
   }
   std::cout << "Decompose relative pose done. " << counter
             << " pairs are pure rotation" << std::endl;

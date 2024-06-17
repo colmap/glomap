@@ -10,7 +10,9 @@
 #include <colmap/util/timer.h>
 
 namespace glomap {
-bool GlobalMapper::Solve(ViewGraph& view_graph,
+
+bool GlobalMapper::Solve(const colmap::Database& database,
+                         ViewGraph& view_graph,
                          std::unordered_map<camera_t, Camera>& cameras,
                          std::unordered_map<image_t, Image>& images,
                          std::unordered_map<track_t, Track>& tracks) {
@@ -210,7 +212,8 @@ bool GlobalMapper::Solve(ViewGraph& view_graph,
     for (int ite = 0; ite < options_.num_iteration_retriangulation; ite++) {
       colmap::Timer run_timer;
       run_timer.Start();
-      RetriangulateTracks(options_.opt_triangulator, cameras, images, tracks);
+      RetriangulateTracks(
+          options_.opt_triangulator, database, cameras, images, tracks);
 
       std::cout << "-------------------------------------" << std::endl;
       std::cout << "Running bundle adjustment ..." << std::endl;

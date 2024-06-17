@@ -1,5 +1,4 @@
 #pragma once
-#pragma once
 
 #include "glomap/estimators/optimization_base.h"
 #include "glomap/scene/types_sfm.h"

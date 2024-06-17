@@ -9,9 +9,9 @@
 using namespace glomap;
 
 int main(int argc, char** argv) {
-  std::string database_dir, output_dir;
+  std::string database_path, output_dir;
 
-  database_dir = argv[1];
+  database_path = argv[1];
   output_dir = argv[2];
 
   // Load the database
@@ -20,7 +20,8 @@ int main(int argc, char** argv) {
   std::unordered_map<image_t, Image> images;
   std::unordered_map<track_t, Track> tracks;
 
-  ConvertDatabaseToGlomap(database_dir, view_graph, cameras, images);
+  const colmap::Database database(database_path);
+  ConvertDatabaseToGlomap(database, view_graph, cameras, images);
   std::cout << "Loaded database" << std::endl;
 
   GlobalMapperOptions options;
@@ -39,13 +40,11 @@ int main(int argc, char** argv) {
   options.skip_bundle_adjustment = false;
   options.skip_retriangulation = false;
 
-  options.opt_triangulator.database_dir = database_dir;
-
   colmap::Timer run_timer;
   run_timer.Start();
 
   GlobalMapper global_mapper(options);
-  global_mapper.Solve(view_graph, cameras, images, tracks);
+  global_mapper.Solve(database, view_graph, cameras, images, tracks);
 
   run_timer.Pause();
 

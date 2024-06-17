@@ -9,6 +9,8 @@
 #include "glomap/estimators/view_graph_calibration.h"
 #include "glomap/types.h"
 
+#include <colmap/scene/database.h>
+
 namespace glomap {
 
 struct GlobalMapperOptions {
@@ -42,15 +44,16 @@ struct GlobalMapperOptions {
 
 class GlobalMapper {
  public:
-  GlobalMapper(GlobalMapperOptions& options) : options_(options){};
+  GlobalMapper(const GlobalMapperOptions& options) : options_(options) {}
 
-  bool Solve(ViewGraph& view_graph,
+  bool Solve(const colmap::Database& database,
+             ViewGraph& view_graph,
              std::unordered_map<camera_t, Camera>& cameras,
              std::unordered_map<image_t, Image>& images,
              std::unordered_map<track_t, Track>& tracks);
 
  private:
-  GlobalMapperOptions& options_;
+  const GlobalMapperOptions& options_;
 };
 
 }  // namespace glomap
