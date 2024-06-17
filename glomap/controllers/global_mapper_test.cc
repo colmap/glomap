@@ -38,6 +38,25 @@ void ExpectEqualReconstructions(const colmap::Reconstruction& gt,
   }
 }
 
+GlobalMapperOptions CreateTestOptions() {
+  GlobalMapperOptions options;
+  // Control the verbosity of the global sfm
+  options.opt_vgcalib.verbose = false;
+  options.opt_ra.verbose = false;
+  options.opt_gp.verbose = false;
+  options.opt_ba.verbose = false;
+
+  // Control the flow of the global sfm
+  options.skip_view_graph_calibration = false;
+  options.skip_relative_pose_estimation = false;
+  options.skip_rotation_averaging = false;
+  options.skip_track_establishment = false;
+  options.skip_global_positioning = false;
+  options.skip_bundle_adjustment = false;
+  options.skip_retriangulation = false;
+  return options;
+}
+
 TEST(IncrementalMapperController, WithoutNoise) {
   const std::string database_path = colmap::CreateTestDir() + "/database.db";
 
@@ -58,23 +77,7 @@ TEST(IncrementalMapperController, WithoutNoise) {
 
   ConvertDatabaseToGlomap(database, view_graph, cameras, images);
 
-  GlobalMapperOptions options;
-  // Control the verbosity of the global sfm
-  options.opt_vgcalib.verbose = false;
-  options.opt_ra.verbose = false;
-  options.opt_gp.verbose = false;
-  options.opt_ba.verbose = false;
-
-  // Control the flow of the global sfm
-  options.skip_view_graph_calibration = false;
-  options.skip_relative_pose_estimation = false;
-  options.skip_rotation_averaging = false;
-  options.skip_track_establishment = false;
-  options.skip_global_positioning = false;
-  options.skip_bundle_adjustment = false;
-  options.skip_retriangulation = false;
-
-  GlobalMapper global_mapper(options);
+  GlobalMapper global_mapper(CreateTestOptions());
   global_mapper.Solve(database, view_graph, cameras, images, tracks);
 
   colmap::Reconstruction reconstruction;
@@ -85,6 +88,40 @@ TEST(IncrementalMapperController, WithoutNoise) {
                              /*max_rotation_error_deg=*/1e-2,
                              /*max_proj_center_error=*/1e-4,
                              /*num_obs_tolerance=*/0);
+}
+
+TEST(IncrementalMapperController, WithNoiseAndOutliers) {
+  const std::string database_path = colmap::CreateTestDir() + "/database.db";
+
+  colmap::Database database(database_path);
+  colmap::Reconstruction gt_reconstruction;
+  colmap::SyntheticDatasetOptions synthetic_dataset_options;
+  synthetic_dataset_options.num_cameras = 2;
+  synthetic_dataset_options.num_images = 7;
+  synthetic_dataset_options.num_points3D = 100;
+  synthetic_dataset_options.point2D_stddev = 0.5;
+  synthetic_dataset_options.inlier_match_ratio = 0.6;
+  colmap::SynthesizeDataset(
+      synthetic_dataset_options, &gt_reconstruction, &database);
+
+  ViewGraph view_graph;
+  std::unordered_map<camera_t, Camera> cameras;
+  std::unordered_map<image_t, Image> images;
+  std::unordered_map<track_t, Track> tracks;
+
+  ConvertDatabaseToGlomap(database, view_graph, cameras, images);
+
+  GlobalMapper global_mapper(CreateTestOptions());
+  global_mapper.Solve(database, view_graph, cameras, images, tracks);
+
+  colmap::Reconstruction reconstruction;
+  ConvertGlomapToColmap(cameras, images, tracks, reconstruction);
+
+  ExpectEqualReconstructions(gt_reconstruction,
+                             reconstruction,
+                             /*max_rotation_error_deg=*/1e-1,
+                             /*max_proj_center_error=*/1e-1,
+                             /*num_obs_tolerance=*/0.02);
 }
 
 }  // namespace
