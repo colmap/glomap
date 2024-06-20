@@ -16,24 +16,10 @@ bool RetriangulateTracks(const TriangulatorOptions& options,
   // Convert the glomap data structures to colmap data structures
   std::shared_ptr<colmap::Reconstruction> reconstruction_ptr =
       std::make_shared<colmap::Reconstruction>();
-  colmap::Reconstruction reconstruction;
   ConvertGlomapToColmap(cameras,
                         images,
                         std::unordered_map<track_t, Track>(),
                         *reconstruction_ptr);
-
-  // TODO(joschonb): This looks like a no-op? Can we get rid of the
-  // "reconstruction" object?
-  for (size_t i = 0; i < reconstruction.RegImageIds().size(); ++i) {
-    std::cout << "\r Triangulating image " << i + 1 << " / "
-              << reconstruction.RegImageIds().size() << std::flush;
-
-    const image_t image_id = reconstruction.RegImageIds()[i];
-    const auto& image = reconstruction.Image(image_id);
-
-    std::cout << image.NumPoints3D() << ", " << image.NumPoints2D()
-              << std::endl;
-  }
 
   // Following code adapted from COLMAP
   auto database_cache =
@@ -51,7 +37,7 @@ bool RetriangulateTracks(const TriangulatorOptions& options,
   options_colmap.triangulation.min_angle = options.tri_min_angle;
 
   // reconstruction.DeleteAllPoints2DAndPoints3D();
-  reconstruction.TranscribeImageIdsToDatabase(database);
+  reconstruction_ptr->TranscribeImageIdsToDatabase(database);
 
   colmap::IncrementalMapper mapper(database_cache);
   mapper.BeginReconstruction(reconstruction_ptr);
