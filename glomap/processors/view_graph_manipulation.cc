@@ -20,9 +20,10 @@ image_pair_t ViewGraphManipulater::SparsifyGraph(
     for (auto &[image_id, neighbors] : adjacency_list) {
         if (images[image_id].is_registered == false)
             continue;
-        average_degree += 1. / neighbors.size();
+        average_degree += neighbors.size();
     }
-    average_degree = num_img / average_degree;
+    average_degree = average_degree / num_img;
+
 
     // Go through the adjacency list and keep edge with probability ((expected_degree * average_degree) / (degree1 * degree2))
     for (auto &[pair_id, image_pair] : view_graph.image_pairs) {

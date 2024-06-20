@@ -25,6 +25,7 @@ bool GlobalMapper::Solve(ViewGraph& view_graph,
         // If camera intrinscs seem to be good, force the pair to use essential matrix
         ViewGraphManipulater::UpdateImagePairsConfig(view_graph, cameras, images);
         ViewGraphManipulater::DecomposeRelPose(view_graph, cameras, images);
+        // ViewGraphManipulater::SparsifyGraph(view_graph, images, options_.num_expected_degree);
         run_timer.PrintSeconds();
     }
 
@@ -195,6 +196,7 @@ bool GlobalMapper::Solve(ViewGraph& view_graph,
             colmap::Timer run_timer;
             run_timer.Start();
             RetriangulateTracks(options_.opt_triangulator, cameras, images, tracks);
+            run_timer.PrintSeconds();
 
             std::cout << "-------------------------------------" << std::endl;
             std::cout << "Running bundle adjustment ..." << std::endl;

@@ -27,6 +27,7 @@ struct GlobalMapperOptions {
     InlierThresholds inlier_thresholds;
 
     // Control the number of iterations for each component
+    int num_expected_degree = 50;
     int num_iteration_bundle_adjustment = 3;
     int num_iteration_retriangulation = 1;
 
