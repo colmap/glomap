@@ -58,9 +58,10 @@ GlobalMapperOptions CreateTestOptions() {
 }
 
 TEST(IncrementalMapperController, WithoutNoise) {
-  const std::string database_path = colmap::CreateTestDir() + "/database.db";
+  // const std::string database_path = colmap::CreateTestDir() + "/database.db";
 
-  colmap::Database database(database_path);
+  // colmap::Database database(database_path);
+  colmap::Database database;
   colmap::Reconstruction gt_reconstruction;
   colmap::SyntheticDatasetOptions synthetic_dataset_options;
   synthetic_dataset_options.num_cameras = 2;
@@ -91,9 +92,10 @@ TEST(IncrementalMapperController, WithoutNoise) {
 }
 
 TEST(IncrementalMapperController, WithNoiseAndOutliers) {
-  const std::string database_path = colmap::CreateTestDir() + "/database.db";
+  // const std::string database_path = colmap::CreateTestDir() + "/database.db";
 
-  colmap::Database database(database_path);
+  // colmap::Database database(database_path);
+  colmap::Database database;
   colmap::Reconstruction gt_reconstruction;
   colmap::SyntheticDatasetOptions synthetic_dataset_options;
   synthetic_dataset_options.num_cameras = 2;
