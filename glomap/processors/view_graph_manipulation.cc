@@ -15,13 +15,13 @@ image_pair_t ViewGraphManipulater::SparsifyGraph(
   std::unordered_map<image_t, std::unordered_set<image_t>>& adjacency_list =
       view_graph.GetAdjacencyList();
 
-    // Here, the average is the mean of the degrees
-    double average_degree = 0;
-    for (auto &[image_id, neighbors] : adjacency_list) {
-      if (images[image_id].is_registered == false) continue;
-      average_degree += neighbors.size();
-    }
-    average_degree = average_degree / num_img;
+  // Here, the average is the mean of the degrees
+  double average_degree = 0;
+  for (auto &[image_id, neighbors] : adjacency_list) {
+    if (images[image_id].is_registered == false) continue;
+    average_degree += neighbors.size();
+  }
+  average_degree = average_degree / num_img;
 
   // Go through the adjacency list and keep edge with probability
   // ((expected_degree * average_degree) / (degree1 * degree2))
