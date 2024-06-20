@@ -36,7 +36,7 @@ struct GlobalPositionerOptions : public OptimizationBaseOptions {
   unsigned seed = 1;
 
   // the type of global positioning
-  ConstraintType constraint_type;
+  ConstraintType constraint_type = ONLY_POINTS;
   double constraint_reweight_scale =
       1.0;  // only relevant for POINTS_AND_CAMERAS_BALANCED
 
