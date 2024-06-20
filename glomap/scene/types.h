@@ -1,5 +1,4 @@
-#ifndef GLOMAP_SCENE_TYPES_H_
-#define GLOMAP_SCENE_TYPES_H_
+#pragma once
 
 #include <cstdint>
 #include <limits>
@@ -32,5 +31,4 @@ typedef uint64_t track_t;
 const image_t kMaxNumImages = std::numeric_limits<image_t>::max();
 const image_pair_t kInvalidImagePairId = -1;
 
-}; // glomap
-#endif // GLOMAP_SCENE_TYPES_H_
+}  // namespace glomap

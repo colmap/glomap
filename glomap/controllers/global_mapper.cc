@@ -1,4 +1,5 @@
 #include "global_mapper.h"
+
 #include "glomap/processors/image_pair_inliers.h"
 #include "glomap/processors/image_undistorter.h"
 #include "glomap/processors/reconstruction_pruning.h"
@@ -10,22 +11,20 @@
 
 namespace glomap {
 bool GlobalMapper::Solve(ViewGraph& view_graph,
-                        std::unordered_map<camera_t, Camera>& cameras,
-                        std::unordered_map<image_t, Image>& images,
-                        std::unordered_map<track_t, Track>& tracks) {
-
-    // 0. Preprocessing
-    if (!options_.skip_preprocessing) {
-        std::cout << "-------------------------------------" << std::endl;
-        std::cout << "Running preprocessing ..." << std::endl;
-        std::cout << "-------------------------------------" << std::endl;
+                         std::unordered_map<camera_t, Camera>& cameras,
+                         std::unordered_map<image_t, Image>& images,
+                         std::unordered_map<track_t, Track>& tracks) {
+  // 0. Preprocessing
+  if (!options_.skip_preprocessing) {
+    std::cout << "-------------------------------------" << std::endl;
+    std::cout << "Running preprocessing ..." << std::endl;
+    std::cout << "-------------------------------------" << std::endl;
 
         colmap::Timer run_timer;
         run_timer.Start();
         // If camera intrinscs seem to be good, force the pair to use essential matrix
         ViewGraphManipulater::UpdateImagePairsConfig(view_graph, cameras, images);
         ViewGraphManipulater::DecomposeRelPose(view_graph, cameras, images);
-        // ViewGraphManipulater::SparsifyGraph(view_graph, images, options_.num_expected_degree);
         run_timer.PrintSeconds();
     }
 
@@ -41,49 +40,53 @@ bool GlobalMapper::Solve(ViewGraph& view_graph,
 
     }
 
-    // 2. Run relative pose estimation
-    if (!options_.skip_relative_pose_estimation) {
-        std::cout << "-------------------------------------" << std::endl;
-        std::cout << "Running relative pose estimation ..." << std::endl;
-        std::cout << "-------------------------------------" << std::endl;
+  // 2. Run relative pose estimation
+  if (!options_.skip_relative_pose_estimation) {
+    std::cout << "-------------------------------------" << std::endl;
+    std::cout << "Running relative pose estimation ..." << std::endl;
+    std::cout << "-------------------------------------" << std::endl;
 
-        colmap::Timer run_timer;
-        run_timer.Start();
-        // Relative pose relies on the undistorted images
-        UndistortImages(cameras, images, true);
-        EstimateRelativePoses(view_graph, cameras, images, options_.opt_relpose);
+    colmap::Timer run_timer;
+    run_timer.Start();
+    // Relative pose relies on the undistorted images
+    UndistortImages(cameras, images, true);
+    EstimateRelativePoses(view_graph, cameras, images, options_.opt_relpose);
 
-        InlierThresholds inlier_thresholds = options_.inlier_thresholds;
-        // inlier_thresholds.max_epipolar_error_E = inlier_thresholds.max_epipolar_error_F;
-        // Undistort the images and filter edges by inlier number
-        ImagePairsInlierCount(view_graph, cameras, images, inlier_thresholds, true);
+    InlierThresholds inlier_thresholds = options_.inlier_thresholds;
+    // inlier_thresholds.max_epipolar_error_E =
+    // inlier_thresholds.max_epipolar_error_F; Undistort the images and filter
+    // edges by inlier number
+    ImagePairsInlierCount(view_graph, cameras, images, inlier_thresholds, true);
 
-        RelPoseFilter::FilterInlierNum(view_graph, options_.inlier_thresholds.min_inlier_num);
-        RelPoseFilter::FilterInlierRatio(view_graph, options_.inlier_thresholds.min_inlier_ratio);
+    RelPoseFilter::FilterInlierNum(view_graph,
+                                   options_.inlier_thresholds.min_inlier_num);
+    RelPoseFilter::FilterInlierRatio(
+        view_graph, options_.inlier_thresholds.min_inlier_ratio);
 
-        view_graph.KeepLargestConnectedComponents(images);
+    view_graph.KeepLargestConnectedComponents(images);
 
-        run_timer.PrintSeconds();
-    }
+    run_timer.PrintSeconds();
+  }
 
-    // 3. Run rotation averaging for three times
-    if (!options_.skip_rotation_averaging) {
-        std::cout << "-------------------------------------" << std::endl;
-        std::cout << "Running rotation averaging ..." << std::endl;
-        std::cout << "-------------------------------------" << std::endl;
+  // 3. Run rotation averaging for three times
+  if (!options_.skip_rotation_averaging) {
+    std::cout << "-------------------------------------" << std::endl;
+    std::cout << "Running rotation averaging ..." << std::endl;
+    std::cout << "-------------------------------------" << std::endl;
 
-        colmap::Timer run_timer;
-        run_timer.Start();
+    colmap::Timer run_timer;
+    run_timer.Start();
 
-        RotationEstimator ra_engine(options_.opt_ra);
-        // The first run is for initialization
-        ra_engine.EstimateRotations(view_graph, images);
+    RotationEstimator ra_engine(options_.opt_ra);
+    // The first run is for initialization
+    ra_engine.EstimateRotations(view_graph, images);
 
-        // The second run is for filtering
-        ra_engine.EstimateRotations(view_graph, images);
+    // The second run is for filtering
+    ra_engine.EstimateRotations(view_graph, images);
 
-        RelPoseFilter::FilterRotations(view_graph, images, options_.inlier_thresholds.max_roation_error);
-        view_graph.KeepLargestConnectedComponents(images);
+    RelPoseFilter::FilterRotations(
+        view_graph, images, options_.inlier_thresholds.max_roation_error);
+    view_graph.KeepLargestConnectedComponents(images);
 
         // The third run is for final estimation
         if (!ra_engine.EstimateRotations(view_graph, images)) {
@@ -244,5 +247,4 @@ bool GlobalMapper::Solve(ViewGraph& view_graph,
     return true;
 }
 
-
-};  // namespace glomap
+}  // namespace glomap
