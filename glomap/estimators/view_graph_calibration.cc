@@ -3,6 +3,8 @@
 #include "glomap/estimators/cost_function.h"
 #include "glomap/math/two_view_geometry.h"
 
+#include <colmap/scene/two_view_geometry.h>
+
 namespace glomap {
 
 bool ViewGraphCalibrator::Solve(ViewGraph& view_graph,
@@ -67,7 +69,9 @@ void ViewGraphCalibrator::AddImagePairsToProblem(
     std::unordered_map<camera_t, Camera>& cameras,
     std::unordered_map<image_t, Image>& images) {
   for (auto& [image_pair_id, image_pair] : view_graph.image_pairs) {
-    if (image_pair.config != 2 && image_pair.config != 3) continue;
+    if (image_pair.config != colmap::TwoViewGeometry::CALIBRATED &&
+        image_pair.config != colmap::TwoViewGeometry::UNCALIBRATED)
+      continue;
     if (image_pair.is_valid == false) continue;
 
     AddImagePair(image_pair, cameras, images);
@@ -163,7 +167,9 @@ size_t ViewGraphCalibrator::FilterImagePair(
   size_t invalid_counter = 0;
 
   for (auto& [image_pair_id, image_pair] : view_graph.image_pairs) {
-    if (image_pair.config != 2 && image_pair.config != 3) continue;
+    if (image_pair.config != colmap::TwoViewGeometry::CALIBRATED &&
+        image_pair.config != colmap::TwoViewGeometry::UNCALIBRATED)
+      continue;
     if (image_pair.is_valid == false) continue;
 
     Eigen::Vector2d error =

@@ -1,8 +1,9 @@
 
 #pragma once
-#pragma once
 
 #include "glomap/scene/types_sfm.h"
+
+#include <colmap/scene/database.h>
 
 namespace glomap {
 
@@ -12,11 +13,10 @@ struct TriangulatorOptions {
   double tri_min_angle = 1.0;
 
   size_t min_num_matches = 15;
-
-  std::string database_dir = "";
 };
 
 bool RetriangulateTracks(const TriangulatorOptions& options,
+                         const colmap::Database& database,
                          std::unordered_map<camera_t, Camera>& cameras,
                          std::unordered_map<image_t, Image>& images,
                          std::unordered_map<track_t, Track>& tracks);

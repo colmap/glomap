@@ -51,7 +51,6 @@ void FundamentalFromMotionAndCameras(const Camera& camera1,
                                      Eigen::Matrix3d* F) {
   Eigen::Matrix3d E;
   EssentialFromMotion(pose, &E);
-
   *F = camera1.GetK().transpose().inverse() * E * camera2.GetK().inverse();
 }
 

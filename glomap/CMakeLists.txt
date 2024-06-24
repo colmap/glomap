@@ -73,3 +73,17 @@ target_include_directories(
 if(OPENMP_FOUND)
   target_link_libraries(glomap PUBLIC OpenMP::OpenMP_CXX)
 endif()
+
+
+if(TESTS_ENABLED)
+    add_executable(glomap_test
+        controllers/global_mapper_test.cc
+    )
+    target_link_libraries(
+        glomap_test
+        PRIVATE
+            glomap::glomap
+            GTest::gtest
+            GTest::gtest_main)
+    add_test(NAME glomap_test COMMAND glomap_test)
+endif()

@@ -1,5 +1,4 @@
 #include "glomap/io/colmap_converter.h"
-
 #include "glomap/math/two_view_geometry.h"
 
 namespace glomap {
@@ -155,13 +154,10 @@ void ConvertColmapPoints3DToGlomapTracks(
 
 // For ease of debug, go through the database twice: first extract the available
 // pairs, then read matches from pairs.
-void ConvertDatabaseToGlomap(const std::string& database_path,
+void ConvertDatabaseToGlomap(const colmap::Database& database,
                              ViewGraph& view_graph,
                              std::unordered_map<camera_t, Camera>& cameras,
                              std::unordered_map<image_t, Image>& images) {
-  std::cout << "database_path: " << database_path << std::endl;
-  colmap::Database database(database_path);
-
   // Add the images
   std::vector<colmap::Image> images_colmap = database.ReadAllImages();
   for (auto& image : images_colmap) {
@@ -224,23 +220,28 @@ void ConvertDatabaseToGlomap(const std::string& database_path,
         database.ReadTwoViewGeometry(image_id1, image_id2);
 
     // If the image is marked as invalid or watermark, then skip
-    if (two_view.config == 0 || two_view.config == 7) {
+    if (two_view.config == colmap::TwoViewGeometry::UNDEFINED ||
+        two_view.config == colmap::TwoViewGeometry::DEGENERATE ||
+        two_view.config == colmap::TwoViewGeometry::WATERMARK ||
+        two_view.config == colmap::TwoViewGeometry::MULTIPLE) {
       image_pair.is_valid = false;
       invalid_count++;
       continue;
     }
 
     // Collect the fundemental matrices
-    if (two_view.config == 3) {
+    if (two_view.config == colmap::TwoViewGeometry::UNCALIBRATED) {
       image_pair.F = two_view.F;
-    } else if (two_view.config == 2) {
+    } else if (two_view.config == colmap::TwoViewGeometry::CALIBRATED) {
       FundamentalFromMotionAndCameras(
           cameras.at(images.at(image_pair.image_id1).camera_id),
           cameras.at(images.at(image_pair.image_id2).camera_id),
-          image_pair.cam2_from_cam1,
+          two_view.cam2_from_cam1,
           &image_pair.F);
-
-    } else if (two_view.config == 6) {
+    } else if (two_view.config == colmap::TwoViewGeometry::PLANAR ||
+               two_view.config == colmap::TwoViewGeometry::PANORAMIC ||
+               two_view.config ==
+                   colmap::TwoViewGeometry::PLANAR_OR_PANORAMIC) {
       image_pair.H = two_view.H;
       image_pair.F = two_view.F;
     }
@@ -274,4 +275,5 @@ void ConvertDatabaseToGlomap(const std::string& database_path,
             << " pairs. Number of invalid pairs: " << invalid_count
             << std::endl;
 }
+
 }  // namespace glomap

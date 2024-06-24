@@ -4,7 +4,8 @@
 #include "glomap/scene/types.h"
 #include "glomap/types.h"
 
-#include "colmap/estimators/two_view_geometry.h"
+#include <colmap/estimators/two_view_geometry.h>
+
 #include <Eigen/Core>
 
 namespace glomap {

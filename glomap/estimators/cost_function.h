@@ -1,6 +1,5 @@
 
 #pragma once
-#pragma once
 
 #include <Eigen/Core>
 #include <ceres/ceres.h>

@@ -1,6 +1,7 @@
 #pragma once
 #include "glomap/scene/types_sfm.h"
 
+#include <colmap/scene/database.h>
 #include <colmap/scene/reconstruction.h>
 
 namespace glomap {
@@ -20,7 +21,7 @@ void ConvertColmapPoints3DToGlomapTracks(
     const colmap::Reconstruction& reconstruction,
     std::unordered_map<track_t, Track>& tracks);
 
-void ConvertDatabaseToGlomap(const std::string& database_path,
+void ConvertDatabaseToGlomap(const colmap::Database& database,
                              ViewGraph& view_graph,
                              std::unordered_map<camera_t, Camera>& cameras,
                              std::unordered_map<image_t, Image>& images);
