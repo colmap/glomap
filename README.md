@@ -1,5 +1,8 @@
 # About
-GLOMAP is a general purpose structure-from-motion pipeline for building reconstruction efficiently. This library takes COLMAP database as input and directly output reconstruction (in COLMAP data format).
+
+GLOMAP is a general purpose global structure-from-motion pipeline for
+image-based reconstruction. GLOMAP requires a COLMAP database as input and
+outputs a COLMAP sparse reconstruction.
 
 # Run the GLOMAP
 
@@ -12,5 +15,3 @@ cmake ..
 make -j8
 ./debug DATABASE_PATH OUTPUT_PATH 
 ```
-
-Ensure that SuiteSparse, COLMAP, PoseLib are installed before running the code

@@ -59,16 +59,16 @@ include(${PROJECT_SOURCE_DIR}/cmake/LibraryConfig.cmake)
 target_link_libraries(
     glomap
     PUBLIC
-        PoseLib::PoseLib
+        colmap
+        PoseLib
         Eigen3::Eigen
         Ceres::ceres
-        colmap::colmap
-        ${SuiteSparse_LIBRARIES}
+        ${SuiteSparse_CHOLMOD_LIBRARY}
 )
 target_include_directories(
     glomap
     PUBLIC
-        ${SuiteSparse_INCLUDE_DIRS}
+        ${SuiteSparse_CHOLMOD_INCLUDE_DIR}
 )
 if(OPENMP_FOUND)
   target_link_libraries(glomap PUBLIC OpenMP::OpenMP_CXX)
