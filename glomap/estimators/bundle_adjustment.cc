@@ -51,13 +51,9 @@ bool BundleAdjuster::Solve(const ViewGraph& view_graph,
 }
 
 void BundleAdjuster::Reset() {
-  // Set up the problem and loss function.
-  ceres::Problem::Options ceres_options;
-  // Because the loss function is constructed by Python, ceres should not
-  // destruct it.
-  ceres_options.loss_function_ownership = ceres::DO_NOT_TAKE_OWNERSHIP;
-
-  problem_.reset(new ceres::Problem(ceres_options));
+  ceres::Problem::Options problem_options;
+  problem_options.loss_function_ownership = ceres::DO_NOT_TAKE_OWNERSHIP;
+  problem_ = std::make_unique<ceres::Problem>(problem_options);
 }
 
 void BundleAdjuster::AddPointToCameraConstraints(
@@ -113,7 +109,7 @@ void BundleAdjuster::AddPointToCameraConstraints(
       }
 
       problem_->AddResidualBlock(cost_function,
-                                 options_.loss_function,
+                                 options_.loss_function.get(),
                                  image.cam_from_world.rotation.coeffs().data(),
                                  image.cam_from_world.translation.data(),
                                  tracks[track_id].xyz.data(),

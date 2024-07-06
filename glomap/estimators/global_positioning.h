@@ -42,7 +42,7 @@ struct GlobalPositionerOptions : public OptimizationBaseOptions {
 
   GlobalPositionerOptions() : OptimizationBaseOptions() {
     thres_loss_function = 1e-1;
-    loss_function = new ceres::HuberLoss(thres_loss_function);
+    loss_function = std::make_shared<ceres::HuberLoss>(thres_loss_function);
   }
 };
 
@@ -105,8 +105,8 @@ class GlobalPositioner {
   std::unique_ptr<ceres::Problem> problem_;
 
   // loss functions for reweighted terms
-  ceres::LossFunction* loss_function_ptcam_uncalibrated_ = nullptr;
-  ceres::LossFunction* loss_function_ptcam_calibrated_ = nullptr;
+  std::shared_ptr<ceres::LossFunction> loss_function_ptcam_uncalibrated_;
+  std::shared_ptr<ceres::LossFunction> loss_function_ptcam_calibrated_;
 
   std::unordered_map<track_t, double> scales_;
 };

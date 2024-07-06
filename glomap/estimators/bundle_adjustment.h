@@ -21,14 +21,14 @@ struct BundleAdjusterOptions : public OptimizationBaseOptions {
 
   BundleAdjusterOptions() : OptimizationBaseOptions() {
     thres_loss_function = 1.;
-    loss_function = new ceres::HuberLoss(thres_loss_function);
+    loss_function = std::make_shared<ceres::HuberLoss>(thres_loss_function);
     solver_options.max_num_iterations = 200;
   }
 };
 
 class BundleAdjuster {
  public:
-  BundleAdjuster(const BundleAdjusterOptions& options) : options_(options){};
+  BundleAdjuster(const BundleAdjusterOptions& options) : options_(options) {}
 
   // Returns true if the optimization was a success, false if there was a
   // failure.

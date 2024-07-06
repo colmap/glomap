@@ -1,4 +1,5 @@
 #include "glomap/io/colmap_converter.h"
+
 #include "glomap/math/two_view_geometry.h"
 
 namespace glomap {

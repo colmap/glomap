@@ -3,6 +3,8 @@
 #include "glomap/estimators/optimization_base.h"
 #include "glomap/scene/types_sfm.h"
 
+#include <memory>
+
 namespace glomap {
 
 struct ViewGraphCalibratorOptions : public OptimizationBaseOptions {
@@ -24,7 +26,7 @@ struct ViewGraphCalibratorOptions : public OptimizationBaseOptions {
 class ViewGraphCalibrator {
  public:
   ViewGraphCalibrator(const ViewGraphCalibratorOptions& options)
-      : options_(options){};
+      : options_(options) {}
 
   // Entry point for the calibration
   bool Solve(ViewGraph& view_graph,

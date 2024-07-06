@@ -17,7 +17,7 @@ image_pair_t ViewGraphManipulater::SparsifyGraph(
 
   // Here, the average is the mean of the degrees
   double average_degree = 0;
-  for (auto &[image_id, neighbors] : adjacency_list) {
+  for (auto& [image_id, neighbors] : adjacency_list) {
     if (images[image_id].is_registered == false) continue;
     average_degree += neighbors.size();
   }
