@@ -57,7 +57,7 @@ GlobalMapperOptions CreateTestOptions() {
   return options;
 }
 
-TEST(IncrementalMapperController, WithoutNoise) {
+TEST(GlobalMapper, WithoutNoise) {
   const std::string database_path = colmap::CreateTestDir() + "/database.db";
 
   colmap::Database database(database_path);
@@ -90,7 +90,7 @@ TEST(IncrementalMapperController, WithoutNoise) {
                              /*num_obs_tolerance=*/0);
 }
 
-TEST(IncrementalMapperController, WithNoiseAndOutliers) {
+TEST(GlobalMapper, WithNoiseAndOutliers) {
   const std::string database_path = colmap::CreateTestDir() + "/database.db";
 
   colmap::Database database(database_path);
