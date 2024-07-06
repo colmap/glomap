@@ -86,6 +86,7 @@ else()
 endif()
 
 add_executable(debug test_txtinput.cc)
+target_link_libraries(debug glomap)
 
 if(TESTS_ENABLED)
     add_executable(glomap_test

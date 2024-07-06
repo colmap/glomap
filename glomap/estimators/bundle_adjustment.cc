@@ -69,51 +69,52 @@ void BundleAdjuster::AddPointToCameraConstraints(
 
       Image& image = images[observation.first];
 
-      ceres::CostFunction* cost_function;
-      camera_t camera_id = image.camera_id;
-      int model_id = int(cameras[camera_id].model_id);
-      switch (model_id) {
-        case 0:  // SimplePinholeCameraModel
+      ceres::CostFunction* cost_function = nullptr;
+      switch (cameras[image.camera_id].model_id) {
+        case colmap::CameraModelId::kSimplePinhole:
           cost_function = colmap::
               ReprojErrorCostFunction<colmap::SimplePinholeCameraModel>::Create(
                   image.features[observation.second]);
           break;
-        case 1:  // PinholeCameraModel
+        case colmap::CameraModelId::kPinhole:
           cost_function =
               colmap::ReprojErrorCostFunction<colmap::PinholeCameraModel>::
                   Create(image.features[observation.second]);
           break;
-        case 2:  // SimpleRadialCameraModel
+        case colmap::CameraModelId::kSimpleRadial:
           cost_function =
               colmap::ReprojErrorCostFunction<colmap::SimpleRadialCameraModel>::
                   Create(image.features[observation.second]);
           break;
-        case 3:  // RadialCameraModel
+        case colmap::CameraModelId::kRadial:
           cost_function =
               colmap::ReprojErrorCostFunction<colmap::RadialCameraModel>::
                   Create(image.features[observation.second]);
           break;
-        case 4:  // OpenCVCameraModel
+        case colmap::CameraModelId::kOpenCV:
           cost_function =
               colmap::ReprojErrorCostFunction<colmap::OpenCVCameraModel>::
                   Create(image.features[observation.second]);
           break;
-        case 8:  // OpenCVFisheyeCameraModel
+        case colmap::CameraModelId::kOpenCVFisheye:
           cost_function = colmap::
               ReprojErrorCostFunction<colmap::OpenCVFisheyeCameraModel>::Create(
                   image.features[observation.second]);
           break;
-
         default:
+          std::cout << "Camera model not supported" << std::endl;
           break;
       }
 
-      problem_->AddResidualBlock(cost_function,
-                                 options_.loss_function.get(),
-                                 image.cam_from_world.rotation.coeffs().data(),
-                                 image.cam_from_world.translation.data(),
-                                 tracks[track_id].xyz.data(),
-                                 cameras[camera_id].params.data());
+      if (cost_function != nullptr) {
+        problem_->AddResidualBlock(
+            cost_function,
+            options_.loss_function.get(),
+            image.cam_from_world.rotation.coeffs().data(),
+            image.cam_from_world.translation.data(),
+            tracks[track_id].xyz.data(),
+            cameras[image.camera_id].params.data());
+      }
     }
   }
 }
