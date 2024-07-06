@@ -3,8 +3,8 @@
 
 namespace glomap {
 struct Rigid3d : public colmap::Rigid3d {
-  Rigid3d() : colmap::Rigid3d(){};
-  Rigid3d(const colmap::Rigid3d& rigid3d) : colmap::Rigid3d(rigid3d){};
+  Rigid3d() : colmap::Rigid3d() {}
+  Rigid3d(const colmap::Rigid3d& rigid3d) : colmap::Rigid3d(rigid3d) {}
 
   Rigid3d& operator=(const colmap::Rigid3d& rigid3d) {
     *this = Rigid3d(rigid3d);

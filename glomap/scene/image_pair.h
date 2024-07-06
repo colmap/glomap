@@ -12,12 +12,12 @@ namespace glomap {
 
 // FUTURE: add covariance to the relative pose
 struct ImagePair {
-  ImagePair() : pair_id(-1), image_id1(-1), image_id2(-1){};
+  ImagePair() : pair_id(-1), image_id1(-1), image_id2(-1) {}
   ImagePair(image_t img_id1, image_t img_id2, Rigid3d pose_rel = Rigid3d())
       : pair_id(ImagePairToPairId(img_id1, img_id2)),
         image_id1(img_id1),
         image_id2(img_id2),
-        cam2_from_cam1(pose_rel){};
+        cam2_from_cam1(pose_rel) {}
 
   // Ids are kept constant
   const image_pair_t pair_id;
