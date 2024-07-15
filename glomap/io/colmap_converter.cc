@@ -162,10 +162,13 @@ void ConvertDatabaseToGlomap(const colmap::Database& database,
     if (image_id == colmap::kInvalidImageId) continue;
     auto ite = images.insert(std::make_pair(
         image_id, Image(image_id, image.CameraId(), image.Name())));
-    if (!std::isnan(image.CamFromWorldPrior().translation[0]))
-      ite.first->second.cam_from_world = image.CamFromWorldPrior();
-    else
+    const colmap::PosePrior prior = database.ReadPosePrior(image_id);
+    if (prior.IsValid()) {
+      ite.first->second.cam_from_world = Rigid3d(
+          colmap::Rigid3d(Eigen::Quaterniond::Identity(), prior.position));
+    } else {
       ite.first->second.cam_from_world = Rigid3d();
+    }
   }
 
   // Read keypoints
