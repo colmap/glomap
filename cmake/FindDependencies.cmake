@@ -9,7 +9,7 @@ message(STATUS "Configuring PoseLib... done")
 
 FetchContent_Declare(COLMAP
     GIT_REPOSITORY    https://github.com/colmap/colmap.git
-    GIT_TAG           1d7aec0f40c56531956ad40feb9ca16f75f4d268
+    GIT_TAG           b5c381ad71e6a970266a1f1280de523c0b10f107
 )
 message(STATUS "Configuring COLMAP...")
 set(UNINSTALL_ENABLED OFF CACHE INTERNAL "")
