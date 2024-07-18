@@ -10,8 +10,8 @@
 namespace glomap {
 
 struct Camera : public colmap::Camera {
-  Camera() : colmap::Camera(){};
-  Camera(const colmap::Camera& camera) : colmap::Camera(camera){};
+  Camera() : colmap::Camera() {}
+  Camera(const colmap::Camera& camera) : colmap::Camera(camera) {}
 
   Camera& operator=(const colmap::Camera& camera) {
     *this = Camera(camera);

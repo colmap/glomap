@@ -60,8 +60,11 @@ void ViewGraphCalibrator::Reset(std::unordered_map<camera_t, Camera>& cameras) {
   }
 
   // Set up the problem
-  problem_.reset(new ceres::Problem);
-  options_.loss_function = new ceres::CauchyLoss(options_.thres_loss_function);
+  ceres::Problem::Options problem_options;
+  problem_options.loss_function_ownership = ceres::DO_NOT_TAKE_OWNERSHIP;
+  problem_ = std::make_unique<ceres::Problem>(problem_options);
+  options_.loss_function =
+      std::make_shared<ceres::CauchyLoss>(options_.thres_loss_function);
 }
 
 void ViewGraphCalibrator::AddImagePairsToProblem(
@@ -94,14 +97,14 @@ void ViewGraphCalibrator::AddImagePair(
     cost_function = FetzerFocalLengthSameCameraCost::Create(
         image_pair.F, cameras[camera_id1].PrincipalPoint());
     problem_->AddResidualBlock(
-        cost_function, options_.loss_function, &(focals_[camera_id1]));
+        cost_function, options_.loss_function.get(), &(focals_[camera_id1]));
   } else {
     cost_function =
         FetzerFocalLengthCost::Create(image_pair.F,
                                       cameras[camera_id1].PrincipalPoint(),
                                       cameras[camera_id2].PrincipalPoint());
     problem_->AddResidualBlock(cost_function,
-                               options_.loss_function,
+                               options_.loss_function.get(),
                                &(focals_[camera_id1]),
                                &(focals_[camera_id2]));
   }

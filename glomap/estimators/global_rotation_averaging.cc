@@ -66,7 +66,6 @@ void RotationEstimator::SetupLinearSystem(
   rotation_estimated_.resize(
       3 * images.size());  // allocate more memory than needed
   image_t num_dof = 0;
-  image_t num_img = 0;
   for (auto& [image_id, image] : images) {
     if (!image.is_registered) continue;
     image_id_to_idx_[image_id] = num_dof;
@@ -89,7 +88,6 @@ void RotationEstimator::SetupLinearSystem(
           Rigid3dToAngleAxis(image.cam_from_world);
       num_dof += 3;
     }
-    num_img++;
   }
 
   // If no cameras are set to be fixed, then take the first camera

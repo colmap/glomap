@@ -1,6 +1,6 @@
 
 // This code is adapted from Theia library (http://theia-sfm.org/),
-// with its original L1 solver adtped from
+// with its original L1 solver adapted from
 //  "https://web.stanford.edu/~boyd/papers/admm/least_abs_deviations/lad.html"
 
 #pragma once

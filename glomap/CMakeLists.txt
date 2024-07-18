@@ -21,7 +21,7 @@ set(SOURCES
     scene/view_graph.cc
 )
 
-set(HEADERS_PUBLIC
+set(HEADERS
     controllers/global_mapper.h
     controllers/track_establishment.h
     controllers/track_retriangulation.h
@@ -54,26 +54,39 @@ set(HEADERS_PUBLIC
     scene/types.h
 )
 
-include(${PROJECT_SOURCE_DIR}/cmake/LibraryConfig.cmake)
-
+add_library(glomap ${SOURCES} ${HEADERS})
 target_link_libraries(
     glomap
     PUBLIC
-        PoseLib::PoseLib
+        colmap
+        PoseLib
         Eigen3::Eigen
         Ceres::ceres
-        colmap::colmap
-        ${SuiteSparse_LIBRARIES}
+        ${SuiteSparse_CHOLMOD_LIBRARY}
 )
 target_include_directories(
     glomap
     PUBLIC
-        ${SuiteSparse_INCLUDE_DIRS}
+        ..
+        ${SuiteSparse_CHOLMOD_INCLUDE_DIR}
 )
 if(OPENMP_FOUND)
-  target_link_libraries(glomap PUBLIC OpenMP::OpenMP_CXX)
+    target_link_libraries(glomap PUBLIC OpenMP::OpenMP_CXX)
 endif()
 
+if(MSVC)
+    target_compile_options(glomap PRIVATE /bigobj)
+else()
+    target_compile_options(glomap PRIVATE
+        -Wall
+        -Werror
+        -Wno-sign-compare
+        -Wno-unused-variable
+    )
+endif()
+
+add_executable(debug test_txtinput.cc)
+target_link_libraries(debug glomap)
 
 if(TESTS_ENABLED)
     add_executable(glomap_test
@@ -82,7 +95,7 @@ if(TESTS_ENABLED)
     target_link_libraries(
         glomap_test
         PRIVATE
-            glomap::glomap
+            glomap
             GTest::gtest
             GTest::gtest_main)
     add_test(NAME glomap_test COMMAND glomap_test)

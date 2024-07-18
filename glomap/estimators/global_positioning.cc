@@ -58,16 +58,8 @@ bool GlobalPositioner::Solve(const ViewGraph& view_graph,
   options_.solver_options.minimizer_progress_to_stdout = options_.verbose;
   ceres::Solve(options_.solver_options, problem_.get(), &summary);
 
-  if (options_.verbose) std::cout << summary.FullReport();
-
-  if (loss_function_ptcam_uncalibrated_) {
-    delete loss_function_ptcam_uncalibrated_;
-    loss_function_ptcam_uncalibrated_ = nullptr;
-  }
-  if (options_.constraint_type ==
-      GlobalPositionerOptions::POINTS_AND_CAMERAS_BALANCED) {
-    delete loss_function_ptcam_calibrated_;
-    loss_function_ptcam_calibrated_ = nullptr;
+  if (options_.verbose) {
+    std::cout << summary.FullReport();
   }
 
   ConvertResults(images);
@@ -75,13 +67,9 @@ bool GlobalPositioner::Solve(const ViewGraph& view_graph,
 }
 
 void GlobalPositioner::Reset() {
-  // Set up the problem and loss function.
-  ceres::Problem::Options ceres_options;
-  // Because the loss function is constructed by Python, ceres should not
-  // destruct it.
-  ceres_options.loss_function_ownership = ceres::DO_NOT_TAKE_OWNERSHIP;
-
-  problem_.reset(new ceres::Problem(ceres_options));
+  ceres::Problem::Options problem_options;
+  problem_options.loss_function_ownership = ceres::DO_NOT_TAKE_OWNERSHIP;
+  problem_ = std::make_unique<ceres::Problem>(problem_options);
   scales_.clear();
 }
 
@@ -138,7 +126,7 @@ void GlobalPositioner::AddCameraToCameraConstraints(
         BATAPairwiseDirectionError::Create(translation);
     problem_->AddResidualBlock(
         cost_function,
-        options_.loss_function,
+        options_.loss_function.get(),
         images[image_id1].cam_from_world.translation.data(),
         images[image_id2].cam_from_world.translation.data(),
         &(scales_[counter]));
@@ -188,15 +176,17 @@ void GlobalPositioner::AddPointToCameraConstraints(
 
   if (loss_function_ptcam_uncalibrated_ == nullptr) {
     loss_function_ptcam_uncalibrated_ =
-        new ceres::ScaledLoss(options_.loss_function,
-                              0.5 * weight_scale_pt,
-                              ceres::DO_NOT_TAKE_OWNERSHIP);
+        std::make_shared<ceres::ScaledLoss>(options_.loss_function.get(),
+                                            0.5 * weight_scale_pt,
+                                            ceres::DO_NOT_TAKE_OWNERSHIP);
   }
 
   if (options_.constraint_type ==
       GlobalPositionerOptions::POINTS_AND_CAMERAS_BALANCED) {
-    loss_function_ptcam_calibrated_ = new ceres::ScaledLoss(
-        options_.loss_function, weight_scale_pt, ceres::DO_NOT_TAKE_OWNERSHIP);
+    loss_function_ptcam_calibrated_ =
+        std::make_shared<ceres::ScaledLoss>(options_.loss_function.get(),
+                                            weight_scale_pt,
+                                            ceres::DO_NOT_TAKE_OWNERSHIP);
   } else {
     loss_function_ptcam_calibrated_ = options_.loss_function;
   }
@@ -245,12 +235,12 @@ void GlobalPositioner::AddTrackToProblem(
     // Down weight the uncalibrated cameras
     (cameras[image.camera_id].has_prior_focal_length)
         ? problem_->AddResidualBlock(cost_function,
-                                     loss_function_ptcam_calibrated_,
+                                     loss_function_ptcam_calibrated_.get(),
                                      image.cam_from_world.translation.data(),
                                      tracks[track_id].xyz.data(),
                                      &(scales_[counter]))
         : problem_->AddResidualBlock(cost_function,
-                                     loss_function_ptcam_uncalibrated_,
+                                     loss_function_ptcam_uncalibrated_.get(),
                                      image.cam_from_world.translation.data(),
                                      tracks[track_id].xyz.data(),
                                      &(scales_[counter]));

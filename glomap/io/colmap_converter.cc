@@ -1,4 +1,5 @@
 #include "glomap/io/colmap_converter.h"
+
 #include "glomap/math/two_view_geometry.h"
 
 namespace glomap {
@@ -32,7 +33,6 @@ void ConvertGlomapToColmap(const std::unordered_map<camera_t, Camera>& cameras,
 
   // Prepare the 2d-3d correspondences
   std::unordered_map<image_t, std::vector<track_t>> image_to_point3D;
-  double average_track_length = 0;
   if (tracks.size() > 0 || include_image_points) {
     // Initialize every point to corresponds to invalid point
     for (auto& [image_id, image] : images) {
@@ -43,19 +43,16 @@ void ConvertGlomapToColmap(const std::unordered_map<camera_t, Camera>& cameras,
 
     if (tracks.size() > 0) {
       for (auto& [track_id, track] : tracks) {
-        if (track.observations.size() < 3) continue;
-
-        int counter = 0;
-        for (auto& observation : track.observations) {
-          if (image_to_point3D.find(observation.first) ==
-              image_to_point3D.end())
-            continue;
-          image_to_point3D[observation.first][observation.second] = track_id;
-          counter++;
+        if (track.observations.size() < 3) {
+          continue;
         }
-        average_track_length += counter;
+        for (auto& observation : track.observations) {
+          if (image_to_point3D.find(observation.first) !=
+              image_to_point3D.end()) {
+            image_to_point3D[observation.first][observation.second] = track_id;
+          }
+        }
       }
-      average_track_length /= tracks.size();
     }
   }
 
@@ -176,10 +173,13 @@ void ConvertDatabaseToGlomap(const colmap::Database& database,
     if (image_id == colmap::kInvalidImageId) continue;
     auto ite = images.insert(std::make_pair(
         image_id, Image(image_id, image.CameraId(), image.Name())));
-    if (!std::isnan(image.CamFromWorldPrior().translation[0]))
-      ite.first->second.cam_from_world = image.CamFromWorldPrior();
-    else
+    const colmap::PosePrior prior = database.ReadPosePrior(image_id);
+    if (prior.IsValid()) {
+      ite.first->second.cam_from_world = Rigid3d(
+          colmap::Rigid3d(Eigen::Quaterniond::Identity(), prior.position));
+    } else {
       ite.first->second.cam_from_world = Rigid3d();
+    }
   }
 
   // Read keypoints

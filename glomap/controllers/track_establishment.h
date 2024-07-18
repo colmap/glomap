@@ -28,7 +28,7 @@ class TrackEngine {
   TrackEngine(const ViewGraph& view_graph,
               const std::unordered_map<image_t, Image>& images,
               const TrackEstablishmentOptions& options)
-      : options_(options), view_graph_(view_graph), images_(images){};
+      : options_(options), view_graph_(view_graph), images_(images) {}
 
   // Establish tracks from the view graph. Exclude the tracks that are not
   // consistent Return the number of tracks

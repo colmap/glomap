@@ -53,7 +53,7 @@ class GlobalMapper {
              std::unordered_map<track_t, Track>& tracks);
 
  private:
-  const GlobalMapperOptions& options_;
+  const GlobalMapperOptions options_;
 };
 
 }  // namespace glomap

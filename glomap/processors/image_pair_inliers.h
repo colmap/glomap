@@ -16,7 +16,7 @@ class ImagePairInliers {
       : image_pair(image_pair),
         images(images),
         cameras(cameras),
-        options(options){};
+        options(options) {}
 
   // use the sampson error and put the inlier result into the image pair
   double ScoreError();
