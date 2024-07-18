@@ -3,6 +3,20 @@
 
 namespace glomap {
 
+void ConvertGlomapToColmapImage(const Image& image,
+                                colmap::Image& image_colmap,
+                                bool keep_points) {
+    image_colmap.SetImageId(image.image_id);
+    image_colmap.SetCameraId(image.camera_id);
+    image_colmap.SetRegistered(image.is_registered);
+    image_colmap.SetName(image.file_name);
+    image_colmap.CamFromWorld() = image.cam_from_world;
+
+    if (keep_points) {
+      image_colmap.SetPoints2D(image.features);
+    }
+}
+
 void ConvertGlomapToColmap(const std::unordered_map<camera_t, Camera>& cameras,
                            const std::unordered_map<image_t, Image>& images,
                            const std::unordered_map<track_t, Track>& tracks,
@@ -68,16 +82,13 @@ void ConvertGlomapToColmap(const std::unordered_map<camera_t, Camera>& cameras,
 
   // Add images
   for (const auto& [image_id, image] : images) {
+    if (!image.is_registered)
+      continue;
+
     colmap::Image image_colmap;
-    image_colmap.SetImageId(image_id);
-    image_colmap.SetCameraId(image.camera_id);
-    image_colmap.SetRegistered(image.is_registered);
-    image_colmap.SetName(image.file_name);
-    image_colmap.CamFromWorld() = image.cam_from_world;
-
-    if (image_to_point3D.find(image_id) != image_to_point3D.end()) {
-      image_colmap.SetPoints2D(image.features);
-
+    bool keep_points = image_to_point3D.find(image_id) != image_to_point3D.end();
+    ConvertGlomapToColmapImage(image, image_colmap, keep_points);
+    if (keep_points) {
       std::vector<track_t>& track_ids = image_to_point3D[image_id];
       for (size_t i = 0; i < image.features.size(); i++) {
         if (track_ids[i] != -1) {

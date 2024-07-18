@@ -13,13 +13,6 @@ bool RetriangulateTracks(const TriangulatorOptions& options,
                          std::unordered_map<camera_t, Camera>& cameras,
                          std::unordered_map<image_t, Image>& images,
                          std::unordered_map<track_t, Track>& tracks) {
-  // Convert the glomap data structures to colmap data structures
-  std::shared_ptr<colmap::Reconstruction> reconstruction_ptr =
-      std::make_shared<colmap::Reconstruction>();
-  ConvertGlomapToColmap(cameras,
-                        images,
-                        std::unordered_map<track_t, Track>(),
-                        *reconstruction_ptr);
 
   // Following code adapted from COLMAP
   auto database_cache =
@@ -29,6 +22,25 @@ bool RetriangulateTracks(const TriangulatorOptions& options,
                                     {}      // reconstruct all possible images
       );
 
+  // Check whether the image is in the database cache. If not, set the image
+  // as not registered to avoid memory error.
+  std::vector<image_t> image_ids_notconnected;
+  for (auto& image : images) {
+    if (!database_cache->ExistsImage(image.first) && image.second.is_registered) {
+      image.second.is_registered = false;
+      image_ids_notconnected.push_back(image.first);
+    }
+  }
+
+  // Convert the glomap data structures to colmap data structures
+  std::shared_ptr<colmap::Reconstruction> reconstruction_ptr =
+      std::make_shared<colmap::Reconstruction>();
+  ConvertGlomapToColmap(cameras,
+                        images,
+                        std::unordered_map<track_t, Track>(),
+                        *reconstruction_ptr);
+
+
   colmap::IncrementalMapperOptions options_colmap;
   options_colmap.triangulation.complete_max_reproj_error =
       options.tri_complete_max_reproj_error;
@@ -36,7 +48,7 @@ bool RetriangulateTracks(const TriangulatorOptions& options,
       options.tri_merge_max_reproj_error;
   options_colmap.triangulation.min_angle = options.tri_min_angle;
 
-  // reconstruction.DeleteAllPoints2DAndPoints3D();
+  reconstruction_ptr->DeleteAllPoints2DAndPoints3D();
   reconstruction_ptr->TranscribeImageIdsToDatabase(database);
 
   colmap::IncrementalMapper mapper(database_cache);
@@ -102,6 +114,14 @@ bool RetriangulateTracks(const TriangulatorOptions& options,
     }
   }
   std::cout << std::endl;
+
+  // Add the removed images to the reconstruction
+  for (const auto& image_id : image_ids_notconnected) {
+    images[image_id].is_registered = true;
+    colmap::Image image_colmap;
+    ConvertGlomapToColmapImage(images[image_id], image_colmap, true);
+    reconstruction_ptr->AddImage(std::move(image_colmap));
+  }
 
   // Convert the colmap data structures back to glomap data structures
   ConvertColmapToGlomap(*reconstruction_ptr, cameras, images, tracks);

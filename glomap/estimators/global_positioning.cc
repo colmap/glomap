@@ -96,7 +96,7 @@ void GlobalPositioner::InitializeRandomPositions(
     constrained_positions.insert(image_pair.image_id2);
   }
 
-  if (!options_.generate_random_positions) {
+  if (!options_.generate_random_positions || !options_.optimize_positions) {
     for (auto& [image_id, image] : images) {
       image.cam_from_world.translation = image.Center();
     }
