@@ -3,8 +3,13 @@
 
 #include <colmap/scene/database.h>
 #include <colmap/scene/reconstruction.h>
+#include <colmap/scene/image.h>
 
 namespace glomap {
+
+void ConvertGlomapToColmapImage(const Image& image,
+                                colmap::Image& colmap_image,
+                                bool keep_points = false);
 
 void ConvertGlomapToColmap(const std::unordered_map<camera_t, Camera>& cameras,
                            const std::unordered_map<image_t, Image>& images,
