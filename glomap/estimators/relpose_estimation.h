@@ -2,7 +2,7 @@
 
 #include "glomap/scene/types_sfm.h"
 
-#include <PoseLib/robust.h>
+#include <PoseLib/types.h>
 
 namespace glomap {
 

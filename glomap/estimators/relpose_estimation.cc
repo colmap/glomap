@@ -1,5 +1,7 @@
 #include "glomap/estimators/relpose_estimation.h"
 
+#include <PoseLib/robust.h>
+
 namespace glomap {
 void EstimateRelativePoses(ViewGraph& view_graph,
                            std::unordered_map<camera_t, Camera>& cameras,

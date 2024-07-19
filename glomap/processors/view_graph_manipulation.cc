@@ -67,6 +67,9 @@ image_t ViewGraphManipulater::EstablishStrongClusters(
     std::unordered_map<image_t, Image>& images,
     StrongClusterCriteria criteria,
     double min_thres) {
+  
+  image_t num_img_before = view_graph.KeepLargestConnectedComponents(images);
+
   // Construct the initial cluster by keeping the pairs with weight > min_thres
   UnionFind<image_pair_t> uf;
   // Go through the edges, and add the edge with weight > min_thres
@@ -152,9 +155,10 @@ image_t ViewGraphManipulater::EstablishStrongClusters(
       image_pair.is_valid = false;
     }
   }
-  int num_img = view_graph.KeepLargestConnectedComponents(images);
+  image_t num_img = view_graph.KeepLargestConnectedComponents(images);
 
   std::cout << "Clustering take " << iteration << " iterations. " << num_img
+            << " / " << num_img_before
             << " images are kept after strong-clustering" << std::endl;
 
   return num_img;

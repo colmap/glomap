@@ -199,7 +199,7 @@ double ImagePairInliers::ScoreErrorHomography() {
 void ImagePairsInlierCount(ViewGraph& view_graph,
                            const std::unordered_map<camera_t, Camera>& cameras,
                            const std::unordered_map<image_t, Image>& images,
-                           const InlierThresholds& options,
+                           const InlierThresholdOptions& options,
                            bool clean_inliers) {
   for (auto& [pair_id, image_pair] : view_graph.image_pairs) {
     if (!clean_inliers && image_pair.inliers.size() > 0) continue;

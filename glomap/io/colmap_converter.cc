@@ -282,8 +282,8 @@ void ConvertDatabaseToGlomap(const colmap::Database& database,
     image_pair.matches.conservativeResize(count, 2);
   }
 
-  std::cout << "Pairs read done. " << view_graph.image_pairs.size()
-            << " pairs. Number of invalid pairs: " << invalid_count
+  std::cout << "Pairs read done. " << invalid_count << " / "
+            << view_graph.image_pairs.size() << " are invalid"
             << std::endl;
 }
 

@@ -13,7 +13,7 @@ constexpr double EPS = 1e-12;
 constexpr double HALF_PI = 1.57079632679;  // pi / 2
 constexpr double TWO_PI = 6.28318530718;   // 2 * pi
 
-struct InlierThresholds {
+struct InlierThresholdOptions {
   // Thresholds for 3D-2D matches
   double max_angle_error = 1.;           // in degree, for global positioning
   double max_reprojection_error = 1e-2;  // for bundle adjustment

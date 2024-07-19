@@ -13,7 +13,6 @@ bool ViewGraphCalibrator::Solve(ViewGraph& view_graph,
   // Reset the problem
   std::cout << "Start ViewGraphCalibrator" << std::endl;
   Reset(cameras);
-  std::cout << "Reset done" << std::endl;
 
   // Set the solver options.
   if (cameras.size() < 50)
@@ -23,12 +22,10 @@ bool ViewGraphCalibrator::Solve(ViewGraph& view_graph,
 
   // Add the image pairs into the problem
   AddImagePairsToProblem(view_graph, cameras, images);
-  std::cout << "AddImagePairsToProblem done" << std::endl;
 
   // Set the cameras to be constant if they have prior intrinsics
   size_t num_cameras = ParameterizeCameras(cameras);
 
-  std::cout << "ParameterizeCameras done" << std::endl;
 
   if (num_cameras == 0) {
     std::cout << "No cameras to optimize" << std::endl;
