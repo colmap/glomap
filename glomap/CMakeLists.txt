@@ -1,5 +1,6 @@
 set(SOURCES
     controllers/global_mapper.cc
+    controllers/option_manager.cc
     controllers/track_establishment.cc
     controllers/track_retriangulation.cc
     estimators/bundle_adjustment.cc
@@ -23,6 +24,7 @@ set(SOURCES
 
 set(HEADERS
     controllers/global_mapper.h
+    controllers/option_manager.h
     controllers/track_establishment.h
     controllers/track_retriangulation.h
     estimators/bundle_adjustment.h
@@ -55,13 +57,24 @@ set(HEADERS
 )
 
 add_library(glomap ${SOURCES} ${HEADERS})
+if(NOT FETCH_COLMAP)
+    target_link_libraries(glomap PUBLIC colmap::colmap)
+else()
+    target_link_libraries(glomap PUBLIC colmap)
+endif()
+
+if(NOT FETCH_POSELIB)
+    target_link_libraries(glomap PUBLIC PoseLib::PoseLib)
+else()
+    target_link_libraries(glomap PUBLIC PoseLib)
+endif()
+
 target_link_libraries(
     glomap
     PUBLIC
-        colmap
-        PoseLib
         Eigen3::Eigen
         Ceres::ceres
+        ${BOOST_LIBRARIES}
         ${SuiteSparse_CHOLMOD_LIBRARY}
 )
 target_include_directories(
@@ -85,8 +98,18 @@ else()
     )
 endif()
 
-add_executable(debug test_txtinput.cc)
+add_executable(debug test_textinput.cc)
 target_link_libraries(debug glomap)
+
+add_executable(glomap_main
+    glomap.cc
+    exe/global_mapper.h
+    exe/global_mapper.cc)
+target_link_libraries(glomap_main glomap)
+
+set_target_properties(glomap_main PROPERTIES OUTPUT_NAME glomap)
+install(TARGETS glomap_main DESTINATION bin)
+
 
 if(TESTS_ENABLED)
     add_executable(glomap_test

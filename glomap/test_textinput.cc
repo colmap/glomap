@@ -39,6 +39,7 @@ int main(int argc, char** argv) {
   options.skip_global_positioning = false;
   options.skip_bundle_adjustment = false;
   options.skip_retriangulation = false;
+  options.skip_postprocessing = true;
 
   colmap::Timer run_timer;
   run_timer.Start();
