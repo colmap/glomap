@@ -59,14 +59,24 @@ image_t PruneWeaklyConnectedImages(std::unordered_map<image_t, Image>& images,
 
   // sort the pair count
   std::sort(pair_count.begin(), pair_count.end());
+  double median_count = pair_count[pair_count.size() / 2];
+  
+  // calculate the MAD (median absolute deviation)
+  std::vector<int> pair_count_diff(pair_count.size());
+  for (size_t i = 0; i < pair_count.size(); i++) {
+    pair_count_diff[i] = std::abs(pair_count[i] - median_count);
+  }
+  std::sort(pair_count_diff.begin(), pair_count_diff.end());
+  double median_count_diff = pair_count_diff[pair_count_diff.size() / 2];
+
   // The median
-  std::cout << "Median: " << pair_count[pair_count.size() / 2] << std::endl;
+  std::cout << "Threshold for Strong Clustering: " << median_count - median_count_diff << std::endl;
 
   ViewGraphManipulater::EstablishStrongClusters(
       visibility_graph,
       images,
       ViewGraphManipulater::WEIGHT,
-      pair_count[pair_count.size() / 2] * 0.75);
+      std::max(median_count - median_count_diff, 30.));
 
   return visibility_graph.KeepLargestConnectedComponents(images);
 }
