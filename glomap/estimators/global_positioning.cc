@@ -25,9 +25,16 @@ bool GlobalPositioner::Solve(const ViewGraph& view_graph,
                              std::unordered_map<camera_t, Camera>& cameras,
                              std::unordered_map<image_t, Image>& images,
                              std::unordered_map<track_t, Track>& tracks) {
-  if (view_graph.image_pairs.empty() || images.empty()) {
-    std::cerr << "Number of image_pairs = " << view_graph.image_pairs.size()
-              << " Number of images = " << images.size();
+  if (images.empty()) {
+    std::cerr << "Number of images = " << images.size() << std::endl;
+    return false;
+  }
+  if (view_graph.image_pairs.empty() && options_.constraint_type != GlobalPositionerOptions::ONLY_POINTS) {
+    std::cerr << "Number of image_pairs = " << view_graph.image_pairs.size() << std::endl;
+    return false;
+  }
+  if (tracks.empty() && options_.constraint_type != GlobalPositionerOptions::ONLY_CAMERAS) {
+    std::cerr << "Number of tracks = " << tracks.size() << std::endl;
     return false;
   }
 
@@ -36,7 +43,7 @@ bool GlobalPositioner::Solve(const ViewGraph& view_graph,
 
   // Initialize camera translations to be random.
   // Also, convert the camera pose translation to be the camera center.
-  InitializeRandomPositions(view_graph, images);
+  InitializeRandomPositions(view_graph, images, tracks);
 
   // Add the camera to camera constraints to the problem.
   if (options_.constraint_type != GlobalPositionerOptions::ONLY_POINTS) {
@@ -45,7 +52,7 @@ bool GlobalPositioner::Solve(const ViewGraph& view_graph,
 
   // Add the point to camera constraints to the problem.
   if (options_.constraint_type != GlobalPositionerOptions::ONLY_CAMERAS) {
-    AddPointToCameraConstraints(view_graph, cameras, images, tracks);
+    AddPointToCameraConstraints(cameras, images, tracks);
   }
 
   AddCamerasAndPointsToParameterGroups(images, tracks);
@@ -74,7 +81,8 @@ void GlobalPositioner::Reset() {
 }
 
 void GlobalPositioner::InitializeRandomPositions(
-    const ViewGraph& view_graph, std::unordered_map<image_t, Image>& images) {
+    const ViewGraph& view_graph, std::unordered_map<image_t, Image>& images,
+                                 std::unordered_map<track_t, Track>& tracks) {
   std::unordered_set<image_t> constrained_positions;
   constrained_positions.reserve(images.size());
   for (const auto& [pair_id, image_pair] : view_graph.image_pairs) {
@@ -82,6 +90,18 @@ void GlobalPositioner::InitializeRandomPositions(
 
     constrained_positions.insert(image_pair.image_id1);
     constrained_positions.insert(image_pair.image_id2);
+  }
+
+  if (options_.constraint_type != GlobalPositionerOptions::ONLY_CAMERAS) {
+    for (const auto& [track_id, track] : tracks) {
+      if (track.observations.size() < options_.min_num_view_per_track) continue;
+      for (const auto& observation : tracks[track_id].observations) {
+        if (images.find(observation.first) == images.end()) continue;
+          Image& image = images[observation.first];
+          if (!image.is_registered) continue;
+            constrained_positions.insert(observation.first);
+      }
+    }
   }
 
   if (!options_.generate_random_positions || !options_.optimize_positions) {
@@ -142,7 +162,6 @@ void GlobalPositioner::AddCameraToCameraConstraints(
 }
 
 void GlobalPositioner::AddPointToCameraConstraints(
-    const ViewGraph& view_graph,
     std::unordered_map<camera_t, Camera>& cameras,
     std::unordered_map<image_t, Image>& images,
     std::unordered_map<track_t, Track>& tracks) {

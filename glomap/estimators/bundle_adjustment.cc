@@ -11,12 +11,11 @@ bool BundleAdjuster::Solve(const ViewGraph& view_graph,
                            std::unordered_map<track_t, Track>& tracks) {
   // Check if the input data is valid
   if (images.empty()) {
-    std::cerr << "Number of image_pairs = " << view_graph.image_pairs.size()
-              << ", Number of images = " << images.size() << std::endl;
+    std::cerr << "Number of images = " << images.size() << std::endl;
     return false;
   }
   if (tracks.empty()) {
-    std::cerr << "Number of tracks = " << tracks.size();
+    std::cerr << "Number of tracks = " << tracks.size() << std::endl;
     return false;
   }
 

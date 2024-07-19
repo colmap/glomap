@@ -66,7 +66,8 @@ class GlobalPositioner {
 
   // Initialize all cameras to be random.
   void InitializeRandomPositions(const ViewGraph& view_graph,
-                                 std::unordered_map<image_t, Image>& images);
+                                 std::unordered_map<image_t, Image>& images,
+                                 std::unordered_map<track_t, Track>& tracks);
 
   // Creates camera to camera constraints from relative translations. (3D)
   void AddCameraToCameraConstraints(const ViewGraph& view_graph,
@@ -74,7 +75,6 @@ class GlobalPositioner {
 
   // Add tracks to the problem
   void AddPointToCameraConstraints(
-      const ViewGraph& view_graph,
       std::unordered_map<camera_t, Camera>& cameras,
       std::unordered_map<image_t, Image>& images,
       std::unordered_map<track_t, Track>& tracks);
