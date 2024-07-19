@@ -24,7 +24,7 @@ struct GlobalMapperOptions {
   TriangulatorOptions opt_triangulator;
 
   // Inlier thresholds for each component
-  InlierThresholds inlier_thresholds;
+  InlierThresholdOptions inlier_thresholds;
 
   // Control the number of iterations for each component
   int num_iteration_bundle_adjustment = 3;

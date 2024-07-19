@@ -54,10 +54,8 @@ bool GlobalMapper::Solve(const colmap::Database& database,
     UndistortImages(cameras, images, true);
     EstimateRelativePoses(view_graph, cameras, images, options_.opt_relpose);
 
-    InlierThresholds inlier_thresholds = options_.inlier_thresholds;
-    // inlier_thresholds.max_epipolar_error_E =
-    // inlier_thresholds.max_epipolar_error_F; Undistort the images and filter
-    // edges by inlier number
+    InlierThresholdOptions inlier_thresholds = options_.inlier_thresholds;
+    // Undistort the images and filter edges by inlier number
     ImagePairsInlierCount(view_graph, cameras, images, inlier_thresholds, true);
 
     RelPoseFilter::FilterInlierNum(view_graph,
@@ -96,7 +94,8 @@ bool GlobalMapper::Solve(const colmap::Database& database,
     }
     RelPoseFilter::FilterRotations(
         view_graph, images, options_.inlier_thresholds.max_roation_error);
-    view_graph.KeepLargestConnectedComponents(images);
+    image_t num_img = view_graph.KeepLargestConnectedComponents(images);
+    std::cout << num_img << " / " << images.size() << " images are within the connected component." << std::endl;
 
     run_timer.PrintSeconds();
   }
@@ -129,10 +128,24 @@ bool GlobalMapper::Solve(const colmap::Database& database,
 
     colmap::Timer run_timer;
     run_timer.Start();
+    // Undistort images in case all previous steps are skipped
+    // Skip images where an undistortion already been done
+    UndistortImages(cameras, images, false);
 
     GlobalPositioner gp_engine(options_.opt_gp);
     if (!gp_engine.Solve(view_graph, cameras, images, tracks)) {
       return false;
+    }
+
+    // If only camera-to-camera constraints are used for solving camera positions, then points needs to be estimated separately
+    if (options_.opt_gp.constraint_type == GlobalPositionerOptions::ConstraintType::ONLY_CAMERAS) {
+      GlobalPositionerOptions opt_gp_pt = options_.opt_gp;
+      opt_gp_pt.constraint_type = GlobalPositionerOptions::ConstraintType::ONLY_POINTS;
+      opt_gp_pt.optimize_positions = false;
+      GlobalPositioner gp_engine_pt(opt_gp_pt);
+      if (!gp_engine_pt.Solve(view_graph, cameras, images, tracks)) {
+        return false;
+      }
     }
 
     // Filter tracks based on the estatimation
@@ -165,6 +178,8 @@ bool GlobalMapper::Solve(const colmap::Database& database,
       if (!ba_engine.Solve(view_graph, cameras, images, tracks)) {
         return false;
       }
+      std::cout << "Global bundle adjustment iteration " << ite + 1 <<  " / " << options_.num_iteration_bundle_adjustment << ", stage 1 finished" << std::endl;
+      run_timer.PrintSeconds();
 
       // 6.2. Second stage: optimize rotations if desired
       ba_engine_options_inner.optimize_rotations =
@@ -173,6 +188,9 @@ bool GlobalMapper::Solve(const colmap::Database& database,
           !ba_engine.Solve(view_graph, cameras, images, tracks)) {
         return false;
       }
+      std::cout << "Global bundle adjustment iteration " << ite + 1 <<  " / " << options_.num_iteration_bundle_adjustment << ", stage 2 finished" << std::endl;
+      if (ite != options_.num_iteration_bundle_adjustment - 1)
+        run_timer.PrintSeconds();
 
       // 6.3. Filter tracks based on the estatimation
       UndistortImages(cameras, images, true);
@@ -182,7 +200,6 @@ bool GlobalMapper::Solve(const colmap::Database& database,
       size_t filtere_num = 0;
       while (status && ite < options_.num_iteration_bundle_adjustment) {
         double scaling = std::max(3 - ite, 1);
-        std::cout << "scaling: " << scaling << std::endl;
         filtere_num += TrackFilter::FilterTracksByReprojection(
             view_graph,
             cameras,
