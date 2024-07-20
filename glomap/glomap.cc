@@ -1,19 +1,21 @@
-#include <iostream>
 #include "glomap/exe/global_mapper.h"
 
+#include <iostream>
+
 namespace {
+
 typedef std::function<int(int, char**)> command_func_t;
 
 int ShowHelp(
     const std::vector<std::pair<std::string, command_func_t>>& commands) {
-  
-  std::cout << "GLOMAP -- Global Structure-from-Motion"
-            << std::endl << std::endl;
+  std::cout << "GLOMAP -- Global Structure-from-Motion" << std::endl
+            << std::endl;
 
   std::cout << "Usage:" << std::endl;
-  std::cout << "  glomap mapper --database_path DATABASE --output_path MODEL" 
+  std::cout << "  glomap mapper --database_path DATABASE --output_path MODEL"
             << std::endl;
-  std::cout << "  glomap mapper_resume --input_path MODEL_INPUT --output_path MODEL_OUTPUT" 
+  std::cout << "  glomap mapper_resume --input_path MODEL_INPUT --output_path "
+               "MODEL_OUTPUT"
             << std::endl;
 
   std::cout << "Available commands:" << std::endl;
@@ -33,7 +35,8 @@ int main(int argc, char** argv) {
   commands.emplace_back("mapper", &glomap::RunMapper);
   commands.emplace_back("mapper_resume", &glomap::RunMapperResume);
   commands.emplace_back("customized_mapper", &glomap::RunCustomizedMapper);
-  commands.emplace_back("customized_mapper_resume", &glomap::RunCustomizedMapperResume);
+  commands.emplace_back("customized_mapper_resume",
+                        &glomap::RunCustomizedMapperResume);
 
   if (argc == 1) {
     return ShowHelp(commands);
@@ -51,9 +54,9 @@ int main(int argc, char** argv) {
       }
     }
     if (matched_command_func == nullptr) {
-        std::cout << "Command "<< command << " not recognized. " 
-                  << "To list the available commands, run `colmap help`." 
-                  << std::endl;
+      std::cout << "Command " << command << " not recognized. "
+                << "To list the available commands, run `colmap help`."
+                << std::endl;
       return EXIT_FAILURE;
     } else {
       int command_argc = argc - 1;

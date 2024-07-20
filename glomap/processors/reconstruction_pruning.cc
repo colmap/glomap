@@ -60,7 +60,7 @@ image_t PruneWeaklyConnectedImages(std::unordered_map<image_t, Image>& images,
   // sort the pair count
   std::sort(pair_count.begin(), pair_count.end());
   double median_count = pair_count[pair_count.size() / 2];
-  
+
   // calculate the MAD (median absolute deviation)
   std::vector<int> pair_count_diff(pair_count.size());
   for (size_t i = 0; i < pair_count.size(); i++) {
@@ -70,7 +70,8 @@ image_t PruneWeaklyConnectedImages(std::unordered_map<image_t, Image>& images,
   double median_count_diff = pair_count_diff[pair_count_diff.size() / 2];
 
   // The median
-  std::cout << "Threshold for Strong Clustering: " << median_count - median_count_diff << std::endl;
+  std::cout << "Threshold for Strong Clustering: "
+            << median_count - median_count_diff << std::endl;
 
   ViewGraphManipulater::EstablishStrongClusters(
       visibility_graph,

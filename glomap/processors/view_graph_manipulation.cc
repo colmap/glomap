@@ -67,7 +67,6 @@ image_t ViewGraphManipulater::EstablishStrongClusters(
     std::unordered_map<image_t, Image>& images,
     StrongClusterCriteria criteria,
     double min_thres) {
-  
   image_t num_img_before = view_graph.KeepLargestConnectedComponents(images);
 
   // Construct the initial cluster by keeping the pairs with weight > min_thres

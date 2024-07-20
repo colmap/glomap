@@ -1,9 +1,9 @@
 #pragma once
 
-#include <boost/program_options.hpp>
-#include <memory>
 #include <iostream>
+#include <memory>
 
+#include <boost/program_options.hpp>
 
 namespace glomap {
 
@@ -16,7 +16,6 @@ struct GlobalPositionerOptions;
 struct BundleAdjusterOptions;
 struct TriangulatorOptions;
 struct InlierThresholdOptions;
-
 
 class OptionManager {
  public:
@@ -36,7 +35,6 @@ class OptionManager {
   void AddBundleAdjusterOptions();
   void AddTriangulatorOptions();
   void AddInlierThresholdOptions();
-  
 
   template <typename T>
   void AddRequiredOption(const std::string& name,
@@ -89,7 +87,6 @@ class OptionManager {
   bool added_triangulation_options_ = false;
   bool added_inliers_options_ = false;
 };
-
 
 template <typename T>
 void OptionManager::AddRequiredOption(const std::string& name,
@@ -147,4 +144,4 @@ void OptionManager::RegisterOption(const std::string& name, const T* option) {
   }
 }
 
-}  // namespace colmap
+}  // namespace glomap

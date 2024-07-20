@@ -2,8 +2,8 @@
 #include "glomap/scene/types_sfm.h"
 
 #include <colmap/scene/database.h>
-#include <colmap/scene/reconstruction.h>
 #include <colmap/scene/image.h>
+#include <colmap/scene/reconstruction.h>
 
 namespace glomap {
 

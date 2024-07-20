@@ -95,7 +95,8 @@ bool GlobalMapper::Solve(const colmap::Database& database,
     RelPoseFilter::FilterRotations(
         view_graph, images, options_.inlier_thresholds.max_roation_error);
     image_t num_img = view_graph.KeepLargestConnectedComponents(images);
-    std::cout << num_img << " / " << images.size() << " images are within the connected component." << std::endl;
+    std::cout << num_img << " / " << images.size()
+              << " images are within the connected component." << std::endl;
 
     run_timer.PrintSeconds();
   }
@@ -137,10 +138,13 @@ bool GlobalMapper::Solve(const colmap::Database& database,
       return false;
     }
 
-    // If only camera-to-camera constraints are used for solving camera positions, then points needs to be estimated separately
-    if (options_.opt_gp.constraint_type == GlobalPositionerOptions::ConstraintType::ONLY_CAMERAS) {
+    // If only camera-to-camera constraints are used for solving camera
+    // positions, then points needs to be estimated separately
+    if (options_.opt_gp.constraint_type ==
+        GlobalPositionerOptions::ConstraintType::ONLY_CAMERAS) {
       GlobalPositionerOptions opt_gp_pt = options_.opt_gp;
-      opt_gp_pt.constraint_type = GlobalPositionerOptions::ConstraintType::ONLY_POINTS;
+      opt_gp_pt.constraint_type =
+          GlobalPositionerOptions::ConstraintType::ONLY_POINTS;
       opt_gp_pt.optimize_positions = false;
       GlobalPositioner gp_engine_pt(opt_gp_pt);
       if (!gp_engine_pt.Solve(view_graph, cameras, images, tracks)) {
@@ -178,7 +182,9 @@ bool GlobalMapper::Solve(const colmap::Database& database,
       if (!ba_engine.Solve(view_graph, cameras, images, tracks)) {
         return false;
       }
-      std::cout << "Global bundle adjustment iteration " << ite + 1 <<  " / " << options_.num_iteration_bundle_adjustment << ", stage 1 finished" << std::endl;
+      std::cout << "Global bundle adjustment iteration " << ite + 1 << " / "
+                << options_.num_iteration_bundle_adjustment
+                << ", stage 1 finished" << std::endl;
       run_timer.PrintSeconds();
 
       // 6.2. Second stage: optimize rotations if desired
@@ -188,7 +194,9 @@ bool GlobalMapper::Solve(const colmap::Database& database,
           !ba_engine.Solve(view_graph, cameras, images, tracks)) {
         return false;
       }
-      std::cout << "Global bundle adjustment iteration " << ite + 1 <<  " / " << options_.num_iteration_bundle_adjustment << ", stage 2 finished" << std::endl;
+      std::cout << "Global bundle adjustment iteration " << ite + 1 << " / "
+                << options_.num_iteration_bundle_adjustment
+                << ", stage 2 finished" << std::endl;
       if (ite != options_.num_iteration_bundle_adjustment - 1)
         run_timer.PrintSeconds();
 

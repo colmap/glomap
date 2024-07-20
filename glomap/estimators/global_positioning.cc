@@ -29,11 +29,14 @@ bool GlobalPositioner::Solve(const ViewGraph& view_graph,
     std::cerr << "Number of images = " << images.size() << std::endl;
     return false;
   }
-  if (view_graph.image_pairs.empty() && options_.constraint_type != GlobalPositionerOptions::ONLY_POINTS) {
-    std::cerr << "Number of image_pairs = " << view_graph.image_pairs.size() << std::endl;
+  if (view_graph.image_pairs.empty() &&
+      options_.constraint_type != GlobalPositionerOptions::ONLY_POINTS) {
+    std::cerr << "Number of image_pairs = " << view_graph.image_pairs.size()
+              << std::endl;
     return false;
   }
-  if (tracks.empty() && options_.constraint_type != GlobalPositionerOptions::ONLY_CAMERAS) {
+  if (tracks.empty() &&
+      options_.constraint_type != GlobalPositionerOptions::ONLY_CAMERAS) {
     std::cerr << "Number of tracks = " << tracks.size() << std::endl;
     return false;
   }
@@ -81,8 +84,9 @@ void GlobalPositioner::Reset() {
 }
 
 void GlobalPositioner::InitializeRandomPositions(
-    const ViewGraph& view_graph, std::unordered_map<image_t, Image>& images,
-                                 std::unordered_map<track_t, Track>& tracks) {
+    const ViewGraph& view_graph,
+    std::unordered_map<image_t, Image>& images,
+    std::unordered_map<track_t, Track>& tracks) {
   std::unordered_set<image_t> constrained_positions;
   constrained_positions.reserve(images.size());
   for (const auto& [pair_id, image_pair] : view_graph.image_pairs) {
@@ -97,9 +101,9 @@ void GlobalPositioner::InitializeRandomPositions(
       if (track.observations.size() < options_.min_num_view_per_track) continue;
       for (const auto& observation : tracks[track_id].observations) {
         if (images.find(observation.first) == images.end()) continue;
-          Image& image = images[observation.first];
-          if (!image.is_registered) continue;
-            constrained_positions.insert(observation.first);
+        Image& image = images[observation.first];
+        if (!image.is_registered) continue;
+        constrained_positions.insert(observation.first);
       }
     }
   }

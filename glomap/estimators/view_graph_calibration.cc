@@ -26,7 +26,6 @@ bool ViewGraphCalibrator::Solve(ViewGraph& view_graph,
   // Set the cameras to be constant if they have prior intrinsics
   size_t num_cameras = ParameterizeCameras(cameras);
 
-
   if (num_cameras == 0) {
     std::cout << "No cameras to optimize" << std::endl;
     return true;
