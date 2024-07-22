@@ -3,8 +3,8 @@
 #include <iostream>
 
 namespace {
-typedef std::function<int(int, char**)> command_func_t;
 
+typedef std::function<int(int, char**)> command_func_t;
 int ShowHelp(
     const std::vector<std::pair<std::string, command_func_t>>& commands) {
   std::cout << "GLOMAP -- Global Structure-from-Motion" << std::endl
