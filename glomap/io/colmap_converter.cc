@@ -7,21 +7,22 @@ namespace glomap {
 void ConvertGlomapToColmapImage(const Image& image,
                                 colmap::Image& image_colmap,
                                 bool keep_points) {
-    image_colmap.SetImageId(image.image_id);
-    image_colmap.SetCameraId(image.camera_id);
-    image_colmap.SetRegistered(image.is_registered);
-    image_colmap.SetName(image.file_name);
-    image_colmap.CamFromWorld() = image.cam_from_world;
+  image_colmap.SetImageId(image.image_id);
+  image_colmap.SetCameraId(image.camera_id);
+  image_colmap.SetRegistered(image.is_registered);
+  image_colmap.SetName(image.file_name);
+  image_colmap.CamFromWorld() = image.cam_from_world;
 
-    if (keep_points) {
-      image_colmap.SetPoints2D(image.features);
-    }
+  if (keep_points) {
+    image_colmap.SetPoints2D(image.features);
+  }
 }
 
 void ConvertGlomapToColmap(const std::unordered_map<camera_t, Camera>& cameras,
                            const std::unordered_map<image_t, Image>& images,
                            const std::unordered_map<track_t, Track>& tracks,
                            colmap::Reconstruction& reconstruction,
+                           int cluster_id,
                            bool include_image_points) {
   // Clear the colmap reconstruction
   reconstruction = colmap::Reconstruction();
@@ -36,7 +37,9 @@ void ConvertGlomapToColmap(const std::unordered_map<camera_t, Camera>& cameras,
   if (tracks.size() > 0 || include_image_points) {
     // Initialize every point to corresponds to invalid point
     for (auto& [image_id, image] : images) {
-      if (!image.is_registered) continue;
+      if (!image.is_registered ||
+          (cluster_id != -1 && image.cluster_id != cluster_id))
+        continue;
       image_to_point3D[image_id] =
           std::vector<track_t>(image.features.size(), -1);
     }
@@ -65,7 +68,10 @@ void ConvertGlomapToColmap(const std::unordered_map<camera_t, Camera>& cameras,
 
     // Add track element
     for (auto& observation : track.observations) {
-      if (images.at(observation.first).is_registered == false) continue;
+      const Image& image = images.at(observation.first);
+      if (!image.is_registered ||
+          (cluster_id != -1 && image.cluster_id != cluster_id))
+        continue;
       colmap::TrackElement colmap_track_el;
       colmap_track_el.image_id = observation.first;
       colmap_track_el.point2D_idx = observation.second;
@@ -73,17 +79,21 @@ void ConvertGlomapToColmap(const std::unordered_map<camera_t, Camera>& cameras,
       colmap_point.track.AddElement(colmap_track_el);
     }
 
+    if (colmap_point.track.Length() < 2) continue;
+
     colmap_point.track.Compress();
     reconstruction.AddPoint3D(track_id, std::move(colmap_point));
   }
 
   // Add images
   for (const auto& [image_id, image] : images) {
-    if (!image.is_registered)
+    if (!image.is_registered ||
+        (cluster_id != -1 && image.cluster_id != cluster_id))
       continue;
 
     colmap::Image image_colmap;
-    bool keep_points = image_to_point3D.find(image_id) != image_to_point3D.end();
+    bool keep_points =
+        image_to_point3D.find(image_id) != image_to_point3D.end();
     ConvertGlomapToColmapImage(image, image_colmap, keep_points);
     if (keep_points) {
       std::vector<track_t>& track_ids = image_to_point3D[image_id];
@@ -168,7 +178,12 @@ void ConvertDatabaseToGlomap(const colmap::Database& database,
                              std::unordered_map<image_t, Image>& images) {
   // Add the images
   std::vector<colmap::Image> images_colmap = database.ReadAllImages();
+  image_t counter = 0;
   for (auto& image : images_colmap) {
+    std::cout << "\r Loading Images " << counter + 1 << " / "
+              << images_colmap.size() << std::flush;
+    counter++;
+
     image_t image_id = image.ImageId();
     if (image_id == colmap::kInvalidImageId) continue;
     auto ite = images.insert(std::make_pair(
@@ -181,6 +196,7 @@ void ConvertDatabaseToGlomap(const colmap::Database& database,
       ite.first->second.cam_from_world = Rigid3d();
     }
   }
+  std::cout << std::endl;
 
   // Read keypoints
   for (auto& [image_id, image] : images) {
@@ -192,8 +208,8 @@ void ConvertDatabaseToGlomap(const colmap::Database& database,
           Eigen::Vector2d(keypoints[i].x, keypoints[i].y));
     }
   }
-  std::cout << "keypoints read done. " << images.size() << " images"
-            << std::endl;
+  // LOG(INFO) << "Keypoints read done. " << images.size() << " images"
+  // << std::endl;
 
   // Add the cameras
   std::vector<colmap::Camera> cameras_colmap = database.ReadAllCameras();
@@ -212,6 +228,9 @@ void ConvertDatabaseToGlomap(const colmap::Database& database,
   std::unordered_map<image_pair_t, ImagePair>& image_pairs =
       view_graph.image_pairs;
   for (size_t match_idx = 0; match_idx < all_matches.size(); match_idx++) {
+    if (match_idx % 1000 == 0)
+      std::cout << "\r Loading Image Pair " << match_idx + 1 << " / "
+                << all_matches.size() << std::flush;
     // Read the image pair from COLMAP database
     colmap::image_pair_t pair_id = all_matches[match_idx].first;
     std::pair<colmap::image_t, colmap::image_t> image_pair_colmap =
@@ -281,10 +300,10 @@ void ConvertDatabaseToGlomap(const colmap::Database& database,
     }
     image_pair.matches.conservativeResize(count, 2);
   }
+  std::cout << std::endl;
 
-  std::cout << "Pairs read done. " << invalid_count << " / "
-            << view_graph.image_pairs.size() << " are invalid"
-            << std::endl;
+  LOG(INFO) << "Pairs read done. " << invalid_count << " / "
+            << view_graph.image_pairs.size() << " are invalid" << std::endl;
 }
 
 }  // namespace glomap
