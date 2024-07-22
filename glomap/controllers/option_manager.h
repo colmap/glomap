@@ -1,10 +1,11 @@
 #pragma once
 
-#include <boost/program_options.hpp>
 #include <colmap/util/logging.h>
-#include <memory>
-#include <iostream>
 
+#include <iostream>
+#include <memory>
+
+#include <boost/program_options.hpp>
 
 namespace glomap {
 

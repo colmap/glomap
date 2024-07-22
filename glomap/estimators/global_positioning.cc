@@ -32,7 +32,7 @@ bool GlobalPositioner::Solve(const ViewGraph& view_graph,
   if (view_graph.image_pairs.empty() &&
       options_.constraint_type != GlobalPositionerOptions::ONLY_POINTS) {
     LOG(ERROR) << "Number of image_pairs = " << view_graph.image_pairs.size()
-              << std::endl;
+               << std::endl;
     return false;
   }
   if (tracks.empty() &&
