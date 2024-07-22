@@ -11,7 +11,7 @@ bool ViewGraphCalibrator::Solve(ViewGraph& view_graph,
                                 std::unordered_map<camera_t, Camera>& cameras,
                                 std::unordered_map<image_t, Image>& images) {
   // Reset the problem
-  std::cout << "Start ViewGraphCalibrator" << std::endl;
+  LOG(INFO) << "Start ViewGraphCalibrator" << std::endl;
   Reset(cameras);
 
   // Set the solver options.
@@ -26,9 +26,8 @@ bool ViewGraphCalibrator::Solve(ViewGraph& view_graph,
   // Set the cameras to be constant if they have prior intrinsics
   size_t num_cameras = ParameterizeCameras(cameras);
 
-
   if (num_cameras == 0) {
-    std::cout << "No cameras to optimize" << std::endl;
+    LOG(INFO) << "No cameras to optimize" << std::endl;
     return true;
   }
 
@@ -38,7 +37,7 @@ bool ViewGraphCalibrator::Solve(ViewGraph& view_graph,
   ceres::Solve(options_.solver_options, problem_.get(), &summary);
 
   // Print the summary only if verbose
-  if (options_.verbose) std::cout << summary.FullReport() << std::endl;
+  if (options_.verbose) LOG(INFO) << summary.FullReport() << std::endl;
 
   // Convert the results back to the camera
   ConvertResults(cameras);
@@ -134,7 +133,7 @@ void ViewGraphCalibrator::ConvertResults(
     if (focals_[camera_id] / camera.Focal() > options_.thres_higher_ratio ||
         focals_[camera_id] / camera.Focal() < options_.thres_lower_ratio) {
       if (options_.verbose)
-        std::cout << "NOT ACCEPTED: Camera " << camera_id
+        LOG(INFO) << "NOT ACCEPTED: Camera " << camera_id
                   << " focal: " << focals_[camera_id]
                   << " original focal: " << camera.Focal() << std::endl;
       counter++;
@@ -150,7 +149,7 @@ void ViewGraphCalibrator::ConvertResults(
       camera.params[idx] = focals_[camera_id];
     }
   }
-  std::cout << counter << " cameras are rejected in view graph calibration"
+  LOG(INFO) << counter << " cameras are rejected in view graph calibration"
             << std::endl;
 }
 
@@ -186,7 +185,7 @@ size_t ViewGraphCalibrator::FilterImagePair(
     counter += 2;
   }
 
-  std::cout << "invalid / total number of two view geometry: "
+  LOG(INFO) << "invalid / total number of two view geometry: "
             << invalid_counter << " / " << counter << std::endl;
 
   return invalid_counter;

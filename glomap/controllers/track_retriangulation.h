@@ -12,7 +12,7 @@ struct TriangulatorOptions {
   double tri_merge_max_reproj_error = 15.0;
   double tri_min_angle = 1.0;
 
-  size_t min_num_matches = 15;
+  int min_num_matches = 15;
 };
 
 bool RetriangulateTracks(const TriangulatorOptions& options,

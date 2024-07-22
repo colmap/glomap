@@ -138,7 +138,7 @@ void TrackEngine::TrackCollection(std::unordered_map<track_t, Track>& tracks) {
   }
 
   std::cout << std::endl;
-  std::cout << "Discarded " << discarded_counter
+  LOG(INFO) << "Discarded " << discarded_counter
             << " tracks due to inconsistency" << std::endl;
 }
 
