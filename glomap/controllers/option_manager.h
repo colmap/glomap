@@ -1,6 +1,7 @@
 #pragma once
 
 #include <boost/program_options.hpp>
+#include <colmap/util/logging.h>
 #include <memory>
 #include <iostream>
 
@@ -16,7 +17,6 @@ struct GlobalPositionerOptions;
 struct BundleAdjusterOptions;
 struct TriangulatorOptions;
 struct InlierThresholdOptions;
-
 
 class OptionManager {
  public:
@@ -36,7 +36,6 @@ class OptionManager {
   void AddBundleAdjusterOptions();
   void AddTriangulatorOptions();
   void AddInlierThresholdOptions();
-  
 
   template <typename T>
   void AddRequiredOption(const std::string& name,
@@ -90,7 +89,6 @@ class OptionManager {
   bool added_inliers_options_ = false;
 };
 
-
 template <typename T>
 void OptionManager::AddRequiredOption(const std::string& name,
                                       T* option,
@@ -143,8 +141,8 @@ void OptionManager::RegisterOption(const std::string& name, const T* option) {
     options_string_.emplace_back(name,
                                  reinterpret_cast<const std::string*>(option));
   } else {
-    std::cout << "Unsupported option type" << std::endl;
+    LOG(ERROR) << "Unsupported option type: " << name << std::endl;
   }
 }
 
-}  // namespace colmap
+}  // namespace glomap

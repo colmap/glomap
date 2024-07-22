@@ -28,7 +28,7 @@ void RelPoseFilter::FilterRotations(
     }
   }
 
-  std::cout << "Filtered " << num_invalid << " relative rotation with angle > "
+  LOG(INFO) << "Filtered " << num_invalid << " relative rotation with angle > "
             << max_angle << " degrees" << std::endl;
 }
 
@@ -43,7 +43,7 @@ void RelPoseFilter::FilterInlierNum(ViewGraph& view_graph, int min_inlier_num) {
     }
   }
 
-  std::cout << "Filtered " << num_invalid
+  LOG(INFO) << "Filtered " << num_invalid
             << " relative poses with inlier number < " << min_inlier_num
             << std::endl;
 }
@@ -61,7 +61,7 @@ void RelPoseFilter::FilterInlierRatio(ViewGraph& view_graph,
     }
   }
 
-  std::cout << "Filtered " << num_invalid
+  LOG(INFO) << "Filtered " << num_invalid
             << " relative poses with inlier ratio < " << min_inlier_ratio
             << std::endl;
 }

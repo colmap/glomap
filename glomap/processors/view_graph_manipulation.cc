@@ -66,8 +66,8 @@ image_t ViewGraphManipulater::EstablishStrongClusters(
     ViewGraph& view_graph,
     std::unordered_map<image_t, Image>& images,
     StrongClusterCriteria criteria,
-    double min_thres) {
-  
+    double min_thres,
+    int min_num_images) {
   image_t num_img_before = view_graph.KeepLargestConnectedComponents(images);
 
   // Construct the initial cluster by keeping the pairs with weight > min_thres
@@ -155,14 +155,15 @@ image_t ViewGraphManipulater::EstablishStrongClusters(
       image_pair.is_valid = false;
     }
   }
-  image_t num_img = view_graph.KeepLargestConnectedComponents(images);
+  int num_comp = view_graph.MarkConnectedComponents(images);
 
-  std::cout << "Clustering take " << iteration << " iterations. " << num_img
-            << " / " << num_img_before
-            << " images are kept after strong-clustering" << std::endl;
+  LOG(INFO) << "Clustering take " << iteration << " iterations. "
+            << "Images are grouped into " << num_comp
+            << " clusters after strong-clustering" << std::endl;
 
-  return num_img;
+  return num_comp;
 }
+
 void ViewGraphManipulater::UpdateImagePairsConfig(
     ViewGraph& view_graph,
     const std::unordered_map<camera_t, Camera>& cameras,
@@ -240,7 +241,7 @@ void ViewGraphManipulater::DecomposeRelPose(
       continue;
     image_pair_ids.push_back(pair_id);
   }
-  std::cout << "Decompose relative pose for " << image_pair_ids.size()
+  LOG(INFO) << "Decompose relative pose for " << image_pair_ids.size()
             << " pairs" << std::endl;
 
 #pragma omp parallel for
@@ -290,7 +291,7 @@ void ViewGraphManipulater::DecomposeRelPose(
         image_pair.config != colmap::TwoViewGeometry::PLANAR_OR_PANORAMIC)
       counter++;
   }
-  std::cout << "Decompose relative pose done. " << counter
+  LOG(INFO) << "Decompose relative pose done. " << counter
             << " pairs are pure rotation" << std::endl;
 }
 

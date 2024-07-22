@@ -5,6 +5,7 @@
 namespace glomap {
 image_t PruneWeaklyConnectedImages(std::unordered_map<image_t, Image>& images,
                                    std::unordered_map<track_t, Track>& tracks,
+                                   int min_num_images,
                                    int min_num_observations) {
   // Prepare the 2d-3d correspondences
   std::unordered_map<image_pair_t, int> pair_covisibility_count;
@@ -54,13 +55,13 @@ image_t PruneWeaklyConnectedImages(std::unordered_map<image_t, Image>& images,
       visibility_graph.image_pairs[pair_id].weight = count;
     }
   }
-  std::cout << "Established visibility graph with " << counter << " pairs"
+  LOG(INFO) << "Established visibility graph with " << counter << " pairs"
             << std::endl;
 
   // sort the pair count
   std::sort(pair_count.begin(), pair_count.end());
   double median_count = pair_count[pair_count.size() / 2];
-  
+
   // calculate the MAD (median absolute deviation)
   std::vector<int> pair_count_diff(pair_count.size());
   for (size_t i = 0; i < pair_count.size(); i++) {
@@ -70,15 +71,17 @@ image_t PruneWeaklyConnectedImages(std::unordered_map<image_t, Image>& images,
   double median_count_diff = pair_count_diff[pair_count_diff.size() / 2];
 
   // The median
-  std::cout << "Threshold for Strong Clustering: " << median_count - median_count_diff << std::endl;
+  LOG(INFO) << "Threshold for Strong Clustering: "
+            << median_count - median_count_diff << std::endl;
 
-  ViewGraphManipulater::EstablishStrongClusters(
+  return ViewGraphManipulater::EstablishStrongClusters(
       visibility_graph,
       images,
       ViewGraphManipulater::WEIGHT,
-      std::max(median_count - median_count_diff, 30.));
+      std::max(median_count - median_count_diff, 20.),
+      min_num_images);
 
-  return visibility_graph.KeepLargestConnectedComponents(images);
+  // return visibility_graph.MarkConnectedComponents(images, min_num_images);
 }
 
 }  // namespace glomap

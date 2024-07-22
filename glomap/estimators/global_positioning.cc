@@ -26,15 +26,18 @@ bool GlobalPositioner::Solve(const ViewGraph& view_graph,
                              std::unordered_map<image_t, Image>& images,
                              std::unordered_map<track_t, Track>& tracks) {
   if (images.empty()) {
-    std::cerr << "Number of images = " << images.size() << std::endl;
+    LOG(ERROR) << "Number of images = " << images.size() << std::endl;
     return false;
   }
-  if (view_graph.image_pairs.empty() && options_.constraint_type != GlobalPositionerOptions::ONLY_POINTS) {
-    std::cerr << "Number of image_pairs = " << view_graph.image_pairs.size() << std::endl;
+  if (view_graph.image_pairs.empty() &&
+      options_.constraint_type != GlobalPositionerOptions::ONLY_POINTS) {
+    LOG(ERROR) << "Number of image_pairs = " << view_graph.image_pairs.size()
+              << std::endl;
     return false;
   }
-  if (tracks.empty() && options_.constraint_type != GlobalPositionerOptions::ONLY_CAMERAS) {
-    std::cerr << "Number of tracks = " << tracks.size() << std::endl;
+  if (tracks.empty() &&
+      options_.constraint_type != GlobalPositionerOptions::ONLY_CAMERAS) {
+    LOG(ERROR) << "Number of tracks = " << tracks.size() << std::endl;
     return false;
   }
 
@@ -66,7 +69,7 @@ bool GlobalPositioner::Solve(const ViewGraph& view_graph,
   ceres::Solve(options_.solver_options, problem_.get(), &summary);
 
   if (options_.verbose) {
-    std::cout << summary.FullReport();
+    LOG(INFO) << summary.FullReport();
   }
 
   ConvertResults(images);
@@ -81,8 +84,9 @@ void GlobalPositioner::Reset() {
 }
 
 void GlobalPositioner::InitializeRandomPositions(
-    const ViewGraph& view_graph, std::unordered_map<image_t, Image>& images,
-                                 std::unordered_map<track_t, Track>& tracks) {
+    const ViewGraph& view_graph,
+    std::unordered_map<image_t, Image>& images,
+    std::unordered_map<track_t, Track>& tracks) {
   std::unordered_set<image_t> constrained_positions;
   constrained_positions.reserve(images.size());
   for (const auto& [pair_id, image_pair] : view_graph.image_pairs) {
@@ -97,9 +101,9 @@ void GlobalPositioner::InitializeRandomPositions(
       if (track.observations.size() < options_.min_num_view_per_track) continue;
       for (const auto& observation : tracks[track_id].observations) {
         if (images.find(observation.first) == images.end()) continue;
-          Image& image = images[observation.first];
-          if (!image.is_registered) continue;
-            constrained_positions.insert(observation.first);
+        Image& image = images[observation.first];
+        if (!image.is_registered) continue;
+        constrained_positions.insert(observation.first);
       }
     }
   }
@@ -122,7 +126,7 @@ void GlobalPositioner::InitializeRandomPositions(
   }
 
   if (options_.verbose)
-    std::cout << "Constrained positions: " << constrained_positions.size()
+    LOG(INFO) << "Constrained positions: " << constrained_positions.size()
               << std::endl;
 }
 
@@ -155,7 +159,7 @@ void GlobalPositioner::AddCameraToCameraConstraints(
   }
 
   if (options_.verbose)
-    std::cout << problem_->NumResidualBlocks()
+    LOG(INFO) << problem_->NumResidualBlocks()
               << " camera to camera constraints were added to the position "
                  "estimation problem."
               << std::endl;
@@ -172,7 +176,7 @@ void GlobalPositioner::AddPointToCameraConstraints(
   const size_t num_pt_to_cam = tracks.size();
 
   if (options_.verbose)
-    std::cout << num_pt_to_cam
+    LOG(INFO) << num_pt_to_cam
               << " point to camera constriants were added to the position "
                  "estimation problem."
               << std::endl;
@@ -190,7 +194,7 @@ void GlobalPositioner::AddPointToCameraConstraints(
                       static_cast<double>(num_pt_to_cam);
   }
   if (options_.verbose)
-    std::cout << "Point to camera weight scaled: " << weight_scale_pt
+    LOG(INFO) << "Point to camera weight scaled: " << weight_scale_pt
               << std::endl;
 
   if (loss_function_ptcam_uncalibrated_ == nullptr) {

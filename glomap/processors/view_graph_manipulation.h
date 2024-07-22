@@ -18,7 +18,8 @@ struct ViewGraphManipulater {
       ViewGraph& view_graph,
       std::unordered_map<image_t, Image>& images,
       StrongClusterCriteria criteria = INLIER_NUM,
-      double min_thres = 100);  // require strong edges
+      double min_thres = 100,  // require strong edges
+      int min_num_images = 2);
 
   static void UpdateImagePairsConfig(
       ViewGraph& view_graph,
