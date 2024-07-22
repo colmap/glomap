@@ -39,7 +39,7 @@ struct GlobalMapperOptions {
   bool skip_global_positioning = false;
   bool skip_bundle_adjustment = false;
   bool skip_retriangulation = false;
-  bool skip_postprocessing = false;
+  bool skip_postprocessing = true;
 };
 
 class GlobalMapper {
