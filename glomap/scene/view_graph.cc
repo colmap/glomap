@@ -61,6 +61,32 @@ int ViewGraph::FindConnectedComponent() {
   return connected_components.size();
 }
 
+int ViewGraph::MarkConnectedComponents(
+    std::unordered_map<image_t, Image>& images, int min_num_img) {
+  EstablishAdjacencyList();
+
+  int num_comp = FindConnectedComponent();
+
+  std::vector<std::pair<int, int>> cluster_num_img(num_comp);
+  for (int comp = 0; comp < num_comp; comp++) {
+    cluster_num_img[comp] =
+        std::make_pair(connected_components[comp].size(), comp);
+  }
+  std::sort(cluster_num_img.begin(), cluster_num_img.end(), std::greater<>());
+
+  // Set the cluster number of every image to be -1
+  for (auto& [image_id, image] : images) image.cluster_id = -1;
+
+  int comp = 0;
+  for (; comp < num_comp; comp++) {
+    if (cluster_num_img[comp].first < min_num_img) break;
+    for (auto image_id : connected_components[cluster_num_img[comp].second])
+      images[image_id].cluster_id = comp;
+  }
+
+  return comp;
+}
+
 void ViewGraph::BFS(image_t root,
                     std::unordered_map<image_t, bool>& visited,
                     std::unordered_set<image_t>& component) {

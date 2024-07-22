@@ -33,6 +33,7 @@ struct Image {
 
   // whether the image is within the largest connected component
   bool is_registered = false;
+  int cluster_id = -1;
 
   // The pose of the image, defined as the transformation from world to camera.
   Rigid3d cam_from_world;

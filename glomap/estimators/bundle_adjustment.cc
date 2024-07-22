@@ -42,9 +42,9 @@ bool BundleAdjuster::Solve(const ViewGraph& view_graph,
   options_.solver_options.minimizer_progress_to_stdout = options_.verbose;
   ceres::Solve(options_.solver_options, problem_.get(), &summary);
   if (options_.verbose)
-    std::cout << summary.FullReport();
+    LOG(INFO) << summary.FullReport();
   else
-    std::cout << summary.BriefReport() << std::endl;
+    LOG(INFO) << summary.BriefReport() << std::endl;
 
   return summary.IsSolutionUsable();
 }
@@ -101,7 +101,7 @@ void BundleAdjuster::AddPointToCameraConstraints(
                   image.features[observation.second]);
           break;
         default:
-          std::cout << "Camera model not supported" << std::endl;
+          LOG(ERROR) << "Camera model not supported" << std::endl;
           break;
       }
 

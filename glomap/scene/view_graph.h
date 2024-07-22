@@ -18,6 +18,11 @@ class ViewGraph {
   int KeepLargestConnectedComponents(
       std::unordered_map<image_t, Image>& images);
 
+  // Mark the cluster of the cameras (cluster_id sort by the the number of
+  // images)
+  int MarkConnectedComponents(std::unordered_map<image_t, Image>& images,
+                              int min_num_img = -1);
+
   // Establish the adjacency list
   void EstablishAdjacencyList();
 
