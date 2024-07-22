@@ -98,7 +98,6 @@ else()
     )
 endif()
 
-add_executable(debug test_textinput.cc)
 target_link_libraries(debug glomap)
 
 add_executable(glomap_main
