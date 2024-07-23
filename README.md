@@ -53,9 +53,9 @@ Download the datasets, and put them under `data` folder.
 If a database is already extracted, GLOMAP can be directly called to perform mapping
 ```
 glomap mapper \
-    --database_path ./data/person-hall/database.db \
-    --image_path    ./data/person-hall/images \
-    --output_path   ./output/person-hall/sparse
+    --database_path ./data/gerrard-hall/database.db \
+    --image_path    ./data/gerrard-hall/images \
+    --output_path   ./output/gerrard-hall/sparse
 ```
 ### From images
 
