@@ -25,13 +25,11 @@ make install -j8
 ```
 After installation, one can run GLOMAP by (starting from a database)
 ```
-glomap mapper --database_path DATABASE_PATH --output_path OUTPUT_PATH
+glomap mapper --database_path DATABASE_PATH --output_path OUTPUT_PATH --image_path IMAGE_PATH
 ```
+`image_path` flag is required to retrieve a colored point cloud.
 For more details on the Command Line Interface, one can type `glomap -h" or 'glomap mapper -h" for help.
-To obtain a colored reconstruction, it is recommended to call
-```
-colmap color_extractor --image_path IMAGE  --input_path MODEL_INPUT --output_path MODEL_OUTPUT
-```
+
 
 Note:
 - GLOMAP depends on two external libraries - [COLMAP](https://github.com/colmap/colmap) and [PoseLib](https://github.com/PoseLib/PoseLib).
@@ -47,27 +45,21 @@ If a database is already extracted, GLOMAP can be directly called to perform map
 ```
 glomap mapper \
     --database_path ./data/person-hall/database.db \
-    --output_path ./output/person-hall/sparse
-colmap color_extractor \
-    --image_path ./data/person-hall/images \
-    --input_path ./output/person-hall/sparse/0 \
-    --output_path ./output/person-hall/sparse/0
+    --image_path    ./data/person-hall/images \
+    --output_path   ./output/person-hall/sparse
 ```
 ### From images
 To obtain a reconstruction from images, the database needs to be established first. Here, we utilize the functions from COLMAP to achieve this (for installation, )
 ```
 colmap feature_extractor \
-    --image_path ./data/south-building/images/ \
+    --image_path    ./data/south-building/images \
     --database_path ./data/south-building/database.db
 colmap exhaustive_matcher \
     --database_path ./data/south-building/database.db 
 glomap mapper \
     --database_path ./data/south-building/database.db \
-    --output_path ./output/south-building/sparse
-colmap color_extractor
-    --image_path ./data/south-building/images \
-    --input_path ./output/south-building/sparse/0 \
-    --output_path ./output/south-building/sparse/0
+    --image_path    ./data/south-building/images \
+    --output_path   ./output/south-building/sparse
 ```
 ### Notes
 - For larger scale datasets, it is recommended to use `sequential_matcher` or `vocab_tree_matcher` from `COLMAP`. Please refer to [COLMAP](https://github.com/colmap/colmap) for proper citing.
