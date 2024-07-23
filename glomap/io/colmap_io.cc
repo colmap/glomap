@@ -9,7 +9,8 @@ void WriteGlomapReconstruction(
     const std::unordered_map<camera_t, Camera>& cameras,
     const std::unordered_map<image_t, Image>& images,
     const std::unordered_map<track_t, Track>& tracks,
-    const std::string output_format) {
+    const std::string output_format,
+    const std::string image_path) {
   // Check whether reconstruction pruning is applied.
   // If so, export seperate reconstruction
   int largest_component_num = -1;
@@ -21,6 +22,10 @@ void WriteGlomapReconstruction(
   if (largest_component_num == -1) {
     colmap::Reconstruction reconstruction;
     ConvertGlomapToColmap(cameras, images, tracks, reconstruction);
+    // Read in colors
+    if (image_path != "") {
+      reconstruction.ExtractColorsForAllImages(image_path);
+    }
     colmap::CreateDirIfNotExists(reconstruction_path + "/0");
     if (output_format == "txt") {
       reconstruction.WriteText(reconstruction_path + "/0");
@@ -35,6 +40,10 @@ void WriteGlomapReconstruction(
                 << largest_component_num + 1 << std::flush;
       colmap::Reconstruction reconstruction;
       ConvertGlomapToColmap(cameras, images, tracks, reconstruction, comp);
+      // Read in colors
+      if (image_path != "") {
+        reconstruction.ExtractColorsForAllImages(image_path);
+      }
       colmap::CreateDirIfNotExists(reconstruction_path + "/" +
                                    std::to_string(comp));
       reconstruction.WriteText(reconstruction_path + "/" +
@@ -44,7 +53,7 @@ void WriteGlomapReconstruction(
                                  std::to_string(comp));
       } else if (output_format == "bin") {
         reconstruction.WriteBinary(reconstruction_path + "/" +
-                                 std::to_string(comp));
+                                   std::to_string(comp));
       } else {
         LOG(ERROR) << "Unsupported output type" << std::endl;
       }
