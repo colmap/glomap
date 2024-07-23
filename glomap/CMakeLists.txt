@@ -98,8 +98,6 @@ else()
     )
 endif()
 
-# target_link_libraries(debug glomap)
-
 add_executable(glomap_main
     glomap.cc
     exe/global_mapper.h

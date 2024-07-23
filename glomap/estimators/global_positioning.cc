@@ -70,6 +70,8 @@ bool GlobalPositioner::Solve(const ViewGraph& view_graph,
 
   if (options_.verbose) {
     LOG(INFO) << summary.FullReport();
+  } else {
+    LOG(INFO) << summary.BriefReport() << std::endl;
   }
 
   ConvertResults(images);

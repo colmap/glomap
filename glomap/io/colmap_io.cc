@@ -24,9 +24,10 @@ void WriteGlomapReconstruction(
     ConvertGlomapToColmap(cameras, images, tracks, reconstruction);
     // Read in colors
     if (image_path != "") {
+      LOG(INFO) << "Extracting colors ..." << std::endl;
       reconstruction.ExtractColorsForAllImages(image_path);
     }
-    colmap::CreateDirIfNotExists(reconstruction_path + "/0");
+    colmap::CreateDirIfNotExists(reconstruction_path + "/0", true);
     if (output_format == "txt") {
       reconstruction.WriteText(reconstruction_path + "/0");
     } else if (output_format == "bin") {
@@ -42,10 +43,11 @@ void WriteGlomapReconstruction(
       ConvertGlomapToColmap(cameras, images, tracks, reconstruction, comp);
       // Read in colors
       if (image_path != "") {
+        LOG(INFO) << "Extracting colors ..." << std::endl;
         reconstruction.ExtractColorsForAllImages(image_path);
       }
-      colmap::CreateDirIfNotExists(reconstruction_path + "/" +
-                                   std::to_string(comp));
+      colmap::CreateDirIfNotExists(
+          reconstruction_path + "/" + std::to_string(comp), true);
       reconstruction.WriteText(reconstruction_path + "/" +
                                std::to_string(comp));
       if (output_format == "txt") {
@@ -65,7 +67,7 @@ void WriteGlomapReconstruction(
 void WriteColmapReconstruction(const std::string& reconstruction_path,
                                const colmap::Reconstruction& reconstruction,
                                const std::string output_format) {
-  colmap::CreateDirIfNotExists(reconstruction_path);
+  colmap::CreateDirIfNotExists(reconstruction_path, true);
   if (output_format == "txt") {
     reconstruction.WriteText(reconstruction_path);
   } else if (output_format == "bin") {
