@@ -1,35 +1,21 @@
-
 // This code is adapted from Theia library (http://theia-sfm.org/),
 // with its original L1 solver adapted from
 //  "https://web.stanford.edu/~boyd/papers/admm/least_abs_deviations/lad.html"
 
 #pragma once
 
+#include <colmap/util/logging.h>
+
 #include <Eigen/Cholesky>
 #include <Eigen/CholmodSupport>
 #include <Eigen/Core>
 
-// An L1 norm approximation solver. This class will attempt to solve the
-// problem: || A * x - b || under L1-norm (as opposed to L2 i.e. "least-squares"
-// norm). This problem can be solved with the alternating direction method of
-// multipliers (ADMM) as a least unsquared deviations minimizer. A full
-// description of the method, including how to use ADMM for L1 minimization can
-// be found in "Distributed Optimization and Statistical Learning via the
-// Alternating Direction Method of Multipliers" by Boyd et al, Foundations and
-// Trends in Machine Learning (2012). The paper can be found at:
-//   https://web.stanford.edu/~boyd/papers/pdf/admm_distr_stats.pdf
-//
-// ADMM can be much faster than interior point methods but convergence may be
-// slower. Generally speaking, ADMM solvers converge to good solutions in only a
-// few number of iterations, but can spend many iterations subsuquently refining
-// the solution to optain the global optimum. The speed improvements are because
-// the matrix A only needs to be factorized (by Cholesky decomposition) once, as
-// opposed to every iteration.
-
+// An L1 norm (|| A * x - b ||_1) approximation solver based on ADMM
+// (alternating direction method of multipliers,
+// https://web.stanford.edu/~boyd/papers/pdf/admm_distr_stats.pdf).
 namespace glomap {
 
 // TODO: L1 solver for dense matrix
-// TODO: Logging for the solver
 struct L1SolverOptions {
   int max_num_iterations = 1000;
   // Rho is the augmented Lagrangian parameter.
@@ -46,20 +32,11 @@ class L1Solver {
  public:
   L1Solver(L1SolverOptions& options, const MatrixType& mat)
       : options_(options), a_(mat) {
-    // Analyze the sparsity pattern once. Only the values of the entries will be
-    // changed with each iteration.
+    // Pre-compute the sparsity pattern.
     const MatrixType spd_mat = a_.transpose() * a_;
     linear_solver_.compute(spd_mat);
-    // CHECK_EQ(linear_solver_.Info(), Eigen::Success);
   }
 
-  // Solves ||Ax - b||_1 for the optimial L1 solution given an initial guess for
-  // x. To solve this we introduce an auxillary variable y such that the
-  // solution to:
-  //        min   1 * y
-  //   s.t. [  A   -I ] [ x ] < [  b ]
-  //        [ -A   -I ] [ y ]   [ -b ]
-  // which is an equivalent linear program.
   void Solve(const Eigen::VectorXd& rhs, Eigen::VectorXd* solution) {
     Eigen::VectorXd& x = *solution;
     Eigen::VectorXd z(a_.rows()), u(a_.rows());
@@ -80,8 +57,8 @@ class L1Solver {
       // Update x.
       x.noalias() = linear_solver_.solve(a_.transpose() * (rhs + z - u));
       if (linear_solver_.info() != Eigen::Success) {
-        // LOG(ERROR) << "L1 Minimization failed. Could not solve the sparse "
-        // "linear system with Cholesky Decomposition";
+        LOG(ERROR) << "L1 Minimization failed. Could not solve the sparse "
+                      "linear system with Cholesky Decomposition";
         return;
       }
 
@@ -107,10 +84,6 @@ class L1Solver {
                               options_.relative_tolerance *
                                   (options_.rho * a_.transpose() * u).norm();
 
-      // // Log the result to the screen.
-      // VLOG(2) << StringPrintf(row_format.c_str(), i, r_norm, s_norm,
-      // primal_eps,
-      //                         dual_eps);
       // Determine if the minimizer has converged.
       if (r_norm < primal_eps && s_norm < dual_eps) {
         break;
@@ -121,13 +94,11 @@ class L1Solver {
  private:
   L1SolverOptions& options_;
 
-  // Matrix A where || Ax - b ||_1 is the problem we are solving.
+  // Matrix A in || Ax - b ||_1
   MatrixType a_;
 
   // Cholesky linear solver. Since our linear system will be a SPD matrix we can
   // utilize the Cholesky factorization.
-  // SparseCholeskyLLt linear_solver_;
-  // TODO: if suitsparse available use CholmodSupernodalLLT, otherwise, use
   Eigen::CholmodSupernodalLLT<Eigen::SparseMatrix<double>> linear_solver_;
 
   Eigen::VectorXd Shrinkage(const Eigen::VectorXd& vec, const double kappa) {
