@@ -98,7 +98,7 @@ else()
     )
 endif()
 
-target_link_libraries(debug glomap)
+# target_link_libraries(debug glomap)
 
 add_executable(glomap_main
     glomap.cc
