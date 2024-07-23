@@ -101,11 +101,12 @@ class L1Solver {
   // utilize the Cholesky factorization.
   Eigen::CholmodSupernodalLLT<Eigen::SparseMatrix<double>> linear_solver_;
 
-  Eigen::VectorXd Shrinkage(const Eigen::VectorXd& vec, const double kappa) {
+  static Eigen::VectorXd Shrinkage(const Eigen::VectorXd& vec, const double kappa) {
     Eigen::ArrayXd zero_vec(vec.size());
     zero_vec.setZero();
     return zero_vec.max(vec.array() - kappa) -
            zero_vec.max(-vec.array() - kappa);
   }
 };
+
 }  // namespace glomap
