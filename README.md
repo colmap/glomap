@@ -91,7 +91,7 @@ colmap vocab_tree_matcher --database_path DATABASE_PATH --VocabTreeMatching.voca
 ## Acknowledgement
 
 We are highly inspired by COLMAP, PoseLib, Theia. Please consider also citing
-their works, if using this library in your work.
+them, if using GLOMAP in your work.
 
 ## Support
 
