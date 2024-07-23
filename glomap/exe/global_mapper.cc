@@ -16,6 +16,7 @@ int RunMapper(int argc, char** argv) {
   std::string output_path;
 
   std::string constraint_type = "ONLY_POINTS";
+  std::string output_format = "bin";
 
   OptionManager options;
   options.AddRequiredOption("database_path", &database_path);
@@ -24,6 +25,9 @@ int RunMapper(int argc, char** argv) {
                            &constraint_type,
                            "{ONLY_POINTS, ONLY_CAMERAS, "
                            "POINTS_AND_CAMERAS_BALANCED, POINTS_AND_CAMERAS}");
+  options.AddDefaultOption("output_format",
+                           &output_format,
+                           "{bin, txt}");
   options.AddGlobalMapperFullOptions();
 
   options.Parse(argc, argv);
@@ -46,7 +50,13 @@ int RunMapper(int argc, char** argv) {
     options.mapper->opt_gp.constraint_type =
         GlobalPositionerOptions::POINTS_AND_CAMERAS;
   } else {
-    LOG(ERROR) << "Invalid constriant Type type";
+    LOG(ERROR) << "Invalid constriant type";
+    return EXIT_FAILURE;
+  }
+
+  // Check whether output_format is valid
+  if (output_format != "bin" && output_format != "txt"){
+    LOG(ERROR) << "Invalid output format";
     return EXIT_FAILURE;
   }
 
@@ -71,8 +81,8 @@ int RunMapper(int argc, char** argv) {
   LOG(INFO) << "Recontruction done in " << run_timer.ElapsedSeconds()
             << " seconds" << std::endl;
 
-  WriteGlomapReconstruction(output_path, cameras, images, tracks);
-  LOG(INFO) << "Exported to COLMAP reconstruction done" << std::endl;
+  WriteGlomapReconstruction(output_path, cameras, images, tracks, output_format);
+  LOG(INFO) << "Export to COLMAP reconstruction done" << std::endl;
 
   return EXIT_SUCCESS;
 }
@@ -83,16 +93,26 @@ int RunMapper(int argc, char** argv) {
 int RunMapperResume(int argc, char** argv) {
   std::string input_path;
   std::string output_path;
+  std::string output_format = "bin";
 
   OptionManager options;
   options.AddRequiredOption("input_path", &input_path);
   options.AddRequiredOption("output_path", &output_path);
+  options.AddDefaultOption("output_format",
+                           &output_format,
+                           "{bin, txt}");
   options.AddGlobalMapperResumeFullOptions();
 
   options.Parse(argc, argv);
 
   if (!colmap::ExistsDir(input_path)) {
     LOG(ERROR) << "`input_path` is not a directory" << std::endl;
+    return EXIT_FAILURE;
+  }
+
+  // Check whether output_format is valid
+  if (output_format != "bin" && output_format != "txt"){
+    LOG(ERROR) << "Invalid output format";
     return EXIT_FAILURE;
   }
 
@@ -118,8 +138,8 @@ int RunMapperResume(int argc, char** argv) {
   LOG(INFO) << "Recontruction done in " << run_timer.ElapsedSeconds()
             << " seconds" << std::endl;
 
-  WriteGlomapReconstruction(output_path, cameras, images, tracks);
-  LOG(INFO) << "Exported to COLMAP reconstruction done" << std::endl;
+  WriteGlomapReconstruction(output_path, cameras, images, tracks, output_format);
+  LOG(INFO) << "Export to COLMAP reconstruction done" << std::endl;
 
   return EXIT_SUCCESS;
 }

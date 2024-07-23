@@ -228,7 +228,7 @@ void ConvertDatabaseToGlomap(const colmap::Database& database,
   std::unordered_map<image_pair_t, ImagePair>& image_pairs =
       view_graph.image_pairs;
   for (size_t match_idx = 0; match_idx < all_matches.size(); match_idx++) {
-    if (match_idx % 1000 == 0)
+    if ((match_idx + 1) % 1000 == 0 || match_idx == all_matches.size() - 1)
       std::cout << "\r Loading Image Pair " << match_idx + 1 << " / "
                 << all_matches.size() << std::flush;
     // Read the image pair from COLMAP database
