@@ -7,7 +7,12 @@ outputs a COLMAP sparse reconstruction.
 The goal of this project is to achieve both efficiency and robustness, and can scale up to >10k images.
 If you use this project for your research, please cite
 ```
-
+@inproceedings{pan2024glomap,
+    author={Pan, Linfei and Baráth, Dániel and Pollefeys, Marc and Sch\"{o}nberger, Johannes Lutz},
+    title={Global Structure-from-Motion Revisited},
+    booktitle={European Conference on Computer Vision (ECCV)},
+    year={2024},
+}
 ```
 
 ## Getting Started 
@@ -76,7 +81,7 @@ colmap vocab_tree_matcher --database_path DATABASE_PATH --VocabTreeMatching.voca
 
 
 ## Acknowledgement
-We are highly inspired by COlMAP, PoseLib, Theia.
+We are highly inspired by COLMAP, PoseLib, Theia.
 
 ## Support
 Please, use GitHub Discussions at https://github.com/colmap/glomap/discussions for questions and the GitHub issue tracker at https://github.com/colmap/glomap for bug reports, feature requests/additions, etc.
@@ -85,6 +90,4 @@ Please, use GitHub Discussions at https://github.com/colmap/glomap/discussions f
 Contributions (bug reports, bug fixes, improvements, etc.) are very welcome and should be submitted in the form of new issues and/or pull requests on GitHub.
 
 ## License
-
-<!-- 
 
