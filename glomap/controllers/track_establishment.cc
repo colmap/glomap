@@ -51,9 +51,9 @@ void TrackEngine::BlindConcatenation() {
       // Link the first point to the second point. Take the smallest one as the
       // root
       if (point_global_id2 < point_global_id1) {
-        uf_.Unite(point_global_id1, point_global_id2);
+        uf_.Union(point_global_id1, point_global_id2);
       } else
-        uf_.Unite(point_global_id2, point_global_id1);
+        uf_.Union(point_global_id2, point_global_id1);
     }
   }
   std::cout << std::endl;
