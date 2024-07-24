@@ -96,6 +96,7 @@ jobs:
           libatlas-base-dev \
           libsuitesparse-dev
         wget https://github.com/ceres-solver/ceres-solver/archive/refs/tags/2.2.0.tar.gz
+        mv 2.2.0.tar.gz ceres-solver-2.2.0.tar.gz
         tar zxf ceres-solver-2.2.0.tar.gz
         mkdir ceres-bin
         cd ceres-bin
