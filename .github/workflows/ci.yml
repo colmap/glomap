@@ -138,12 +138,12 @@ jobs:
           fi
       - name: Upgrade CMake
         run: |
-        CMAKE_VERSION=3.28.6
-        CMAKE_DIR=cmake-${CMAKE_VERSION}-linux-x86_64
-        wget https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/${CMAKE_DIR}.tar.gz
-        tar -xzf ${CMAKE_DIR}.tar.gz
-        sudo cp -r ${CMAKE_DIR}/* /usr/local/
-        rm -rf ${CMAKE_DIR}*
+          CMAKE_VERSION=3.28.6
+          CMAKE_DIR=cmake-${CMAKE_VERSION}-linux-x86_64
+          wget https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/${CMAKE_DIR}.tar.gz
+          tar -xzf ${CMAKE_DIR}.tar.gz
+          sudo cp -r ${CMAKE_DIR}/* /usr/local/
+          rm -rf ${CMAKE_DIR}*
       - name: Configure and build
         run: |
           set -x
