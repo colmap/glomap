@@ -13,19 +13,9 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-22.04, ubuntu-20.04]
+        os: [ubuntu-22.04]
         cuda: [true, false]
         asan: [true, false]
-        exclude:
-          - os: ubuntu-20.04
-            cuda: true
-            asan: true
-          - os: ubuntu-20.04
-            cuda: false
-            asan: true
-          - os: ubuntu-22.04
-            asan: true
-            cuda: true
 
     runs-on: ${{ matrix.os }}
 
