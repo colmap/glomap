@@ -7,7 +7,7 @@ on:
     branches: [ "main" ]
 
 env:
-  CTEST_EXCLUSIONS: (mvs/gpu_mat_test)
+  # CTEST_EXCLUSIONS: (mvs/gpu_mat_test)
 
 jobs:
   build:
@@ -54,6 +54,7 @@ jobs:
           libcgal-qt5-dev \
           libgl1-mesa-dri \
           libunwind-dev \
+          libgtest-dev\
           xvfb
       name: Install dependencies
     - run: |
