@@ -29,7 +29,7 @@ void RelPoseFilter::FilterRotations(
   }
 
   LOG(INFO) << "Filtered " << num_invalid << " relative rotation with angle > "
-            << max_angle << " degrees" << std::endl;
+            << max_angle << " degrees";
 }
 
 void RelPoseFilter::FilterInlierNum(ViewGraph& view_graph, int min_inlier_num) {
@@ -44,8 +44,7 @@ void RelPoseFilter::FilterInlierNum(ViewGraph& view_graph, int min_inlier_num) {
   }
 
   LOG(INFO) << "Filtered " << num_invalid
-            << " relative poses with inlier number < " << min_inlier_num
-            << std::endl;
+            << " relative poses with inlier number < " << min_inlier_num;
 }
 
 void RelPoseFilter::FilterInlierRatio(ViewGraph& view_graph,
@@ -62,8 +61,7 @@ void RelPoseFilter::FilterInlierRatio(ViewGraph& view_graph,
   }
 
   LOG(INFO) << "Filtered " << num_invalid
-            << " relative poses with inlier ratio < " << min_inlier_ratio
-            << std::endl;
+            << " relative poses with inlier ratio < " << min_inlier_ratio;
 }
 
 }  // namespace glomap

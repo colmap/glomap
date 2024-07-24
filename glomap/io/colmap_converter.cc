@@ -208,8 +208,6 @@ void ConvertDatabaseToGlomap(const colmap::Database& database,
           Eigen::Vector2d(keypoints[i].x, keypoints[i].y));
     }
   }
-  // LOG(INFO) << "Keypoints read done. " << images.size() << " images"
-  // << std::endl;
 
   // Add the cameras
   std::vector<colmap::Camera> cameras_colmap = database.ReadAllCameras();
@@ -303,7 +301,7 @@ void ConvertDatabaseToGlomap(const colmap::Database& database,
   std::cout << std::endl;
 
   LOG(INFO) << "Pairs read done. " << invalid_count << " / "
-            << view_graph.image_pairs.size() << " are invalid" << std::endl;
+            << view_graph.image_pairs.size() << " are invalid";
 }
 
 }  // namespace glomap

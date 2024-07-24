@@ -11,11 +11,11 @@ bool BundleAdjuster::Solve(const ViewGraph& view_graph,
                            std::unordered_map<track_t, Track>& tracks) {
   // Check if the input data is valid
   if (images.empty()) {
-    std::cerr << "Number of images = " << images.size() << std::endl;
+    LOG(ERROR) << "Number of images = " << images.size();
     return false;
   }
   if (tracks.empty()) {
-    std::cerr << "Number of tracks = " << tracks.size() << std::endl;
+    LOG(ERROR) << "Number of tracks = " << tracks.size();
     return false;
   }
 
@@ -44,7 +44,7 @@ bool BundleAdjuster::Solve(const ViewGraph& view_graph,
   if (options_.verbose)
     LOG(INFO) << summary.FullReport();
   else
-    LOG(INFO) << summary.BriefReport() << std::endl;
+    LOG(INFO) << summary.BriefReport();
 
   return summary.IsSolutionUsable();
 }
@@ -101,7 +101,7 @@ void BundleAdjuster::AddPointToCameraConstraints(
                   image.features[observation.second]);
           break;
         default:
-          LOG(ERROR) << "Camera model not supported" << std::endl;
+          LOG(ERROR) << "Camera model not supported";
           break;
       }
 

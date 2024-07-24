@@ -15,7 +15,7 @@ void EstimateRelativePoses(ViewGraph& view_graph,
 
   image_pair_t inverval = std::ceil(image_pair_ids.size() / 10.);
   LOG(INFO) << "Estimating relative pose for " << image_pair_ids.size()
-            << " pairs" << std::endl;
+            << " pairs";
   for (image_pair_t chunks = 0; chunks < 10; chunks++) {
     std::cout << "\r Estimating relative pose: " << chunks * 10 << "%"
               << std::flush;
@@ -65,7 +65,7 @@ void EstimateRelativePoses(ViewGraph& view_graph,
     }
   }
   std::cout << "\r Estimating relative pose: 100%" << std::endl;
-  LOG(INFO) << "Estimating relative pose done" << std::endl;
+  LOG(INFO) << "Estimating relative pose done";
 }
 
 }  // namespace glomap

@@ -26,20 +26,21 @@ bool GlobalPositioner::Solve(const ViewGraph& view_graph,
                              std::unordered_map<image_t, Image>& images,
                              std::unordered_map<track_t, Track>& tracks) {
   if (images.empty()) {
-    LOG(ERROR) << "Number of images = " << images.size() << std::endl;
+    LOG(ERROR) << "Number of images = " << images.size();
     return false;
   }
   if (view_graph.image_pairs.empty() &&
       options_.constraint_type != GlobalPositionerOptions::ONLY_POINTS) {
-    LOG(ERROR) << "Number of image_pairs = " << view_graph.image_pairs.size()
-               << std::endl;
+    LOG(ERROR) << "Number of image_pairs = " << view_graph.image_pairs.size();
     return false;
   }
   if (tracks.empty() &&
       options_.constraint_type != GlobalPositionerOptions::ONLY_CAMERAS) {
-    LOG(ERROR) << "Number of tracks = " << tracks.size() << std::endl;
+    LOG(ERROR) << "Number of tracks = " << tracks.size();
     return false;
   }
+
+  LOG(INFO) << "Setting up the global positioner problem";
 
   // Initialize the problem
   Reset();
@@ -64,6 +65,8 @@ bool GlobalPositioner::Solve(const ViewGraph& view_graph,
   // constant if desired
   ParameterizeVariables(images, tracks);
 
+  LOG(INFO) << "Solving the global positioner problem";
+
   ceres::Solver::Summary summary;
   options_.solver_options.minimizer_progress_to_stdout = options_.verbose;
   ceres::Solve(options_.solver_options, problem_.get(), &summary);
@@ -71,7 +74,7 @@ bool GlobalPositioner::Solve(const ViewGraph& view_graph,
   if (options_.verbose) {
     LOG(INFO) << summary.FullReport();
   } else {
-    LOG(INFO) << summary.BriefReport() << std::endl;
+    LOG(INFO) << summary.BriefReport();
   }
 
   ConvertResults(images);
@@ -128,8 +131,7 @@ void GlobalPositioner::InitializeRandomPositions(
   }
 
   if (options_.verbose)
-    LOG(INFO) << "Constrained positions: " << constrained_positions.size()
-              << std::endl;
+    LOG(INFO) << "Constrained positions: " << constrained_positions.size();
 }
 
 void GlobalPositioner::AddCameraToCameraConstraints(
@@ -163,8 +165,7 @@ void GlobalPositioner::AddCameraToCameraConstraints(
   if (options_.verbose)
     LOG(INFO) << problem_->NumResidualBlocks()
               << " camera to camera constraints were added to the position "
-                 "estimation problem."
-              << std::endl;
+                 "estimation problem.";
 }
 
 void GlobalPositioner::AddPointToCameraConstraints(
@@ -180,8 +181,7 @@ void GlobalPositioner::AddPointToCameraConstraints(
   if (options_.verbose)
     LOG(INFO) << num_pt_to_cam
               << " point to camera constriants were added to the position "
-                 "estimation problem."
-              << std::endl;
+                 "estimation problem.";
 
   if (num_pt_to_cam == 0) return;
 
@@ -196,8 +196,7 @@ void GlobalPositioner::AddPointToCameraConstraints(
                       static_cast<double>(num_pt_to_cam);
   }
   if (options_.verbose)
-    LOG(INFO) << "Point to camera weight scaled: " << weight_scale_pt
-              << std::endl;
+    LOG(INFO) << "Point to camera weight scaled: " << weight_scale_pt;
 
   if (loss_function_ptcam_uncalibrated_ == nullptr) {
     loss_function_ptcam_uncalibrated_ =

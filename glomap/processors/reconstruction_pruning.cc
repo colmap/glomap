@@ -55,8 +55,7 @@ image_t PruneWeaklyConnectedImages(std::unordered_map<image_t, Image>& images,
       visibility_graph.image_pairs[pair_id].weight = count;
     }
   }
-  LOG(INFO) << "Established visibility graph with " << counter << " pairs"
-            << std::endl;
+  LOG(INFO) << "Established visibility graph with " << counter << " pairs";
 
   // sort the pair count
   std::sort(pair_count.begin(), pair_count.end());
@@ -72,7 +71,7 @@ image_t PruneWeaklyConnectedImages(std::unordered_map<image_t, Image>& images,
 
   // The median
   LOG(INFO) << "Threshold for Strong Clustering: "
-            << median_count - median_count_diff << std::endl;
+            << median_count - median_count_diff;
 
   return ViewGraphManipulater::EstablishStrongClusters(
       visibility_graph,

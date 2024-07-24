@@ -102,7 +102,7 @@ void RotationEstimator::SetupLinearSystem(
 
   if (options_.verbose)
     LOG(INFO) << "num_img: " << image_id_to_idx_.size()
-              << ", num_dof: " << num_dof << std::endl;
+              << ", num_dof: " << num_dof;
 
   rotation_estimated_.conservativeResize(num_dof);
 
@@ -228,12 +228,11 @@ bool RotationEstimator::SolveL1Regression(
   double curr_norm = 0;
 
   ComputeResiduals(view_graph, images);
-  if (options_.verbose) LOG(INFO) << "ComputeResiduals done " << std::endl;
+  if (options_.verbose) LOG(INFO) << "ComputeResiduals done ";
 
   int iteration = 0;
   for (iteration = 0; iteration < options_.max_num_l1_iterations; iteration++) {
-    if (options_.verbose)
-      LOG(INFO) << "L1 ADMM iteration: " << iteration << std::endl;
+    if (options_.verbose) LOG(INFO) << "L1 ADMM iteration: " << iteration;
 
     last_norm = curr_norm;
     // use the current residual as b (Ax - b)
@@ -241,7 +240,7 @@ bool RotationEstimator::SolveL1Regression(
     tangent_space_step_.setZero();
     l1_solver.Solve(tangent_space_residual_, &tangent_space_step_);
     if (tangent_space_step_.array().isNaN().sum() > 0) {
-      LOG(ERROR) << "nan error" << std::endl;
+      LOG(ERROR) << "nan error";
       iteration++;
       return false;
     }
@@ -252,8 +251,7 @@ bool RotationEstimator::SolveL1Regression(
                     tangent_space_residual_)
                        .array()
                        .abs()
-                       .sum()
-                << std::endl;
+                       .sum();
 
     curr_norm = tangent_space_step_.norm();
     UpdateGlobalRotations(view_graph, images);
@@ -265,15 +263,14 @@ bool RotationEstimator::SolveL1Regression(
             options_.l1_step_convergence_threshold ||
         std::abs(last_norm - curr_norm) < EPS) {
       if (std::abs(last_norm - curr_norm) < EPS)
-        LOG(INFO) << "std::abs(last_norm - curr_norm) < EPS" << std::endl;
+        LOG(INFO) << "std::abs(last_norm - curr_norm) < EPS";
       iteration++;
       break;
     }
     opt_l1_solver.max_num_iterations =
         std::min(opt_l1_solver.max_num_iterations * 2, 100);
   }
-  if (options_.verbose)
-    LOG(INFO) << "L1 ADMM total iteration: " << iteration << std::endl;
+  if (options_.verbose) LOG(INFO) << "L1 ADMM total iteration: " << iteration;
   return true;
 }
 
@@ -290,7 +287,7 @@ bool RotationEstimator::SolveIRLS(const ViewGraph& view_graph,
 
   const double sigma = DegToRad(options_.irls_loss_parameter_sigma);
   if (options_.verbose)
-    LOG(INFO) << "sigma: " << options_.irls_loss_parameter_sigma << std::endl;
+    LOG(INFO) << "sigma: " << options_.irls_loss_parameter_sigma;
 
   Eigen::ArrayXd weights_irls(sparse_matrix_.rows());
   Eigen::SparseMatrix<double> at_weight;
@@ -304,8 +301,7 @@ bool RotationEstimator::SolveIRLS(const ViewGraph& view_graph,
   int iteration = 0;
   for (iteration = 0; iteration < options_.max_num_irls_iterations;
        iteration++) {
-    if (options_.verbose)
-      LOG(INFO) << "IRLS iteration: " << iteration << std::endl;
+    if (options_.verbose) LOG(INFO) << "IRLS iteration: " << iteration;
 
     // Compute the weights for IRLS
     for (auto& [pair_id, pair_info] : rel_temp_info_) {
@@ -326,11 +322,11 @@ bool RotationEstimator::SolveIRLS(const ViewGraph& view_graph,
         double tmp = err_squared + sigma * sigma;
         w = sigma * sigma / (tmp * tmp);
       } else if (options_.weight_type == RotationEstimatorOptions::HALF_NORM) {
-        LOG(ERROR) << "NOT IMPLEMENTED!!!" << std::endl;
+        LOG(ERROR) << "NOT IMPLEMENTED!!!";
       }
 
       if (std::isnan(w)) {
-        LOG(ERROR) << "nan weight!" << std::endl;
+        LOG(ERROR) << "nan weight!";
         return false;
       }
 
@@ -359,8 +355,7 @@ bool RotationEstimator::SolveIRLS(const ViewGraph& view_graph,
       break;
     }
   }
-  if (options_.verbose)
-    LOG(INFO) << "IRLS total iteration: " << iteration << std::endl;
+  if (options_.verbose) LOG(INFO) << "IRLS total iteration: " << iteration;
 
   return true;
 }

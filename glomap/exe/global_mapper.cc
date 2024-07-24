@@ -33,7 +33,7 @@ int RunMapper(int argc, char** argv) {
   options.Parse(argc, argv);
 
   if (!colmap::ExistsFile(database_path)) {
-    LOG(ERROR) << "`database_path` is not a file" << std::endl;
+    LOG(ERROR) << "`database_path` is not a file";
     return EXIT_FAILURE;
   }
 
@@ -72,18 +72,18 @@ int RunMapper(int argc, char** argv) {
   GlobalMapper global_mapper(*options.mapper);
 
   // Main solver
-  LOG(INFO) << "Loaded database" << std::endl;
+  LOG(INFO) << "Loaded database";
   colmap::Timer run_timer;
   run_timer.Start();
   global_mapper.Solve(database, view_graph, cameras, images, tracks);
   run_timer.Pause();
 
   LOG(INFO) << "Recontruction done in " << run_timer.ElapsedSeconds()
-            << " seconds" << std::endl;
+            << " seconds";
 
   WriteGlomapReconstruction(
       output_path, cameras, images, tracks, output_format, image_path);
-  LOG(INFO) << "Export to COLMAP reconstruction done" << std::endl;
+  LOG(INFO) << "Export to COLMAP reconstruction done";
 
   return EXIT_SUCCESS;
 }
@@ -107,7 +107,7 @@ int RunMapperResume(int argc, char** argv) {
   options.Parse(argc, argv);
 
   if (!colmap::ExistsDir(input_path)) {
-    LOG(ERROR) << "`input_path` is not a directory" << std::endl;
+    LOG(ERROR) << "`input_path` is not a directory";
     return EXIT_FAILURE;
   }
 
@@ -137,11 +137,11 @@ int RunMapperResume(int argc, char** argv) {
   run_timer.Pause();
 
   LOG(INFO) << "Recontruction done in " << run_timer.ElapsedSeconds()
-            << " seconds" << std::endl;
+            << " seconds";
 
   WriteGlomapReconstruction(
       output_path, cameras, images, tracks, output_format, image_path);
-  LOG(INFO) << "Export to COLMAP reconstruction done" << std::endl;
+  LOG(INFO) << "Export to COLMAP reconstruction done";
 
   return EXIT_SUCCESS;
 }

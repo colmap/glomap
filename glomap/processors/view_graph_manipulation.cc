@@ -159,7 +159,7 @@ image_t ViewGraphManipulater::EstablishStrongClusters(
 
   LOG(INFO) << "Clustering take " << iteration << " iterations. "
             << "Images are grouped into " << num_comp
-            << " clusters after strong-clustering" << std::endl;
+            << " clusters after strong-clustering";
 
   return num_comp;
 }
@@ -242,7 +242,7 @@ void ViewGraphManipulater::DecomposeRelPose(
     image_pair_ids.push_back(pair_id);
   }
   LOG(INFO) << "Decompose relative pose for " << image_pair_ids.size()
-            << " pairs" << std::endl;
+            << " pairs";
 
 #pragma omp parallel for
   for (size_t idx = 0; idx < image_pair_ids.size(); idx++) {
@@ -292,7 +292,7 @@ void ViewGraphManipulater::DecomposeRelPose(
       counter++;
   }
   LOG(INFO) << "Decompose relative pose done. " << counter
-            << " pairs are pure rotation" << std::endl;
+            << " pairs are pure rotation";
 }
 
 }  // namespace glomap

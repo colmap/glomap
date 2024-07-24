@@ -11,7 +11,7 @@ bool ViewGraphCalibrator::Solve(ViewGraph& view_graph,
                                 std::unordered_map<camera_t, Camera>& cameras,
                                 std::unordered_map<image_t, Image>& images) {
   // Reset the problem
-  LOG(INFO) << "Start ViewGraphCalibrator" << std::endl;
+  LOG(INFO) << "Start ViewGraphCalibrator";
   Reset(cameras);
 
   // Set the solver options.
@@ -27,7 +27,7 @@ bool ViewGraphCalibrator::Solve(ViewGraph& view_graph,
   size_t num_cameras = ParameterizeCameras(cameras);
 
   if (num_cameras == 0) {
-    LOG(INFO) << "No cameras to optimize" << std::endl;
+    LOG(INFO) << "No cameras to optimize";
     return true;
   }
 
@@ -37,7 +37,7 @@ bool ViewGraphCalibrator::Solve(ViewGraph& view_graph,
   ceres::Solve(options_.solver_options, problem_.get(), &summary);
 
   // Print the summary only if verbose
-  if (options_.verbose) LOG(INFO) << summary.FullReport() << std::endl;
+  if (options_.verbose) LOG(INFO) << summary.FullReport();
 
   // Convert the results back to the camera
   ConvertResults(cameras);
@@ -135,7 +135,7 @@ void ViewGraphCalibrator::ConvertResults(
       if (options_.verbose)
         LOG(INFO) << "NOT ACCEPTED: Camera " << camera_id
                   << " focal: " << focals_[camera_id]
-                  << " original focal: " << camera.Focal() << std::endl;
+                  << " original focal: " << camera.Focal();
       counter++;
 
       continue;
@@ -149,8 +149,7 @@ void ViewGraphCalibrator::ConvertResults(
       camera.params[idx] = focals_[camera_id];
     }
   }
-  LOG(INFO) << counter << " cameras are rejected in view graph calibration"
-            << std::endl;
+  LOG(INFO) << counter << " cameras are rejected in view graph calibration";
 }
 
 size_t ViewGraphCalibrator::FilterImagePair(
@@ -186,7 +185,7 @@ size_t ViewGraphCalibrator::FilterImagePair(
   }
 
   LOG(INFO) << "invalid / total number of two view geometry: "
-            << invalid_counter << " / " << counter << std::endl;
+            << invalid_counter << " / " << counter;
 
   return invalid_counter;
 }
