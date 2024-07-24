@@ -108,7 +108,7 @@ jobs:
             libcgal-qt5-dev \
             libgl1-mesa-dri \
             libunwind-dev \
-            libsuitesparse-dev\
+            libsuitesparse-dev \
             xvfb
           if [ "${{ matrix.config.cudaEnabled }}" == "true" ]; then
             if [ "${{ matrix.config.os }}" == "ubuntu-20.04" ]; then
@@ -157,6 +157,8 @@ jobs:
             -DCMAKE_INSTALL_PREFIX=./install \
             -DCMAKE_CUDA_ARCHITECTURES=50 \
             -DTESTS_ENABLED=ON \
+            -DSUITESPARSE_INCLUDE_DIR_HINTS="/usr/include/suitesparse" \
+            -DSUITESPARSE_LIBRARY_DIR_HINTS="/usr/lib/x86_64-linux-gnu" \
             -DASAN_ENABLED=${{ matrix.config.asanEnabled }}
           ninja -k 10000
       - name: Run tests
