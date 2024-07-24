@@ -88,7 +88,7 @@ jobs:
         tar -xzf ${CMAKE_DIR}.tar.gz
         sudo cp -r ${CMAKE_DIR}/* /usr/local/
         rm -rf ${CMAKE_DIR}*
-        name: Upgrade CMake
+      name: Upgrade CMake
 
     - name: Checkout
       uses: actions/checkout@v3
