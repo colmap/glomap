@@ -6,8 +6,6 @@ on:
   pull_request:
     branches: [ "main" ]
 
-env:
-  CTEST_EXCLUSIONS: (mvs/gpu_mat_test)
 
 jobs:
   build:
@@ -45,6 +43,7 @@ jobs:
           libgl1-mesa-dri \
           libunwind-dev \
           libgtest-dev \
+          libomp-dev \
           xvfb
       name: Install dependencies
     - run: |
@@ -69,7 +68,6 @@ jobs:
         sudo apt-get install -y clang-15
         echo "CC=/usr/bin/clang-15" >> $GITHUB_ENV
         echo "CXX=/usr/bin/clang++-15" >> $GITHUB_ENV
-        echo 'CTEST_EXCLUSIONS="(feature/sift_test)|(util/opengl_utils_test)|(mvs/gpu_mat_test)"' >> $GITHUB_ENV
       if: ${{ matrix.asan }}
       name: Install Clang
     - run: |
