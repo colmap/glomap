@@ -94,6 +94,7 @@ jobs:
             libboost-graph-dev \
             libboost-system-dev \
             libeigen3-dev \
+            libsuitesparse-dev \
             libceres-dev \
             libflann-dev \
             libfreeimage-dev \
@@ -108,9 +109,7 @@ jobs:
             libcgal-qt5-dev \
             libgl1-mesa-dri \
             libunwind-dev \
-            libsuitesparse-dev \
             xvfb
-          ls /usr/include/
           if [ "${{ matrix.config.cudaEnabled }}" == "true" ]; then
             if [ "${{ matrix.config.os }}" == "ubuntu-20.04" ]; then
               sudo apt-get install -y \
