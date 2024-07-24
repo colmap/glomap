@@ -84,7 +84,7 @@ colmap vocab_tree_matcher --database_path DATABASE_PATH --VocabTreeMatching.voca
 ```
 - Alternatively, one can use
   [hloc](https://github.com/cvg/Hierarchical-Localization/) for image retrival
-  and matching with leraning
+  and matching with learning-based descriptors and matchers.
 
 
 
