@@ -30,7 +30,7 @@ struct L1SolverOptions {
 template <class MatrixType>
 class L1Solver {
  public:
-  L1Solver(L1SolverOptions& options, const MatrixType& mat)
+  L1Solver(const L1SolverOptions& options, const MatrixType& mat)
       : options_(options), a_(mat) {
     // Pre-compute the sparsity pattern.
     const MatrixType spd_mat = a_.transpose() * a_;
@@ -92,20 +92,22 @@ class L1Solver {
   }
 
  private:
-  L1SolverOptions& options_;
+  const L1SolverOptions& options_;
 
   // Matrix A in || Ax - b ||_1
-  MatrixType a_;
+  const MatrixType a_;
 
   // Cholesky linear solver. Since our linear system will be a SPD matrix we can
   // utilize the Cholesky factorization.
   Eigen::CholmodSupernodalLLT<Eigen::SparseMatrix<double>> linear_solver_;
 
-  Eigen::VectorXd Shrinkage(const Eigen::VectorXd& vec, const double kappa) {
+  static Eigen::VectorXd Shrinkage(const Eigen::VectorXd& vec,
+                                   const double kappa) {
     Eigen::ArrayXd zero_vec(vec.size());
     zero_vec.setZero();
     return zero_vec.max(vec.array() - kappa) -
            zero_vec.max(-vec.array() - kappa);
   }
 };
+
 }  // namespace glomap

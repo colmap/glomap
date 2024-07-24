@@ -81,7 +81,7 @@ image_t ViewGraphManipulater::EstablishStrongClusters(
              (criteria == INLIER_NUM && image_pair.inliers.size() > min_thres);
     status = status || (criteria == WEIGHT && image_pair.weight > min_thres);
     if (status) {
-      uf.Unite(image_pair_t(image_pair.image_id1),
+      uf.Union(image_pair_t(image_pair.image_id1),
                image_pair_t(image_pair.image_id2));
     }
   }
@@ -139,7 +139,7 @@ image_t ViewGraphManipulater::EstablishStrongClusters(
 
         if (count >= 2) {
           status = true;
-          uf.Unite(root1, root2);
+          uf.Union(root1, root2);
         }
       }
     }
