@@ -100,9 +100,6 @@ else()
     )
 endif()
 
-add_executable(debug test_visualization.cc)
-target_link_libraries(debug glomap)
-
 
 add_executable(glomap_main
     glomap.cc
