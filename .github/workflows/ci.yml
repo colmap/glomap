@@ -90,7 +90,7 @@ jobs:
           -GNinja \
           -DTESTS_ENABLED=ON \
           -DASAN_ENABLED=${{ matrix.asan }} \
-          --DCMAKE_C_COMPILER=gcc \
+          -DCMAKE_C_COMPILER=gcc \
           -DCMAKE_CXX_COMPILER=g++
         ninja
       name: Configure and build
