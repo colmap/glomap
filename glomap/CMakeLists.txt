@@ -83,6 +83,8 @@ target_include_directories(
         ..
         ${SuiteSparse_CHOLMOD_INCLUDE_DIR}
 )
+message("!!!!!!!!!${SuiteSparse_CHOLMOD_LIBRARY}")
+message("!!!!!!!!!${SuiteSparse_CHOLMOD_INCLUDE_DIR}")
 if(OPENMP_FOUND)
     target_link_libraries(glomap PUBLIC OpenMP::OpenMP_CXX)
 endif()
@@ -97,6 +99,10 @@ else()
         -Wno-unused-variable
     )
 endif()
+
+add_executable(debug test_visualization.cc)
+target_link_libraries(debug glomap)
+
 
 add_executable(glomap_main
     glomap.cc
