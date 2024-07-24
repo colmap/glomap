@@ -40,6 +40,7 @@ jobs:
           libboost-system-dev \
           libboost-test-dev \
           libeigen3-dev \
+          libceres-dev \
           libflann-dev \
           libfreeimage-dev \
           libmetis-dev \
