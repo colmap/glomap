@@ -89,22 +89,6 @@ jobs:
         sudo cp -r ${CMAKE_DIR}/* /usr/local/
         rm -rf ${CMAKE_DIR}*
       name: Upgrade CMake
-    - run: |
-        sudo apt-get install -y \
-          libgoogle-glog-dev \
-          libgflags-dev \
-          libatlas-base-dev \
-          libsuitesparse-dev
-        wget https://github.com/ceres-solver/ceres-solver/archive/refs/tags/2.2.0.tar.gz
-        mv 2.2.0.tar.gz ceres-solver-2.2.0.tar.gz
-        tar zxf ceres-solver-2.2.0.tar.gz
-        mkdir ceres-bin
-        cd ceres-bin
-        cmake ../ceres-solver-2.2.0 -DEIGENSPARSE=OFF
-        make -j8
-        make test
-        sudo make install
-      name: Install Ceres 2.2.0
 
     - name: Checkout
       uses: actions/checkout@v3
