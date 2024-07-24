@@ -1,6 +1,7 @@
 #pragma once
 #include <colmap/geometry/rigid3.h>
 
+// TODO: maybe clean this part
 namespace glomap {
 struct Rigid3d : public colmap::Rigid3d {
   Rigid3d() : colmap::Rigid3d() {}

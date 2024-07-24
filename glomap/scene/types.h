@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
+// TODO: Using colmap definition
 namespace glomap {
 
 ////////////////////////////////////////////////////////////////////////////////

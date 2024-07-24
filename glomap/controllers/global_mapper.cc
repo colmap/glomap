@@ -204,6 +204,7 @@ bool GlobalMapper::Solve(const colmap::Database& database,
       UndistortImages(cameras, images, true);
       LOG(INFO) << "Filtering tracks by reprojection ..." << std::endl;
 
+      // TODO: add comment here to explain the logic
       bool status = true;
       size_t filtere_num = 0;
       while (status && ite < options_.num_iteration_bundle_adjustment) {
@@ -266,6 +267,8 @@ bool GlobalMapper::Solve(const colmap::Database& database,
   }
 
   // 8. Postprocessing
+  // TODO: change it to pruning (instead of postprocessing)
+  // TODO: always run the filtering
   if (!options_.skip_postprocessing) {
     std::cout << "-------------------------------------" << std::endl;
     std::cout << "Running postprocessing ..." << std::endl;
