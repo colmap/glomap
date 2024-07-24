@@ -184,7 +184,7 @@ bool GlobalMapper::Solve(const colmap::Database& database,
       }
       LOG(INFO) << "Global bundle adjustment iteration " << ite + 1 << " / "
                 << options_.num_iteration_bundle_adjustment
-                << ", stage 1 finished" << std::endl;
+                << ", stage 1 finished (position only)";
       run_timer.PrintSeconds();
 
       // 6.2. Second stage: optimize rotations if desired
@@ -196,13 +196,13 @@ bool GlobalMapper::Solve(const colmap::Database& database,
       }
       LOG(INFO) << "Global bundle adjustment iteration " << ite + 1 << " / "
                 << options_.num_iteration_bundle_adjustment
-                << ", stage 2 finished" << std::endl;
+                << ", stage 2 finished";
       if (ite != options_.num_iteration_bundle_adjustment - 1)
         run_timer.PrintSeconds();
 
       // 6.3. Filter tracks based on the estatimation
       UndistortImages(cameras, images, true);
-      LOG(INFO) << "Filtering tracks by reprojection ..." << std::endl;
+      LOG(INFO) << "Filtering tracks by reprojection ...";
 
       // TODO: add comment here to explain the logic
       bool status = true;
@@ -222,8 +222,7 @@ bool GlobalMapper::Solve(const colmap::Database& database,
           ite++;
       }
       if (status) {
-        LOG(INFO) << "fewer than 0.1% tracks are filtered, stop the iteration."
-                  << std::endl;
+        LOG(INFO) << "fewer than 0.1% tracks are filtered, stop the iteration.";
         break;
       }
     }
@@ -252,7 +251,7 @@ bool GlobalMapper::Solve(const colmap::Database& database,
 
       // Filter tracks based on the estatimation
       UndistortImages(cameras, images, true);
-      LOG(INFO) << "Filtering tracks by reprojection ..." << std::endl;
+      LOG(INFO) << "Filtering tracks by reprojection ...";
       TrackFilter::FilterTracksByReprojection(
           view_graph,
           cameras,
@@ -279,7 +278,7 @@ bool GlobalMapper::Solve(const colmap::Database& database,
 
     // Filter tracks based on the estatimation
     UndistortImages(cameras, images, true);
-    LOG(INFO) << "Filtering tracks by reprojection ..." << std::endl;
+    LOG(INFO) << "Filtering tracks by reprojection ...";
     TrackFilter::FilterTracksByReprojection(
         view_graph,
         cameras,

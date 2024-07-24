@@ -24,7 +24,7 @@ void WriteGlomapReconstruction(
     ConvertGlomapToColmap(cameras, images, tracks, reconstruction);
     // Read in colors
     if (image_path != "") {
-      LOG(INFO) << "Extracting colors ..." << std::endl;
+      LOG(INFO) << "Extracting colors ...";
       reconstruction.ExtractColorsForAllImages(image_path);
     }
     colmap::CreateDirIfNotExists(reconstruction_path + "/0", true);
@@ -33,7 +33,7 @@ void WriteGlomapReconstruction(
     } else if (output_format == "bin") {
       reconstruction.WriteBinary(reconstruction_path + "/0");
     } else {
-      LOG(ERROR) << "Unsupported output type" << std::endl;
+      LOG(ERROR) << "Unsupported output type";
     }
   } else {
     for (int comp = 0; comp <= largest_component_num; comp++) {
@@ -43,7 +43,7 @@ void WriteGlomapReconstruction(
       ConvertGlomapToColmap(cameras, images, tracks, reconstruction, comp);
       // Read in colors
       if (image_path != "") {
-        LOG(INFO) << "Extracting colors ..." << std::endl;
+        LOG(INFO) << "Extracting colors ...";
         reconstruction.ExtractColorsForAllImages(image_path);
       }
       colmap::CreateDirIfNotExists(
@@ -57,7 +57,7 @@ void WriteGlomapReconstruction(
         reconstruction.WriteBinary(reconstruction_path + "/" +
                                    std::to_string(comp));
       } else {
-        LOG(ERROR) << "Unsupported output type" << std::endl;
+        LOG(ERROR) << "Unsupported output type";
       }
     }
     std::cout << std::endl;
@@ -73,7 +73,7 @@ void WriteColmapReconstruction(const std::string& reconstruction_path,
   } else if (output_format == "bin") {
     reconstruction.WriteBinary(reconstruction_path);
   } else {
-    LOG(ERROR) << "Unsupported output type" << std::endl;
+    LOG(ERROR) << "Unsupported output type";
   }
 }
 

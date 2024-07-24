@@ -46,7 +46,7 @@ int TrackFilter::FilterTracksByReprojection(
     }
   }
   LOG(INFO) << "Filtered " << counter << " / " << tracks.size()
-            << " tracks by reprojection error" << std::endl;
+            << " tracks by reprojection error";
   return counter;
 }
 
@@ -84,7 +84,7 @@ int TrackFilter::FilterTracksByAngle(
     }
   }
   LOG(INFO) << "Filtered " << counter << " / " << tracks.size()
-            << " tracks by angle error" << std::endl;
+            << " tracks by angle error";
   return counter;
 }
 
@@ -121,7 +121,7 @@ int TrackFilter::FilterTrackTriangulationAngle(
     }
   }
   LOG(INFO) << "Filtered " << counter << " / " << tracks.size()
-            << " tracks by too small triangulation angle" << std::endl;
+            << " tracks by too small triangulation angle";
   return counter;
 }
 

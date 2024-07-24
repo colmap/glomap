@@ -14,7 +14,7 @@ void UndistortImages(std::unordered_map<camera_t, Camera>& cameras,
     image_ids.push_back(image_id);
   }
 
-  LOG(INFO) << "Undistorting images.." << std::endl;
+  LOG(INFO) << "Undistorting images..";
 #pragma omp parallel for
   for (size_t i = 0; i < image_ids.size(); i++) {
     Eigen::Vector2d pt_undist;
@@ -40,8 +40,7 @@ void UndistortImages(std::unordered_map<camera_t, Camera>& cameras,
       image.features_undist.emplace_back(pt_undist_norm);
     }
   }
-  // std::cout << std::endl;
-  LOG(INFO) << "Image undistortion done" << std::endl;
+  LOG(INFO) << "Image undistortion done";
 }
 
 }  // namespace glomap

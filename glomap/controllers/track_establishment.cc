@@ -21,8 +21,11 @@ void TrackEngine::BlindConcatenation() {
   // correspondences
   image_pair_t counter = 0;
   for (auto pair : view_graph_.image_pairs) {
-    std::cout << "\r Initializing pairs " << counter + 1 << " / "
-              << view_graph_.image_pairs.size() << std::flush;
+    if ((++counter + 1) % 1000 == 0 ||
+        counter == view_graph_.image_pairs.size() - 1) {
+      std::cout << "\r Initializing pairs " << counter + 1 << " / "
+                << view_graph_.image_pairs.size() << std::flush;
+    }
     counter++;
 
     const ImagePair& image_pair = pair.second;
@@ -66,8 +69,11 @@ void TrackEngine::TrackCollection(std::unordered_map<track_t, Track>& tracks) {
   // Create tracks from the connected components of the point correspondences
   size_t counter = 0;
   for (auto pair : view_graph_.image_pairs) {
-    std::cout << "\r Establishing pairs " << counter + 1 << " / "
-              << view_graph_.image_pairs.size() << std::flush;
+    if ((counter + 1) % 1000 == 0 ||
+        counter == view_graph_.image_pairs.size() - 1) {
+      std::cout << "\r Establishing pairs " << counter + 1 << " / "
+                << view_graph_.image_pairs.size() << std::flush;
+    }
     counter++;
 
     const ImagePair& image_pair = pair.second;
@@ -105,10 +111,12 @@ void TrackEngine::TrackCollection(std::unordered_map<track_t, Track>& tracks) {
   counter = 0;
   size_t discarded_counter = 0;
   for (auto& [track_id, correspondence_set] : track_map) {
-    if ((counter + 1) % 1000 == 0 || counter == track_map.size() - 1)
+    if ((counter + 1) % 1000 == 0 || counter == track_map.size() - 1) {
       std::cout << "\r Establishing tracks " << counter + 1 << " / "
                 << track_map.size() << std::flush;
+    }
     counter++;
+
     std::unordered_map<image_t, std::vector<Eigen::Vector2d>> image_id_set;
     for (auto point_global_id : correspondence_set) {
       // image_id is the higher 32 bits and feature_id is the lower 32 bits
@@ -137,9 +145,8 @@ void TrackEngine::TrackCollection(std::unordered_map<track_t, Track>& tracks) {
     }
   }
 
-  std::cout << std::endl;
   LOG(INFO) << "Discarded " << discarded_counter
-            << " tracks due to inconsistency" << std::endl;
+            << " tracks due to inconsistency";
 }
 
 size_t TrackEngine::FindTracksForProblem(

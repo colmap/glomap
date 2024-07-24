@@ -22,19 +22,19 @@ If you use this project for your research, please cite
 
 To install GLOMAP, first install [COLMAP](https://colmap.github.io/install.html#build-from-source)
 dependencies and then build GLOMAP using the following commands: 
-```
+```shell
 mkdir build
 cd build
 cmake .. -GNinja
 ninja && ninja install
 ```
 After installation, one can run GLOMAP by (starting from a database)
-```
+```shell
 glomap mapper --database_path DATABASE_PATH --output_path OUTPUT_PATH --image_path IMAGE_PATH
 ```
 For more details on the command line interface, one can type `glomap -h" or 'glomap mapper -h" for help.
 To obtain a colored reconstruction, it is recommended to call
-```
+```shell
 colmap color_extractor --image_path IMAGE  --input_path MODEL_INPUT --output_path MODEL_OUTPUT
 ```
 
@@ -43,6 +43,12 @@ Note:
   With the default setting, the library is built automatically by GLOMAP via `FetchContent`.
   However, if a self-installed version is preferred, one can also disable the `FETCH_COLMAP` and `FETCH_POSELIB` CMake options.
 - To use `FetchContent`, the minimum required version of `cmake` is 3.28. If a self-installed version is used, `cmake` can be downgraded to 3.10.
+- If your system does not provide a recent enough CMake version, you can install it as:
+  ```shell
+  wget https://github.com/Kitware/CMake/releases/download/v3.30.1/cmake-3.30.1.tar.gz
+  tar xfvz cmake-3.30.1.tar.gz && cd cmake-3.30.1
+  ./bootstrap && make -j$(nproc) && sudo make install
+  ```
 
 ## End-to-End Example
 
@@ -51,7 +57,7 @@ Download the datasets, and put them under `data` folder.
 
 ### From database
 If a database is already extracted, GLOMAP can be directly called to perform mapping
-```
+```shell
 glomap mapper \
     --database_path ./data/gerrard-hall/database.db \
     --image_path    ./data/gerrard-hall/images \
@@ -61,7 +67,7 @@ glomap mapper \
 
 To obtain a reconstruction from images, the database needs to be established
 first. Here, we utilize the functions from COLMAP:
-```
+```shell
 colmap feature_extractor \
     --image_path    ./data/south-building/images \
     --database_path ./data/south-building/database.db
@@ -77,9 +83,8 @@ glomap mapper \
 
 - For larger scale datasets, it is recommended to use `sequential_matcher` or
   `vocab_tree_matcher` from `COLMAP`.
-```
+```shell
 colmap sequential_matcher --database_path DATABASE_PATH
-
 colmap vocab_tree_matcher --database_path DATABASE_PATH --VocabTreeMatching.vocab_tree_path VOCAB_TREE_PATH
 ```
 - Alternatively, one can use
@@ -105,6 +110,7 @@ Contributions (bug reports, bug fixes, improvements, etc.) are very welcome and
 should be submitted in the form of new issues and/or pull requests on GitHub.
 
 ## License
+
 ```
 Copyright (c) 2024, ETH Zurich.
 All rights reserved.
