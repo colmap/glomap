@@ -100,8 +100,8 @@ jobs:
         tar zxf ceres-solver-2.2.0.tar.gz
         mkdir ceres-bin
         cd ceres-bin
-        cmake ../ceres-solver-2.2.0
-        make -j3
+        cmake ../ceres-solver-2.2.0 -DEIGENSPARSE=OFF
+        make -j8
         make test
         sudo make install
       name: Install Ceres 2.2.0
