@@ -16,26 +16,48 @@ jobs:
     strategy:
       matrix:
         config: [
+
           {
             os: ubuntu-22.04,
             cmakeBuildType: Release,
             asanEnabled: false,
+            cudaEnabled: false,
             checkCodeFormat: true,
-            cudaEnabled: true,
           },
           {
             os: ubuntu-22.04,
             cmakeBuildType: Release,
             asanEnabled: false,
-            checkCodeFormat: false,
             cudaEnabled: true,
+            checkCodeFormat: false,
           },
           {
             os: ubuntu-22.04,
             cmakeBuildType: Release,
             asanEnabled: true,
+            cudaEnabled: false,
             checkCodeFormat: false,
+          },
+          {
+            os: ubuntu-22.04,
+            cmakeBuildType: ClangTidy,
+            asanEnabled: false,
+            cudaEnabled: false,
+            checkCodeFormat: false,
+          },
+          {
+            os: ubuntu-20.04,
+            cmakeBuildType: Release,
+            asanEnabled: false,
+            cudaEnabled: false,
+            checkCodeFormat: false,
+          },
+          {
+            os: ubuntu-20.04,
+            cmakeBuildType: Release,
+            asanEnabled: false,
             cudaEnabled: true,
+            checkCodeFormat: false,
           },
         ]
 
@@ -162,10 +184,8 @@ jobs:
             -DASAN_ENABLED=${{ matrix.config.asanEnabled }}
           ninja -k 10000
       - name: Run tests
-        run: |
-          if [ "${{ matrix.config.cmakeBuildType }}" == "ClangTidy" ]; then
-            exit 0
-          fi
+        if: matrix.config.cmakeBuildType != "ClangTidy"
+        run: |          
           export DISPLAY=":99.0"
           export QT_QPA_PLATFORM="offscreen"
           Xvfb :99 &

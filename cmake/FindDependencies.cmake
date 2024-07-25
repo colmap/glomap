@@ -27,7 +27,7 @@ endif()
 message(STATUS "Configuring COLMAP... done")
 
 find_package(Eigen3 3.4 REQUIRED)
-find_package(Ceres 2.0 REQUIRED COMPONENTS SuiteSparse)
+find_package(Ceres REQUIRED COMPONENTS SuiteSparse)
 find_package(Boost REQUIRED)
 
 if(TESTS_ENABLED)
