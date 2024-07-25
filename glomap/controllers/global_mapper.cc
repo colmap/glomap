@@ -78,17 +78,14 @@ bool GlobalMapper::Solve(const colmap::Database& database,
     run_timer.Start();
 
     RotationEstimator ra_engine(options_.opt_ra);
-    // The first run is for initialization
-    ra_engine.EstimateRotations(view_graph, images);
-
-    // The second run is for filtering
+    // The first run is for filtering
     ra_engine.EstimateRotations(view_graph, images);
 
     RelPoseFilter::FilterRotations(
         view_graph, images, options_.inlier_thresholds.max_roation_error);
     view_graph.KeepLargestConnectedComponents(images);
 
-    // The third run is for final estimation
+    // The second run is for final estimation
     if (!ra_engine.EstimateRotations(view_graph, images)) {
       return false;
     }
@@ -167,6 +164,7 @@ bool GlobalMapper::Solve(const colmap::Database& database,
     std::cout << "-------------------------------------" << std::endl;
     std::cout << "Running bundle adjustment ..." << std::endl;
     std::cout << "-------------------------------------" << std::endl;
+    LOG(INFO) << "Bundle adjustment start" << std::endl;
 
     colmap::Timer run_timer;
     run_timer.Start();

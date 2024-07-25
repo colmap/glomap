@@ -8,8 +8,8 @@
 #include <vector>
 
 // Code is adapted from Theia's RobustRotationEstimator
-// (http://www.theia-sfm.org/) For gravity aligned rotation averaging, refere to
-// the paper "Gravity Aligned Rotation Averaging"
+// (http://www.theia-sfm.org/). For gravity aligned rotation averaging, refere
+// to the paper "Gravity Aligned Rotation Averaging"
 namespace glomap {
 
 // The struct to store the temporary information for each image pair
@@ -57,6 +57,9 @@ struct RotationEstimatorOptions {
     HALF_NORM,
   } weight_type = GEMAN_MCCLURE;
 
+  // Flg to use maximum spanning tree for initialization
+  bool skip_initialization = false;
+
   // TODO: Implement the weighted version for rotation averaging
   bool use_weight = false;
 
@@ -82,6 +85,11 @@ class RotationEstimator {
                          std::unordered_map<image_t, Image>& images);
 
  protected:
+  // Initialize the rotation from the maximum spanning tree
+  // Number of inliers serve as weights
+  void InitializeFromMaximumSpanningTree(
+      const ViewGraph& view_graph, std::unordered_map<image_t, Image>& images);
+
   // Sets up the sparse linear system such that dR_ij = dR_j - dR_i. This is the
   // first-order approximation of the angle-axis rotations. This should only be
   // called once.

@@ -2,6 +2,10 @@
 
 #include "glomap/math/l1_solver.h"
 #include "glomap/math/rigid3d.h"
+#include "glomap/math/tree.h"
+
+#include <iostream>
+#include <queue>
 
 namespace glomap {
 namespace {
@@ -18,6 +22,11 @@ double RelAngleError(double angle_12, double angle_1, double angle_2) {
 
 bool RotationEstimator::EstimateRotations(
     const ViewGraph& view_graph, std::unordered_map<image_t, Image>& images) {
+  // Initialize the rotation from maximum spanning tree
+  if (!options_.skip_initialization) {
+    InitializeFromMaximumSpanningTree(view_graph, images);
+  }
+
   // Set up the linear system
   SetupLinearSystem(view_graph, images);
 
@@ -49,6 +58,55 @@ bool RotationEstimator::EstimateRotations(
   }
 
   return true;
+}
+
+void RotationEstimator::InitializeFromMaximumSpanningTree(
+    const ViewGraph& view_graph, std::unordered_map<image_t, Image>& images) {
+  // Here, we assume that largest connected component is already retrieved, so
+  // we do not need to do that again compute maximum spanning tree.
+  std::unordered_map<image_t, image_t> parents;
+  image_t root = MaximumSpanningTree(view_graph, images, parents, INLIER_NUM);
+
+  // Iterate through the tree to initialize the rotation
+  // Establish child info
+  std::unordered_map<image_t, std::vector<image_t>> children;
+  for (const auto& [image_id, image] : images) {
+    if (!image.is_registered) continue;
+    children.insert(std::make_pair(image_id, std::vector<image_t>()));
+  }
+  for (auto& [child, parent] : parents) {
+    if (root == child) continue;
+    children[parent].emplace_back(child);
+  }
+
+  std::queue<image_t> indexes;
+  indexes.push(root);
+
+  while (!indexes.empty()) {
+    image_t curr = indexes.front();
+    indexes.pop();
+
+    // Add all children into the tree
+    for (auto& child : children[curr]) indexes.push(child);
+    // If it is root, then fix it to be the original estimation
+    if (curr == root) continue;
+
+    // Directly use the relative pose for estimation rotation
+    const ImagePair& image_pair = view_graph.image_pairs.at(
+        ImagePair::ImagePairToPairId(curr, parents[curr]));
+    if (image_pair.image_id1 == curr) {
+      // 1_R_w = 2_R_1^T * 2_R_w
+      images[curr].cam_from_world.rotation =
+          (Inverse(image_pair.cam2_from_cam1) *
+           images[parents[curr]].cam_from_world)
+              .rotation;
+    } else {
+      // 2_R_w = 2_R_1 * 1_R_w
+      images[curr].cam_from_world.rotation =
+          (image_pair.cam2_from_cam1 * images[parents[curr]].cam_from_world)
+              .rotation;
+    }
+  }
 }
 
 void RotationEstimator::SetupLinearSystem(

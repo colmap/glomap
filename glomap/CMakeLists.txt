@@ -12,6 +12,7 @@ set(SOURCES
     io/colmap_io.cc
     math/gravity.cc
     math/rigid3d.cc
+    math/tree.cc
     math/two_view_geometry.cc
     processors/image_pair_inliers.cc
     processors/image_undistorter.cc
@@ -39,6 +40,7 @@ set(HEADERS
     math/gravity.h
     math/l1_solver.h
     math/rigid3d.h
+    math/tree.h
     math/two_view_geometry.h
     math/union_find.h
     processors/image_pair_inliers.h

@@ -21,7 +21,7 @@ void TrackEngine::BlindConcatenation() {
   // correspondences
   image_pair_t counter = 0;
   for (auto pair : view_graph_.image_pairs) {
-    if ((++counter + 1) % 1000 == 0 ||
+    if ((counter + 1) % 1000 == 0 ||
         counter == view_graph_.image_pairs.size() - 1) {
       std::cout << "\r Initializing pairs " << counter + 1 << " / "
                 << view_graph_.image_pairs.size() << std::flush;
