@@ -43,7 +43,6 @@ void WriteGlomapReconstruction(
       ConvertGlomapToColmap(cameras, images, tracks, reconstruction, comp);
       // Read in colors
       if (image_path != "") {
-        LOG(INFO) << "Extracting colors ...";
         reconstruction.ExtractColorsForAllImages(image_path);
       }
       colmap::CreateDirIfNotExists(
