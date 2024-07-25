@@ -177,7 +177,7 @@ jobs:
           Xvfb :99 &
           sleep 3
           cd build
-          ctest --output-on-failure
+          ctest --output-on-failure -E .+colmap_.*
       - name: Cleanup compiler cache
         run: |
           set -x

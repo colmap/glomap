@@ -21,4 +21,8 @@ if(ASAN_ENABLED)
     add_link_options(-fsanitize=address)
 endif()
 
+if (TESTS_ENABLED)
+    enable_testing()
+endif()
+
 add_subdirectory(glomap)
