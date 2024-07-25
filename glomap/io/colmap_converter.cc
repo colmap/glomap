@@ -107,7 +107,6 @@ void ConvertGlomapToColmap(const std::unordered_map<camera_t, Camera>& cameras,
     reconstruction.AddImage(std::move(image_colmap));
   }
 
-  reconstruction.WriteText(".");
 }
 
 void ConvertColmapToGlomap(const colmap::Reconstruction& reconstruction,

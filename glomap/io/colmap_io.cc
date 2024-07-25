@@ -48,8 +48,6 @@ void WriteGlomapReconstruction(
       }
       colmap::CreateDirIfNotExists(
           reconstruction_path + "/" + std::to_string(comp), true);
-      reconstruction.WriteText(reconstruction_path + "/" +
-                               std::to_string(comp));
       if (output_format == "txt") {
         reconstruction.WriteText(reconstruction_path + "/" +
                                  std::to_string(comp));
