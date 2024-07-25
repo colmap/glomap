@@ -45,20 +45,6 @@ jobs:
             cudaEnabled: false,
             checkCodeFormat: false,
           },
-          {
-            os: ubuntu-20.04,
-            cmakeBuildType: Release,
-            asanEnabled: false,
-            cudaEnabled: false,
-            checkCodeFormat: false,
-          },
-          {
-            os: ubuntu-20.04,
-            cmakeBuildType: Release,
-            asanEnabled: false,
-            cudaEnabled: true,
-            checkCodeFormat: false,
-          },
         ]
 
     env:
