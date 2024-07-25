@@ -184,7 +184,7 @@ jobs:
             -DASAN_ENABLED=${{ matrix.config.asanEnabled }}
           ninja -k 10000
       - name: Run tests
-        if: matrix.config.cmakeBuildType != "ClangTidy"
+        if: ${{ matrix.config.cmakeBuildType != "ClangTidy" }}
         run: |          
           export DISPLAY=":99.0"
           export QT_QPA_PLATFORM="offscreen"
