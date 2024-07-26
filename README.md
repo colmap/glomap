@@ -52,17 +52,19 @@ Note:
 
 ## End-to-End Example
 
-In this section, we will use datasets from [this link](demuc.de/colmap/datasets) as example.
-Download the datasets, and put them under `data` folder.
+In this section, we will use datasets from [this link](https://demuc.de/colmap/datasets) as examples.
+Download the datasets and put them under `data` folder.
 
 ### From database
-If a database is already extracted, GLOMAP can be directly called to perform mapping
+
+If a COLMAP database already exists, GLOMAP can directly use it to perform mapping:
 ```shell
 glomap mapper \
     --database_path ./data/gerrard-hall/database.db \
     --image_path    ./data/gerrard-hall/images \
     --output_path   ./output/gerrard-hall/sparse
 ```
+
 ### From images
 
 To obtain a reconstruction from images, the database needs to be established
