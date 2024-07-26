@@ -12,7 +12,7 @@ If you use this project for your research, please cite
 ```
 @inproceedings{pan2024glomap,
     author={Pan, Linfei and Baráth, Dániel and Pollefeys, Marc and Sch\"{o}nberger, Johannes Lutz},
-    title={Global Structure-from-Motion Revisited},
+    title={{Global Structure-from-Motion Revisited}},
     booktitle={European Conference on Computer Vision (ECCV)},
     year={2024},
 }
