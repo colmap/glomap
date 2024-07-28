@@ -23,6 +23,7 @@ void OptionManager::AddAllOptions() {
   AddDatabaseOptions();
   AddImageOptions();
   AddGlobalMapperOptions();
+  AddInlierThresholdOptions();
   AddViewGraphCalibrationOptions();
   AddRelativePoseEstimationOptions();
   AddRotationEstimatorOptions();
@@ -30,7 +31,6 @@ void OptionManager::AddAllOptions() {
   AddGlobalPositionerOptions();
   AddBundleAdjusterOptions();
   AddTriangulatorOptions();
-  AddInlierThresholdOptions();
 }
 
 void OptionManager::AddDatabaseOptions() {
@@ -137,7 +137,7 @@ void OptionManager::AddViewGraphCalibrationOptions() {
                               &mapper->opt_vgcalib.thres_lower_ratio);
   AddAndRegisterDefaultOption("ViewGraphCalib.thres_higher_ratio",
                               &mapper->opt_vgcalib.thres_higher_ratio);
-  AddAndRegisterDefaultOption("ViewGraphCalib.robust_loss_thres",
+  AddAndRegisterDefaultOption("ViewGraphCalib.thres_two_view_error",
                               &mapper->opt_vgcalib.thres_two_view_error);
 }
 
@@ -146,7 +146,11 @@ void OptionManager::AddRelativePoseEstimationOptions() {
     return;
   }
   added_relative_pose_options_ = true;
+  AddAndRegisterDefaultOption(
+      "RelPoseEstimation.max_epipolar_error",
+      &mapper->opt_relpose.ransac_options.max_epipolar_error);
 }
+
 void OptionManager::AddRotationEstimatorOptions() {
   if (added_rotation_averaging_options_) {
     return;
@@ -221,7 +225,18 @@ void OptionManager::AddInlierThresholdOptions() {
     return;
   }
   added_inliers_options_ = true;
-  // TODO: maybe add options for inlier threshold
+  AddAndRegisterDefaultOption("Thresholds.max_epipolar_error_E",
+                              &mapper->inlier_thresholds.max_epipolar_error_E);
+  AddAndRegisterDefaultOption("Thresholds.max_epipolar_error_F",
+                              &mapper->inlier_thresholds.max_epipolar_error_F);
+  AddAndRegisterDefaultOption("Thresholds.max_epipolar_error_H",
+                              &mapper->inlier_thresholds.max_epipolar_error_H);
+  AddAndRegisterDefaultOption("Thresholds.min_inlier_num",
+                              &mapper->inlier_thresholds.min_inlier_num);
+  AddAndRegisterDefaultOption("Thresholds.min_inlier_ratio",
+                              &mapper->inlier_thresholds.min_inlier_ratio);
+  AddAndRegisterDefaultOption("Thresholds.max_rotation_error",
+                              &mapper->inlier_thresholds.max_rotation_error);
 }
 
 void OptionManager::Reset() {
