@@ -1,6 +1,7 @@
 #include "gravity.h"
 
 #include "glomap/scene/types_sfm.h"
+#include "glomap/math/rigid3d.h"
 
 #include <Eigen/QR>
 
@@ -23,14 +24,11 @@ Eigen::Matrix3d GetAlignRot(const Eigen::Vector3d& gravity) {
 }
 
 double RotUpToAngle(const Eigen::Matrix3d& R_up) {
-  Eigen::Quaternion<double> q_pitch(R_up);
-  double theta_half = std::atan2(q_pitch.y(), q_pitch.w());
-  return theta_half * 2;
+  return RotationToAngleAxis(R_up)[1];
 }
 
 Eigen::Matrix3d AngleToRotUp(double angle) {
-  Eigen::Quaternion<double> q_pitch;
-  q_pitch.coeffs() << 0, std::sin(angle / 2), 0, std::cos(angle / 2);
-  return q_pitch.toRotationMatrix();
+  Eigen::Vector3d aa(0, angle, 0);
+  return AngleAxisToRotation(aa);
 }
 }  // namespace glomap

@@ -1,16 +1,22 @@
 #pragma once
 
 #include "glomap/math/gravity.h"
-#include "glomap/scene/rigid3d.h"
 #include "glomap/scene/types.h"
 #include "glomap/types.h"
 
 namespace glomap {
 
 struct GravityInfo {
+ public:
   // Whether the gravity information is available
   bool has_gravity = false;
 
+  const Eigen::Matrix3d& GetRAlign() const { return R_align; }
+
+  inline void SetGravity(const Eigen::Vector3d& g);
+  inline Eigen::Vector3d GetGravity();
+
+ private:
   // Direction of the gravity
   Eigen::Vector3d gravity;
 
@@ -49,16 +55,17 @@ struct Image {
 
   // Methods
   inline Eigen::Vector3d Center() const;
-  inline void SetGravityInfo(const Eigen::Vector3d& g);
 };
 
 Eigen::Vector3d Image::Center() const {
   return cam_from_world.rotation.inverse() * -cam_from_world.translation;
 }
 
-void Image::SetGravityInfo(const Eigen::Vector3d& g) {
-  gravity_info.gravity = g;
-  gravity_info.R_align = GetAlignRot(g);
-  gravity_info.has_gravity = true;
+void GravityInfo::SetGravity(const Eigen::Vector3d& g) {
+  gravity = g;
+  R_align = GetAlignRot(g);
+  has_gravity = true;
 }
+
+Eigen::Vector3d GravityInfo::GetGravity() { return gravity; }
 }  // namespace glomap

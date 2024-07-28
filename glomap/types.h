@@ -29,7 +29,7 @@ struct InlierThresholdOptions {
   // Thresholds for edges
   double min_inlier_num = 30;
   double min_inlier_ratio = 0.25;
-  double max_roation_error = 10.;  // in degree, for rotation averaging
+  double max_rotation_error = 10.;  // in degree, for rotation averaging
 };
 
 }  // namespace glomap

@@ -26,8 +26,8 @@ class ViewGraph {
   // Establish the adjacency list
   void EstablishAdjacencyList();
 
-  inline std::unordered_map<image_t, std::unordered_set<image_t>>&
-  GetAdjacencyList();
+  inline const std::unordered_map<image_t, std::unordered_set<image_t>>&
+  GetAdjacencyList() const;
 
   // Data
   std::unordered_map<image_pair_t, ImagePair> image_pairs;
@@ -47,8 +47,8 @@ class ViewGraph {
   std::vector<std::unordered_set<image_t>> connected_components;
 };
 
-std::unordered_map<image_t, std::unordered_set<image_t>>&
-ViewGraph::GetAdjacencyList() {
+const std::unordered_map<image_t, std::unordered_set<image_t>>&
+ViewGraph::GetAdjacencyList() const {
   return adjacency_list;
 }
 

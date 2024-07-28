@@ -6,12 +6,12 @@ set(SOURCES
     estimators/bundle_adjustment.cc
     estimators/global_positioning.cc
     estimators/global_rotation_averaging.cc
+    estimators/gravity_refinement.cc
     estimators/relpose_estimation.cc
     estimators/view_graph_calibration.cc
     io/colmap_converter.cc
     io/colmap_io.cc
     io/gravity_io.cc
-    math/adaptive_scaler.cc
     math/gravity.cc
     math/rigid3d.cc
     math/tree.cc
@@ -34,13 +34,13 @@ set(HEADERS
     estimators/cost_function.h
     estimators/global_positioning.h
     estimators/global_rotation_averaging.h
+    estimators/gravity_refinement.h
     estimators/relpose_estimation.h
     estimators/optimization_base.h
     estimators/view_graph_calibration.h
     io/colmap_converter.h
     io/colmap_io.h
     io/gravity_io.h
-    math/adaptive_scaler.h
     math/gravity.h
     math/l1_solver.h
     math/rigid3d.h
@@ -103,12 +103,6 @@ else()
     )
 endif()
 
-add_executable(debug
-    test_main.cc
-    # test_gravity.cc
-    test/prepare_experiment.h
-    test/prepare_experiment.cc)
-target_link_libraries(debug glomap)
 
 add_executable(glomap_main
     glomap.cc
