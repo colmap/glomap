@@ -11,10 +11,6 @@ struct RelativePoseEstimationOptions {
   poselib::RansacOptions ransac_options;
   poselib::BundleOptions bundle_options;
 
-  // When images size are large, the threshold of epipolar geometry might also
-  // needs to be adjusted accordingly
-  bool adaptive_threshold = false;
-
   RelativePoseEstimationOptions() { ransac_options.max_iterations = 50000; }
 };
 

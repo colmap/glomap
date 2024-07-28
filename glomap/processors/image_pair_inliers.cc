@@ -1,6 +1,4 @@
 #include "glomap/processors/image_pair_inliers.h"
-
-#include "glomap/math/adaptive_scaler.h"
 #include "glomap/math/two_view_geometry.h"
 
 namespace glomap {
@@ -44,11 +42,6 @@ double ImagePairInliers::ScoreErrorEssential() {
   thres = options.max_epipolar_error_E * 0.5 *
           (1. / cameras->at(images.at(image_id1).camera_id).Focal() +
            1. / cameras->at(images.at(image_id2).camera_id).Focal());
-
-  if (options.adaptive_threshold) {
-    thres *= AdaptiveFactor(cameras->at(images.at(image_id1).camera_id),
-                            cameras->at(images.at(image_id2).camera_id));
-  }
 
   // Square the threshold for faster computation
   double sq_threshold = thres * thres;
@@ -124,12 +117,6 @@ double ImagePairInliers::ScoreErrorFundamental() {
   image_t image_id2 = image_pair.image_id2;
 
   double thres = options.max_epipolar_error_F;
-
-  if (options.adaptive_threshold) {
-    thres *= AdaptiveFactor(cameras->at(images.at(image_id1).camera_id),
-                            cameras->at(images.at(image_id2).camera_id));
-  }
-
   double sq_threshold = thres * thres;
 
   double score = 0.;
@@ -184,11 +171,6 @@ double ImagePairInliers::ScoreErrorHomography() {
   image_t image_id2 = image_pair.image_id2;
 
   double thres = options.max_epipolar_error_H;
-  if (options.adaptive_threshold) {
-    thres *= AdaptiveFactor(cameras->at(images.at(image_id1).camera_id),
-                            cameras->at(images.at(image_id2).camera_id));
-  }
-
   double sq_threshold = thres * thres;
   double score = 0.;
   Eigen::Vector2d pt1, pt2;
