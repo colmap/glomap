@@ -51,9 +51,12 @@ struct RotationEstimatorOptions {
   // L2.
   double irls_loss_parameter_sigma = 5.0;  // in degree
 
-  // TODO: implement the HALF_NORM roation averaging
   enum WeightType {
+    // For Geman-McClure weight, refer to the paper "Efficient and robust
+    // large-scale rotation averaging" (Chatterjee et. al, 2013)
     GEMAN_MCCLURE,
+    // For Half Norm, refer to the paper "Robust Relative Rotation Averaging"
+    // (Chatterjee et. al, 2017)
     HALF_NORM,
   } weight_type = GEMAN_MCCLURE;
 

@@ -23,7 +23,7 @@ double RelAngleError(double angle_12, double angle_1, double angle_2) {
 bool RotationEstimator::EstimateRotations(
     const ViewGraph& view_graph, std::unordered_map<image_t, Image>& images) {
   // Initialize the rotation from maximum spanning tree
-  if (!options_.skip_initialization) {
+  if (!options_.skip_initialization && !options_.use_gravity) {
     InitializeFromMaximumSpanningTree(view_graph, images);
   }
 
@@ -50,6 +50,7 @@ bool RotationEstimator::EstimateRotations(
 
     if (options_.use_gravity && image.gravity_info.has_gravity) {
       image.cam_from_world.rotation = Eigen::Quaterniond(
+          image.gravity_info.GetRAlign() *
           AngleToRotUp(rotation_estimated_[image_id_to_idx_[image_id]]));
     } else {
       image.cam_from_world.rotation = Eigen::Quaterniond(AngleAxisToRotation(
@@ -129,15 +130,14 @@ void RotationEstimator::SetupLinearSystem(
     image_id_to_idx_[image_id] = num_dof;
     if (options_.use_gravity && image.gravity_info.has_gravity) {
       rotation_estimated_[num_dof] =
-          RotUpToAngle(image.gravity_info.R_align.transpose() *
+          RotUpToAngle(image.gravity_info.GetRAlign().transpose() *
                        image.cam_from_world.rotation.toRotationMatrix());
       num_dof++;
 
       if (fixed_camera_id_ == -1) {
         fixed_camera_rotation_ = Eigen::Vector3d(
             0,
-            RotUpToAngle(image.gravity_info.R_align.transpose() *
-                         image.cam_from_world.rotation.toRotationMatrix()),
+            rotation_estimated_[num_dof-1],
             0);
         fixed_camera_id_ = image_id;
       }
@@ -165,11 +165,12 @@ void RotationEstimator::SetupLinearSystem(
   rotation_estimated_.conservativeResize(num_dof);
 
   // Prepare the relative information
+  int counter = 0;
   for (auto& [pair_id, image_pair] : view_graph.image_pairs) {
     if (!image_pair.is_valid) continue;
 
     int image_id1 = image_pair.image_id1;
-    int image_id2 = image_pair.image_id1;
+    int image_id2 = image_pair.image_id2;
 
     rel_temp_info_[pair_id].R_rel =
         image_pair.cam2_from_cam1.rotation.toRotationMatrix();
@@ -177,19 +178,21 @@ void RotationEstimator::SetupLinearSystem(
     // Align the relative rotation to the gravity
     if (options_.use_gravity) {
       if (images[image_id1].gravity_info.has_gravity) {
-        rel_temp_info_[pair_id].R_rel = rel_temp_info_[pair_id].R_rel *
-                                        images[image_id1].gravity_info.R_align;
+        rel_temp_info_[pair_id].R_rel =
+            rel_temp_info_[pair_id].R_rel *
+            images[image_id1].gravity_info.GetRAlign();
       }
 
       if (images[image_id2].gravity_info.has_gravity) {
         rel_temp_info_[pair_id].R_rel =
-            images[image_id2].gravity_info.R_align.transpose() *
+            images[image_id2].gravity_info.GetRAlign().transpose() *
             rel_temp_info_[pair_id].R_rel;
       }
     }
 
     if (options_.use_gravity && images[image_id1].gravity_info.has_gravity &&
         images[image_id2].gravity_info.has_gravity) {
+      counter++;
       Eigen::Vector3d aa = RotationToAngleAxis(rel_temp_info_[pair_id].R_rel);
       double error = aa[0] * aa[0] + aa[2] * aa[2];
 
@@ -336,7 +339,6 @@ bool RotationEstimator::SolveIRLS(const ViewGraph& view_graph,
                                   std::unordered_map<image_t, Image>& images) {
   // TODO: Determine what is the best solver for this part
   Eigen::CholmodSupernodalLLT<Eigen::SparseMatrix<double>> llt;
-  // Eigen::SimplicialLLT<Eigen::SparseMatrix<double>> llt;
 
   // weight_matrix.setIdentity();
   // sparse_matrix_ = A_ori;
@@ -380,7 +382,7 @@ bool RotationEstimator::SolveIRLS(const ViewGraph& view_graph,
         double tmp = err_squared + sigma * sigma;
         w = sigma * sigma / (tmp * tmp);
       } else if (options_.weight_type == RotationEstimatorOptions::HALF_NORM) {
-        LOG(ERROR) << "NOT IMPLEMENTED!!!";
+        w = std::pow(err_squared, (0.5 - 2) / 2);
       }
 
       if (std::isnan(w)) {
