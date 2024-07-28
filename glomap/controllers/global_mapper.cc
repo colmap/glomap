@@ -297,10 +297,8 @@ bool GlobalMapper::Solve(const colmap::Database& database,
         options_.inlier_thresholds.min_triangulation_angle);
   }
 
-  // 8. Postprocessing
-  // TODO: change it to pruning (instead of postprocessing)
-  // TODO: always run the filtering
-  if (!options_.skip_postprocessing) {
+  // 8. Reconstruction pruning
+  if (!options_.skip_pruning) {
     std::cout << "-------------------------------------" << std::endl;
     std::cout << "Running postprocessing ..." << std::endl;
     std::cout << "-------------------------------------" << std::endl;
