@@ -82,10 +82,8 @@ jobs:
           unzip "${ctcache_commit_id}.zip"
           mv ctcache-${ctcache_commit_id}/clang-tidy* "$COMPILER_CACHE_DIR/bin"
       - name: Check code format
+        if: matrix.config.checkCodeFormat
         run: |
-          if [ "${{ matrix.config.checkCodeFormat }}" != "true" ]; then
-            exit 0
-          fi
           set +x -euo pipefail
           sudo apt-get update && sudo apt-get install -y clang-format-14 black
           ./scripts/format/clang_format.sh
