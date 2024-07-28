@@ -12,12 +12,12 @@ image_pair_t ViewGraphManipulater::SparsifyGraph(
 
   // Keep track of chosen edges
   std::unordered_set<image_pair_t> chosen_edges;
-  std::unordered_map<image_t, std::unordered_set<image_t>>& adjacency_list =
+  const std::unordered_map<image_t, std::unordered_set<image_t>>& adjacency_list =
       view_graph.GetAdjacencyList();
 
   // Here, the average is the mean of the degrees
   double average_degree = 0;
-  for (auto& [image_id, neighbors] : adjacency_list) {
+  for (const auto& [image_id, neighbors] : adjacency_list) {
     if (images[image_id].is_registered == false) continue;
     average_degree += neighbors.size();
   }
@@ -35,8 +35,8 @@ image_pair_t ViewGraphManipulater::SparsifyGraph(
         images[image_id2].is_registered == false)
       continue;
 
-    int degree1 = adjacency_list[image_id1].size();
-    int degree2 = adjacency_list[image_id2].size();
+    int degree1 = adjacency_list.at(image_id1).size();
+    int degree2 = adjacency_list.at(image_id2).size();
 
     if (degree1 <= expected_degree || degree2 <= expected_degree) {
       chosen_edges.insert(pair_id);
