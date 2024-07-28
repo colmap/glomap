@@ -10,6 +10,8 @@ set(SOURCES
     estimators/view_graph_calibration.cc
     io/colmap_converter.cc
     io/colmap_io.cc
+    io/gravity_io.cc
+    math/adaptive_scaler.cc
     math/gravity.cc
     math/rigid3d.cc
     math/tree.cc
@@ -37,6 +39,8 @@ set(HEADERS
     estimators/view_graph_calibration.h
     io/colmap_converter.h
     io/colmap_io.h
+    io/gravity_io.h
+    math/adaptive_scaler.h
     math/gravity.h
     math/l1_solver.h
     math/rigid3d.h
@@ -52,7 +56,6 @@ set(HEADERS
     scene/camera.h
     scene/image_pair.h
     scene/image.h
-    scene/rigid3d.h
     scene/track.h
     scene/types_sfm.h
     scene/types.h
@@ -99,6 +102,13 @@ else()
         -Wno-unused-variable
     )
 endif()
+
+add_executable(debug
+    test_main.cc
+    # test_gravity.cc
+    test/prepare_experiment.h
+    test/prepare_experiment.cc)
+target_link_libraries(debug glomap)
 
 add_executable(glomap_main
     glomap.cc

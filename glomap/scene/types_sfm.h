@@ -2,7 +2,6 @@
 // Types defined by GLOMAP
 #include "glomap/scene/camera.h"
 #include "glomap/scene/image.h"
-#include "glomap/scene/rigid3d.h"
 #include "glomap/scene/track.h"
 #include "glomap/scene/types.h"
 #include "glomap/scene/view_graph.h"

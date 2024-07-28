@@ -1,11 +1,13 @@
 #pragma once
 
+#include <colmap/geometry/rigid3.h>
+#include <colmap/util/types.h>
+
 #include <cstdint>
 #include <limits>
 #include <unordered_map>
 #include <unordered_set>
 
-// TODO: Using colmap definition
 namespace glomap {
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -13,10 +15,10 @@ namespace glomap {
 ////////////////////////////////////////////////////////////////////////////////
 
 // Unique identifier for cameras.
-typedef uint32_t camera_t;
+using colmap::camera_t;
 
 // Unique identifier for images.
-typedef uint32_t image_t;
+using colmap::image_t;
 
 // Each image pair gets a unique ID, see `Database::ImagePairToPairId`.
 typedef uint64_t image_pair_t;
@@ -28,6 +30,8 @@ typedef uint32_t feature_t;
 // delete them, and possibly re-add them again, the maximum number of allowed
 // unique indices should be large.
 typedef uint64_t track_t;
+
+using colmap::Rigid3d;
 
 const image_t kMaxNumImages = std::numeric_limits<image_t>::max();
 const image_pair_t kInvalidImagePairId = -1;

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "glomap/scene/camera.h"
-#include "glomap/scene/rigid3d.h"
+#include "glomap/scene/types.h"
 #include "glomap/types.h"
 
 namespace glomap {

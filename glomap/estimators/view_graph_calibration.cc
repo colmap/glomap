@@ -147,6 +147,9 @@ void ViewGraphCalibrator::ConvertResults(
     // Update the focal length
     for (const size_t idx : camera.FocalLengthIdxs()) {
       camera.params[idx] = focals_[camera_id];
+      if (options_.verbose)
+        LOG(INFO) << "Camera " << idx << " focal: " << focals_[camera_id]
+                  << std::endl;
     }
   }
   LOG(INFO) << counter << " cameras are rejected in view graph calibration";

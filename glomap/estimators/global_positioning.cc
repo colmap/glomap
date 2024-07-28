@@ -148,8 +148,9 @@ void GlobalPositioner::AddCameraToCameraConstraints(
     track_t counter = scales_.size();
     scales_.insert(std::make_pair(counter, 1));
 
-    Eigen::Vector3d translation = -images[image_id2].cam_from_world.Derotate(
-        image_pair.cam2_from_cam1.translation);
+    Eigen::Vector3d translation =
+        -(images[image_id2].cam_from_world.rotation.inverse() *
+          image_pair.cam2_from_cam1.translation);
     ceres::CostFunction* cost_function =
         BATAPairwiseDirectionError::Create(translation);
     problem_->AddResidualBlock(
@@ -240,8 +241,8 @@ void GlobalPositioner::AddTrackToProblem(
     Image& image = images[observation.first];
     if (!image.is_registered) continue;
 
-    Eigen::Vector3d translation = image.cam_from_world.Derotate(
-        image.features_undist[observation.second]);
+    Eigen::Vector3d translation = image.cam_from_world.rotation.inverse() *
+                                  image.features_undist[observation.second];
     ceres::CostFunction* cost_function =
         BATAPairwiseDirectionError::Create(translation);
 
@@ -353,7 +354,7 @@ void GlobalPositioner::ConvertResults(
   // translation
   for (auto& [image_id, image] : images) {
     image.cam_from_world.translation =
-        -image.cam_from_world.Rotate(image.cam_from_world.translation);
+        -(image.cam_from_world.rotation * image.cam_from_world.translation);
   }
 }
 

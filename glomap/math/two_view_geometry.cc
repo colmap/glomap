@@ -8,7 +8,7 @@ bool CheckCheirality(const Rigid3d& pose,
                      double min_depth,
                      double max_depth) {
   // This code assumes that x1 and x2 are unit vectors
-  const Eigen::Vector3d Rx1 = pose.Rotate(x1);
+  const Eigen::Vector3d Rx1 = pose.rotation * x1;
 
   // [1 a; a 1] * [lambda1; lambda2] = [b1; b2]
   // [lambda1; lambda2] = [1 s-a; -a 1] * [b1; b2] / (1 - a*a)

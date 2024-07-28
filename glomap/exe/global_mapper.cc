@@ -78,7 +78,7 @@ int RunMapper(int argc, char** argv) {
   global_mapper.Solve(database, view_graph, cameras, images, tracks);
   run_timer.Pause();
 
-  LOG(INFO) << "Recontruction done in " << run_timer.ElapsedSeconds()
+  LOG(INFO) << "Reconstruction done in " << run_timer.ElapsedSeconds()
             << " seconds";
 
   WriteGlomapReconstruction(
@@ -136,7 +136,7 @@ int RunMapperResume(int argc, char** argv) {
   global_mapper.Solve(database, view_graph, cameras, images, tracks);
   run_timer.Pause();
 
-  LOG(INFO) << "Recontruction done in " << run_timer.ElapsedSeconds()
+  LOG(INFO) << "Reconstruction done in " << run_timer.ElapsedSeconds()
             << " seconds";
 
   WriteGlomapReconstruction(

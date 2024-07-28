@@ -82,7 +82,7 @@ bool GlobalMapper::Solve(const colmap::Database& database,
     ra_engine.EstimateRotations(view_graph, images);
 
     RelPoseFilter::FilterRotations(
-        view_graph, images, options_.inlier_thresholds.max_roation_error);
+        view_graph, images, options_.inlier_thresholds.max_rotation_error);
     view_graph.KeepLargestConnectedComponents(images);
 
     // The second run is for final estimation
@@ -90,7 +90,7 @@ bool GlobalMapper::Solve(const colmap::Database& database,
       return false;
     }
     RelPoseFilter::FilterRotations(
-        view_graph, images, options_.inlier_thresholds.max_roation_error);
+        view_graph, images, options_.inlier_thresholds.max_rotation_error);
     image_t num_img = view_graph.KeepLargestConnectedComponents(images);
     LOG(INFO) << num_img << " / " << images.size()
               << " images are within the connected component." << std::endl;
@@ -199,10 +199,12 @@ bool GlobalMapper::Solve(const colmap::Database& database,
         run_timer.PrintSeconds();
 
       // 6.3. Filter tracks based on the estatimation
+      // For the filtering, in each round, the criteria for outlier is
+      // tightened. If only few tracks are changed, no need to start bundle
+      // adjustment right away. Instead, use a more strict criteria to filter
       UndistortImages(cameras, images, true);
       LOG(INFO) << "Filtering tracks by reprojection ...";
 
-      // TODO: add comment here to explain the logic
       bool status = true;
       size_t filtere_num = 0;
       while (status && ite < options_.num_iteration_bundle_adjustment) {
@@ -224,6 +226,22 @@ bool GlobalMapper::Solve(const colmap::Database& database,
         break;
       }
     }
+
+    // Filter tracks based on the estatimation
+    UndistortImages(cameras, images, true);
+    LOG(INFO) << "Filtering tracks by reprojection ...";
+    TrackFilter::FilterTracksByReprojection(
+        view_graph,
+        cameras,
+        images,
+        tracks,
+        options_.inlier_thresholds.max_reprojection_error);
+    TrackFilter::FilterTrackTriangulationAngle(
+        view_graph,
+        images,
+        tracks,
+        options_.inlier_thresholds.min_triangulation_angle);
+
     run_timer.PrintSeconds();
   }
 
@@ -242,6 +260,7 @@ bool GlobalMapper::Solve(const colmap::Database& database,
       std::cout << "-------------------------------------" << std::endl;
       std::cout << "Running bundle adjustment ..." << std::endl;
       std::cout << "-------------------------------------" << std::endl;
+      LOG(INFO) << "Bundle adjustment start" << std::endl;
       BundleAdjuster ba_engine(options_.opt_ba);
       if (!ba_engine.Solve(view_graph, cameras, images, tracks)) {
         return false;
@@ -261,18 +280,6 @@ bool GlobalMapper::Solve(const colmap::Database& database,
       }
       run_timer.PrintSeconds();
     }
-  }
-
-  // 8. Postprocessing
-  // TODO: change it to pruning (instead of postprocessing)
-  // TODO: always run the filtering
-  if (!options_.skip_postprocessing) {
-    std::cout << "-------------------------------------" << std::endl;
-    std::cout << "Running postprocessing ..." << std::endl;
-    std::cout << "-------------------------------------" << std::endl;
-
-    colmap::Timer run_timer;
-    run_timer.Start();
 
     // Filter tracks based on the estatimation
     UndistortImages(cameras, images, true);
@@ -288,6 +295,18 @@ bool GlobalMapper::Solve(const colmap::Database& database,
         images,
         tracks,
         options_.inlier_thresholds.min_triangulation_angle);
+  }
+
+  // 8. Postprocessing
+  // TODO: change it to pruning (instead of postprocessing)
+  // TODO: always run the filtering
+  if (!options_.skip_postprocessing) {
+    std::cout << "-------------------------------------" << std::endl;
+    std::cout << "Running postprocessing ..." << std::endl;
+    std::cout << "-------------------------------------" << std::endl;
+
+    colmap::Timer run_timer;
+    run_timer.Start();
 
     // Prune weakly connected images
     PruneWeaklyConnectedImages(images, tracks);
