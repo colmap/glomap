@@ -1,5 +1,6 @@
 #include "glomap/processors/image_pair_inliers.h"
 
+#include "glomap/math/adaptive_scaler.h"
 #include "glomap/math/two_view_geometry.h"
 
 namespace glomap {
@@ -44,12 +45,17 @@ double ImagePairInliers::ScoreErrorEssential() {
           (1. / cameras->at(images.at(image_id1).camera_id).Focal() +
            1. / cameras->at(images.at(image_id2).camera_id).Focal());
 
+  if (options.adaptive_threshold) {
+    thres *= AdaptiveFactor(cameras->at(images.at(image_id1).camera_id),
+                            cameras->at(images.at(image_id2).camera_id));
+  }
+
   // Square the threshold for faster computation
   double sq_threshold = thres * thres;
   double score = 0.;
   Eigen::Vector3d pt1, pt2;
 
-  // TODO: determin the best threshold for triangulation angle
+  // TODO: determine the best threshold for triangulation angle
   // double thres_angle = std::cos(DegToRad(1.));
   double thres_epipole = std::cos(DegToRad(3.));
   double thres_angle = 1;
@@ -69,7 +75,7 @@ double ImagePairInliers::ScoreErrorEssential() {
       bool not_denegerate = true;
 
       // Check whether two image rays are too close
-      double diff_angle = pt1.dot(cam2_from_cam1.Derotate(pt2));
+      double diff_angle = pt1.dot(cam2_from_cam1.rotation.inverse() * pt2);
       not_denegerate = (diff_angle < thres_angle);
 
       // Check whether two points are too close to the epipoles
@@ -117,8 +123,15 @@ double ImagePairInliers::ScoreErrorFundamental() {
   image_t image_id1 = image_pair.image_id1;
   image_t image_id2 = image_pair.image_id2;
 
-  double sq_threshold =
-      options.max_epipolar_error_F * options.max_epipolar_error_F;
+  double thres = options.max_epipolar_error_F;
+
+  if (options.adaptive_threshold) {
+    thres *= AdaptiveFactor(cameras->at(images.at(image_id1).camera_id),
+                            cameras->at(images.at(image_id2).camera_id));
+  }
+
+  double sq_threshold = thres * thres;
+
   double score = 0.;
   Eigen::Vector2d pt1, pt2;
 
@@ -170,8 +183,13 @@ double ImagePairInliers::ScoreErrorHomography() {
   image_t image_id1 = image_pair.image_id1;
   image_t image_id2 = image_pair.image_id2;
 
-  double sq_threshold =
-      options.max_epipolar_error_H * options.max_epipolar_error_H;
+  double thres = options.max_epipolar_error_H;
+  if (options.adaptive_threshold) {
+    thres *= AdaptiveFactor(cameras->at(images.at(image_id1).camera_id),
+                            cameras->at(images.at(image_id2).camera_id));
+  }
+
+  double sq_threshold = thres * thres;
   double score = 0.;
   Eigen::Vector2d pt1, pt2;
   for (size_t k = 0; k < image_pair.matches.rows(); ++k) {
