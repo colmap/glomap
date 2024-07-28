@@ -1,6 +1,5 @@
 #pragma once
 
-#include "glomap/scene/rigid3d.h"
 #include "glomap/scene/types.h"
 #include "glomap/types.h"
 

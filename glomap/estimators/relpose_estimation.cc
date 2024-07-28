@@ -1,5 +1,7 @@
 #include "glomap/estimators/relpose_estimation.h"
 
+#include "glomap/math/adaptive_scaler.h"
+
 #include <PoseLib/robust.h>
 
 namespace glomap {
@@ -44,6 +46,12 @@ void EstimateRelativePoses(ViewGraph& view_graph,
         points2D_2.push_back(images[idx2].features[feature_id2]);
       }
 
+      poselib::RansacOptions ransac_options_cus = options.ransac_options;
+      if (options.adaptive_threshold) {
+        ransac_options_cus.max_epipolar_error *= AdaptiveFactor(
+            cameras[images[idx1].camera_id], cameras[images[idx2].camera_id]);
+      }
+
       // Estimate the relative pose with poselib
       std::vector<char> inliers;
       poselib::CameraPose pose_rel_calc;
@@ -52,7 +60,7 @@ void EstimateRelativePoses(ViewGraph& view_graph,
           points2D_2,
           ColmapCameraToPoseLibCamera(cameras[images[idx1].camera_id]),
           ColmapCameraToPoseLibCamera(cameras[images[idx2].camera_id]),
-          options.ransac_options,
+          ransac_options_cus,
           options.bundle_options,
           &pose_rel_calc,
           &inliers);
