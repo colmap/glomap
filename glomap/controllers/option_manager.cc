@@ -75,8 +75,7 @@ void OptionManager::AddGlobalMapperOptions() {
                               &mapper->skip_bundle_adjustment);
   AddAndRegisterDefaultOption("skip_retriangulation",
                               &mapper->skip_retriangulation);
-  AddAndRegisterDefaultOption("skip_pruning",
-                              &mapper->skip_pruning);
+  AddAndRegisterDefaultOption("skip_pruning", &mapper->skip_pruning);
 }
 
 void OptionManager::AddGlobalMapperFullOptions() {
@@ -115,8 +114,7 @@ void OptionManager::AddGlobalMapperResumeOptions() {
                               &mapper->skip_global_positioning);
   AddAndRegisterDefaultOption("skip_bundle_adjustment",
                               &mapper->skip_bundle_adjustment);
-  AddAndRegisterDefaultOption("skip_pruning",
-                              &mapper->skip_pruning);
+  AddAndRegisterDefaultOption("skip_pruning", &mapper->skip_pruning);
 }
 
 void OptionManager::AddGlobalMapperResumeFullOptions() {

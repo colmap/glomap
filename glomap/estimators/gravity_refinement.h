@@ -18,7 +18,8 @@ struct GravityRefinerOptions : public OptimizationBaseOptions {
   int min_num_neighbors = 7;
 
   GravityRefinerOptions() : OptimizationBaseOptions() {
-    loss_function = std::make_shared<ceres::ArctanLoss>(1 - std::cos(DegToRad(max_gravity_error)));
+    loss_function = std::make_shared<ceres::ArctanLoss>(
+        1 - std::cos(DegToRad(max_gravity_error)));
   }
 };
 
@@ -27,10 +28,12 @@ class GravityRefiner {
   GravityRefiner(const GravityRefinerOptions& options) : options_(options) {}
   void RefineGravity(const ViewGraph& view_graph,
                      std::unordered_map<image_t, Image>& images);
+
  private:
-  void IdentifyErrorProneGravity(const ViewGraph& view_graph,
-                                 const std::unordered_map<image_t, Image>& images,
-                                 std::unordered_set<image_t>& error_prone_images);
+  void IdentifyErrorProneGravity(
+      const ViewGraph& view_graph,
+      const std::unordered_map<image_t, Image>& images,
+      std::unordered_set<image_t>& error_prone_images);
   GravityRefinerOptions options_;
 };
 

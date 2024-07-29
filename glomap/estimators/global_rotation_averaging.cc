@@ -135,10 +135,8 @@ void RotationEstimator::SetupLinearSystem(
       num_dof++;
 
       if (fixed_camera_id_ == -1) {
-        fixed_camera_rotation_ = Eigen::Vector3d(
-            0,
-            rotation_estimated_[num_dof-1],
-            0);
+        fixed_camera_rotation_ =
+            Eigen::Vector3d(0, rotation_estimated_[num_dof - 1], 0);
         fixed_camera_id_ = image_id;
       }
     } else {

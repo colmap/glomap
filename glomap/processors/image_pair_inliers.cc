@@ -1,4 +1,5 @@
 #include "glomap/processors/image_pair_inliers.h"
+
 #include "glomap/math/two_view_geometry.h"
 
 namespace glomap {

@@ -17,7 +17,8 @@ double CalcTrans(const Rigid3d& pose1, const Rigid3d& pose2);
 double CalcTransAngle(const Rigid3d& pose1, const Rigid3d& pose2);
 
 // Calculate the rotation angle difference between two rotations
-double CalcAngle(const Eigen::Matrix3d& rotation1, const Eigen::Matrix3d& rotation2) ;
+double CalcAngle(const Eigen::Matrix3d& rotation1,
+                 const Eigen::Matrix3d& rotation2);
 
 // Convert degree to radian
 double DegToRad(double degree);

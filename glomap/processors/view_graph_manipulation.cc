@@ -12,8 +12,8 @@ image_pair_t ViewGraphManipulater::SparsifyGraph(
 
   // Keep track of chosen edges
   std::unordered_set<image_pair_t> chosen_edges;
-  const std::unordered_map<image_t, std::unordered_set<image_t>>& adjacency_list =
-      view_graph.GetAdjacencyList();
+  const std::unordered_map<image_t, std::unordered_set<image_t>>&
+      adjacency_list = view_graph.GetAdjacencyList();
 
   // Here, the average is the mean of the degrees
   double average_degree = 0;

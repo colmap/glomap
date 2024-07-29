@@ -26,9 +26,9 @@ double CalcTransAngle(const Rigid3d& pose1, const Rigid3d& pose2) {
   return std::acos(cos_r) * 180 / M_PI;
 }
 
-double CalcAngle(const Eigen::Matrix3d& rotation1, const Eigen::Matrix3d& rotation2) {
-  double cos_r =
-      ((rotation1.transpose() * rotation2).trace() - 1) / 2;
+double CalcAngle(const Eigen::Matrix3d& rotation1,
+                 const Eigen::Matrix3d& rotation2) {
+  double cos_r = ((rotation1.transpose() * rotation2).trace() - 1) / 2;
   cos_r = std::min(std::max(cos_r, -1.), 1.);
 
   return std::acos(cos_r) * 180 / M_PI;

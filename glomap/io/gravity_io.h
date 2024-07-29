@@ -1,6 +1,7 @@
 #pragma once
 
 #include "glomap/scene/image.h"
+
 #include <unordered_map>
 
 namespace glomap {
