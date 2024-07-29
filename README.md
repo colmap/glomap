@@ -1,5 +1,8 @@
 # GLOMAP: Global Structure-from-Motion Revisited
 
+[Project page](https://lpanaf.github.io/eccv24_glomap/) | [Paper](https://demuc.de/papers/pan2024glomap.pdf) | [ Supplementary](https://demuc.de/papers/pan2024glomap_supp.pdf)
+---
+
 ## About
 
 GLOMAP is a general purpose global structure-from-motion pipeline for
