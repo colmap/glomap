@@ -35,7 +35,7 @@ After installation, one can run GLOMAP by (starting from a database)
 ```shell
 glomap mapper --database_path DATABASE_PATH --output_path OUTPUT_PATH --image_path IMAGE_PATH
 ```
-For more details on the command line interface, one can type `glomap -h" or 'glomap mapper -h" for help.
+For more details on the command line interface, one can type `glomap -h` or `glomap mapper -h` for help.
 To obtain a colored reconstruction, it is recommended to call
 ```shell
 colmap color_extractor --image_path IMAGE  --input_path MODEL_INPUT --output_path MODEL_OUTPUT
