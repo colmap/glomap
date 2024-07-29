@@ -88,6 +88,7 @@ target_include_directories(
         ..
         ${SuiteSparse_CHOLMOD_INCLUDE_DIR}
 )
+
 if(OPENMP_FOUND)
     target_link_libraries(glomap PUBLIC OpenMP::OpenMP_CXX)
 endif()
