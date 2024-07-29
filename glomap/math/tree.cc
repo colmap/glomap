@@ -80,7 +80,9 @@ image_t MaximumSpanningTree(const ViewGraph& view_graph,
                             std::unordered_map<image_t, image_t>& parents,
                             WeightType type) {
   std::unordered_map<image_t, int> image_id_to_idx;
+  image_id_to_idx.reserve(images.size());
   std::unordered_map<int, image_t> idx_to_image_id;
+  idx_to_image_id.reserve(images.size());
   for (auto& [image_id, image] : images) {
     if (image.is_registered == false) continue;
     idx_to_image_id[image_id_to_idx.size()] = image_id;
