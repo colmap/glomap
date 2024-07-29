@@ -204,6 +204,9 @@ void RotationEstimator::SetupLinearSystem(
     }
   }
 
+  if (options_.verbose)
+    LOG(INFO) << counter << " image pairs are gravity aligned" << std::endl;
+
   std::vector<Eigen::Triplet<double>> coeffs;
   coeffs.reserve(rel_temp_info_.size() * 6 + 3);
 
