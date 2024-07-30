@@ -70,15 +70,6 @@ jobs:
 
           .github/workflows/install-ccache.ps1 -Destination "${{ env.COMPILER_CACHE_DIR }}/bin"
 
-      - name: Install CUDA
-        uses: Jimver/cuda-toolkit@v0.2.16
-        if: matrix.config.cudaEnabled
-        id: cuda-toolkit
-        with:
-          cuda: '12.5.0'
-          sub-packages: '["nvcc", "nvtx", "cudart", "curand", "curand_dev", "nvrtc_dev"]'
-          method: 'network'
-
       - name: Install CMake and Ninja
         uses: lukka/get-cmake@latest
 
@@ -109,7 +100,6 @@ jobs:
             -DGUI_ENABLED=OFF `
             -DCGAL_ENABLED=OFF `
             -DCMAKE_CUDA_ARCHITECTURES=all-major `
-            -DCUDAToolkit_ROOT="${{ steps.cuda-toolkit.outputs.CUDA_PATH }}" `
             -DCMAKE_TOOLCHAIN_FILE="${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake" `
             -DVCPKG_TARGET_TRIPLET=x64-windows-release `
             -DCMAKE_INSTALL_PREFIX=install
@@ -137,24 +127,13 @@ jobs:
           cp vcpkg_export/glomap/installed/x64-windows/bin/*.dll install/bin
           cp vcpkg_export/glomap/installed/x64-windows-release/bin/*.dll install/bin
           cp -r vcpkg_export/glomap/installed/x64-windows/plugins install
-          if ($${{ matrix.config.cudaEnabled }}) {
-              cp "${{ steps.cuda-toolkit.outputs.CUDA_PATH }}/bin/cudart64_*.dll" install/bin
-              cp "${{ steps.cuda-toolkit.outputs.CUDA_PATH }}/bin/curand64_*.dll" install/bin
-          }
           Remove-Item -Recurse -Force install/include,install/lib,install/share
 
       - name: Upload package
         uses: actions/upload-artifact@v4
-        if: ${{ matrix.config.exportPackage && matrix.config.cudaEnabled }}
+        if: ${{ matrix.config.exportPackage }}
         with:
-          name: glomap-x64-windows-cuda
-          path: build/install
-
-      - name: Upload package
-        uses: actions/upload-artifact@v4
-        if: ${{ matrix.config.exportPackage && !matrix.config.cudaEnabled }}
-        with:
-          name: glomap-x64-windows-nocuda
+          name: glomap-x64-windows
           path: build/install
 
       - name: Cleanup compiler cache

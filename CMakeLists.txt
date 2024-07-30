@@ -14,6 +14,8 @@ option(CCACHE_ENABLED "Whether to enable compiler caching, if available" ON)
 option(FETCH_COLMAP "Whether to use COLMAP with FetchContent or with self-installed software" ON)
 option(FETCH_POSELIB "Whether to use PoseLib with FetchContent or with self-installed software" ON)
 
+include(cmake/FindDependencies.cmake)
+
 # Propagate options to vcpkg manifest.
 if (TESTS_ENABLED)
     enable_testing()
@@ -38,5 +40,22 @@ else()
     message(STATUS "Disabling ccache support")
 endif()
 
-include(cmake/FindDependencies.cmake)
+if(IS_MSVC)
+    # Some fixes for the Glog library.
+    add_definitions("-DGLOG_USE_GLOG_EXPORT")
+    add_definitions("-DGLOG_NO_ABBREVIATED_SEVERITIES")
+    add_definitions("-DGL_GLEXT_PROTOTYPES")
+    add_definitions("-DNOMINMAX")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc")
+    # Disable warning: 'initializing': conversion from 'X' to 'Y', possible loss of data
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4244 /wd4267 /wd4305")
+    # Enable object level parallel builds in Visual Studio.
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /MP")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
+    if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug" OR "${CMAKE_BUILD_TYPE}" STREQUAL "RelWithDebInfo")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /bigobj")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
+    endif()
+endif()
+
 add_subdirectory(glomap)
