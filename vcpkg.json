@@ -52,19 +52,6 @@
                 "glew",
                 "cuda"
             ]
-        },
-        "gui": {
-            "description": "Build the GUI.",
-            "dependencies": [
-                "glew",
-                "qt5-base"
-            ]
-        },
-        "cgal": {
-            "description": "Build with CGAL.",
-            "dependencies": [
-                "cgal"
-            ]
         }
     }
 }

@@ -138,8 +138,6 @@ jobs:
 
           ../vcpkg/vcpkg.exe install `
               --triplet=x64-windows-release `
-              --x-feature=gui `
-              --x-feature=cgal `
               $(if ($${{ matrix.config.testsEnabled }}) { echo "--x-feature=tests" }) `
               $(if ($${{ matrix.config.cudaEnabled }}) { echo "--x-feature=cuda" })
           ../vcpkg/vcpkg.exe export --raw --output-dir vcpkg_export --output glomap
