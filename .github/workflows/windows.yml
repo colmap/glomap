@@ -112,8 +112,6 @@ jobs:
             -DCMAKE_MAKE_PROGRAM=ninja `
             -DCMAKE_BUILD_TYPE=Release `
             -DTESTS_ENABLED=${{ matrix.config.testsEnabled }} `
-            -DSuiteSparse_CHOLMOD_LIBRARY="/usr/lib/x86_64-linux-gnu/libcholmod.so" \
-            -DSuiteSparse_CHOLMOD_INCLUDE_DIR="/usr/include/suitesparse" \
             -DCUDA_ENABLED=${{ matrix.config.cudaEnabled }} `
             -DCMAKE_CUDA_ARCHITECTURES=all-major `
             -DCUDAToolkit_ROOT="${{ steps.cuda-toolkit.outputs.CUDA_PATH }}" `
