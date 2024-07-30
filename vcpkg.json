@@ -37,20 +37,15 @@
         {
             "name": "vcpkg-cmake-config",
             "host": true
-        }
+        },
+        "glew",
+        "cuda"
     ],
     "features": {
         "tests": {
             "description": "Build all tests.",
             "dependencies": [
                 "gtest"
-            ]
-        },
-        "cuda": {
-            "description": "Build with CUDA.",
-            "dependencies": [
-                "glew",
-                "cuda"
             ]
         }
     }

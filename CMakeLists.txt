@@ -16,8 +16,10 @@ option(FETCH_POSELIB "Whether to use PoseLib with FetchContent or with self-inst
 
 include(cmake/FindDependencies.cmake)
 
+# Propagate options to vcpkg manifest.
 if (TESTS_ENABLED)
     enable_testing()
+    list(APPEND VCPKG_MANIFEST_FEATURES "tests")
 endif()
 
 if(ASAN_ENABLED)
