@@ -14,8 +14,6 @@ option(CCACHE_ENABLED "Whether to enable compiler caching, if available" ON)
 option(FETCH_COLMAP "Whether to use COLMAP with FetchContent or with self-installed software" ON)
 option(FETCH_POSELIB "Whether to use PoseLib with FetchContent or with self-installed software" ON)
 
-include(cmake/FindDependencies.cmake)
-
 # Propagate options to vcpkg manifest.
 if (TESTS_ENABLED)
     enable_testing()
@@ -41,4 +39,5 @@ else()
     message(STATUS "Disabling ccache support")
 endif()
 
+include(cmake/FindDependencies.cmake)
 add_subdirectory(glomap)
