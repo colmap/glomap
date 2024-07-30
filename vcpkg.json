@@ -37,14 +37,9 @@
         {
             "name": "vcpkg-cmake-config",
             "host": true
-        }
+        },
+        "gtest"
     ],
     "features": {
-        "tests": {
-            "description": "Build all tests.",
-            "dependencies": [
-                "gtest"
-            ]
-        }
     }
 }

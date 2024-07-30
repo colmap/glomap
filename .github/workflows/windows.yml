@@ -131,7 +131,6 @@ jobs:
 
           ../vcpkg/vcpkg.exe install `
               --triplet=x64-windows-release `
-              $(if ($${{ matrix.config.testsEnabled }}) { echo "--x-feature=tests" }) `
           ../vcpkg/vcpkg.exe export --raw --output-dir vcpkg_export --output glomap
           cp vcpkg_export/glomap/installed/x64-windows/bin/*.dll install/bin
           cp vcpkg_export/glomap/installed/x64-windows-release/bin/*.dll install/bin
