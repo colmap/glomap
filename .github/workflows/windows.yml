@@ -104,7 +104,7 @@ jobs:
             -GNinja `
             -DCMAKE_MAKE_PROGRAM=ninja `
             -DCMAKE_BUILD_TYPE=Release `
-            -DTESTS_ENABLED=${{ matrix.config.testsEnabled }} `
+            -DTESTS_ENABLED=ON `
             -DCUDA_ENABLED=OFF `
             -DCMAKE_CUDA_ARCHITECTURES=all-major `
             -DCUDAToolkit_ROOT="${{ steps.cuda-toolkit.outputs.CUDA_PATH }}" `
