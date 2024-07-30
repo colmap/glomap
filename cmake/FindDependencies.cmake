@@ -33,6 +33,13 @@ find_package(Boost REQUIRED)
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 find_package(SuiteSparse COMPONENTS CHOLMOD)
 
+find_package(Glog ${COLMAP_FIND_TYPE})
+if(DEFINED glog_VERSION_MAJOR)
+  # Older versions of glog don't export version variables.
+  add_definitions("-DGLOG_VERSION_MAJOR=${glog_VERSION_MAJOR}")
+  add_definitions("-DGLOG_VERSION_MINOR=${glog_VERSION_MINOR}")
+endif()
+
 if(TESTS_ENABLED)
     message(STATUS "Enabling tests")
     find_package(GTest REQUIRED)
