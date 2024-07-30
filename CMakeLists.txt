@@ -40,6 +40,10 @@ else()
     message(STATUS "Disabling ccache support")
 endif()
 
+if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    set(IS_MSVC TRUE)
+endif()
+
 if(IS_MSVC)
     # Some fixes for the Glog library.
     add_definitions("-DGLOG_USE_GLOG_EXPORT")
