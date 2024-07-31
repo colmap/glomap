@@ -1,6 +1,6 @@
 # GLOMAP: Global Structure-from-Motion Revisited
 
-[Project page](https://lpanaf.github.io/eccv24_glomap/) | [Paper](https://demuc.de/papers/pan2024glomap.pdf) | [ Supplementary](https://demuc.de/papers/pan2024glomap_supp.pdf)
+[Project page](https://lpanaf.github.io/eccv24_glomap/) | [Paper](https://arxiv.org/pdf/2407.20219)
 ---
 
 ## About
@@ -36,10 +36,6 @@ After installation, one can run GLOMAP by (starting from a database)
 glomap mapper --database_path DATABASE_PATH --output_path OUTPUT_PATH --image_path IMAGE_PATH
 ```
 For more details on the command line interface, one can type `glomap -h` or `glomap mapper -h` for help.
-To obtain a colored reconstruction, it is recommended to call
-```shell
-colmap color_extractor --image_path IMAGE  --input_path MODEL_INPUT --output_path MODEL_OUTPUT
-```
 
 Note:
 - GLOMAP depends on two external libraries - [COLMAP](https://github.com/colmap/colmap) and [PoseLib](https://github.com/PoseLib/PoseLib).
