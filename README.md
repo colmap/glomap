@@ -93,7 +93,7 @@ colmap sequential_matcher --database_path DATABASE_PATH
 colmap vocab_tree_matcher --database_path DATABASE_PATH --VocabTreeMatching.vocab_tree_path VOCAB_TREE_PATH
 ```
 - Alternatively, one can use
-  [hloc](https://github.com/cvg/Hierarchical-Localization/) for image retrival
+  [hloc](https://github.com/cvg/Hierarchical-Localization/) for image retrieval
   and matching with learning-based descriptors.
 
 
