@@ -161,7 +161,15 @@ void OptionManager::AddTrackEstablishmentOptions() {
   if (added_track_establishment_options_) {
     return;
   }
-  // TODO: maybe add options for track establishment
+  added_track_establishment_options_ = true;
+  AddAndRegisterDefaultOption("TrackEstablishment.min_num_tracks_per_view",
+                              &mapper->opt_track.min_num_tracks_per_view);
+  AddAndRegisterDefaultOption("TrackEstablishment.min_num_view_per_track",
+                              &mapper->opt_track.min_num_view_per_track);
+  AddAndRegisterDefaultOption("TrackEstablishment.max_num_view_per_track",
+                              &mapper->opt_track.max_num_view_per_track);
+  AddAndRegisterDefaultOption("TrackEstablishment.max_num_tracks",
+                              &mapper->opt_track.max_num_tracks);
 }
 
 void OptionManager::AddGlobalPositionerOptions() {
