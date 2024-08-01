@@ -24,7 +24,7 @@ bool GlobalMapper::Solve(const colmap::Database& database,
 
     colmap::Timer run_timer;
     run_timer.Start();
-    // If camera intrinscs seem to be good, force the pair to use essential
+    // If camera intrinsics seem to be good, force the pair to use essential
     // matrix
     ViewGraphManipulater::UpdateImagePairsConfig(view_graph, cameras, images);
     ViewGraphManipulater::DecomposeRelPose(view_graph, cameras, images);
@@ -149,7 +149,7 @@ bool GlobalMapper::Solve(const colmap::Database& database,
       }
     }
 
-    // Filter tracks based on the estatimation
+    // Filter tracks based on the estimation
     TrackFilter::FilterTracksByAngle(
         view_graph,
         cameras,
@@ -198,7 +198,7 @@ bool GlobalMapper::Solve(const colmap::Database& database,
       if (ite != options_.num_iteration_bundle_adjustment - 1)
         run_timer.PrintSeconds();
 
-      // 6.3. Filter tracks based on the estatimation
+      // 6.3. Filter tracks based on the estimation
       // For the filtering, in each round, the criteria for outlier is
       // tightened. If only few tracks are changed, no need to start bundle
       // adjustment right away. Instead, use a more strict criteria to filter
@@ -206,17 +206,17 @@ bool GlobalMapper::Solve(const colmap::Database& database,
       LOG(INFO) << "Filtering tracks by reprojection ...";
 
       bool status = true;
-      size_t filtere_num = 0;
+      size_t filtered_num = 0;
       while (status && ite < options_.num_iteration_bundle_adjustment) {
         double scaling = std::max(3 - ite, 1);
-        filtere_num += TrackFilter::FilterTracksByReprojection(
+        filtered_num += TrackFilter::FilterTracksByReprojection(
             view_graph,
             cameras,
             images,
             tracks,
             scaling * options_.inlier_thresholds.max_reprojection_error);
 
-        if (filtere_num > 1e-3 * tracks.size()) {
+        if (filtered_num > 1e-3 * tracks.size()) {
           status = false;
         } else
           ite++;
@@ -227,7 +227,7 @@ bool GlobalMapper::Solve(const colmap::Database& database,
       }
     }
 
-    // Filter tracks based on the estatimation
+    // Filter tracks based on the estimation
     UndistortImages(cameras, images, true);
     LOG(INFO) << "Filtering tracks by reprojection ...";
     TrackFilter::FilterTracksByReprojection(
@@ -266,7 +266,7 @@ bool GlobalMapper::Solve(const colmap::Database& database,
         return false;
       }
 
-      // Filter tracks based on the estatimation
+      // Filter tracks based on the estimation
       UndistortImages(cameras, images, true);
       LOG(INFO) << "Filtering tracks by reprojection ...";
       TrackFilter::FilterTracksByReprojection(
@@ -281,7 +281,7 @@ bool GlobalMapper::Solve(const colmap::Database& database,
       run_timer.PrintSeconds();
     }
 
-    // Filter tracks based on the estatimation
+    // Filter tracks based on the estimation
     UndistortImages(cameras, images, true);
     LOG(INFO) << "Filtering tracks by reprojection ...";
     TrackFilter::FilterTracksByReprojection(
