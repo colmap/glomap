@@ -14,7 +14,7 @@ message(STATUS "Configuring PoseLib... done")
 
 FetchContent_Declare(COLMAP
     GIT_REPOSITORY    https://github.com/colmap/colmap.git
-    GIT_TAG           b5c381ad71e6a970266a1f1280de523c0b10f107
+    GIT_TAG           66fd8e56a0d160d68af2f29e9ac6941d442d2322
     EXCLUDE_FROM_ALL
 )
 message(STATUS "Configuring COLMAP...")
@@ -22,7 +22,7 @@ set(UNINSTALL_ENABLED OFF CACHE INTERNAL "")
 if (FETCH_COLMAP) 
     FetchContent_MakeAvailable(COLMAP)
 else()
-    find_package(COLMAP REQUIRED)
+    find_package(COLMAP 3.11 REQUIRED)
 endif()
 message(STATUS "Configuring COLMAP... done")
 

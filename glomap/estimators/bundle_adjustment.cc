@@ -1,6 +1,7 @@
 #include "bundle_adjustment.h"
 
 #include <colmap/estimators/cost_functions.h>
+#include <colmap/estimators/manifold.h>
 #include <colmap/sensor/models.h>
 
 namespace glomap {
