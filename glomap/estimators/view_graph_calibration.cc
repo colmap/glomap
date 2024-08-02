@@ -5,6 +5,8 @@
 
 #include <colmap/scene/two_view_geometry.h>
 
+#include <thread>
+
 namespace glomap {
 
 bool ViewGraphCalibrator::Solve(ViewGraph& view_graph,
@@ -154,15 +156,18 @@ void ViewGraphCalibrator::CopyBackResults(
 }
 
 size_t ViewGraphCalibrator::FilterImagePairs(ViewGraph& view_graph) const {
-  ceres::Problem::EvaluateOptions EvalOpts;
-  EvalOpts.num_threads = 16;
-  EvalOpts.apply_loss_function = false;
+  ceres::Problem::EvaluateOptions eval_options;
+  eval_options.num_threads = options_.solver_options.num_threads;
+  eval_options.apply_loss_function = false;
   std::vector<double> residuals;
-  problem_->Evaluate(EvalOpts, nullptr, &residuals, nullptr, nullptr);
+  problem_->Evaluate(eval_options, nullptr, &residuals, nullptr, nullptr);
 
   // Dump the residuals into the original data structure
   size_t counter = 0;
   size_t invalid_counter = 0;
+
+  const double thres_two_view_error_sq =
+      options_.thres_two_view_error * options_.thres_two_view_error;
 
   for (auto& [image_pair_id, image_pair] : view_graph.image_pairs) {
     if (image_pair.config != colmap::TwoViewGeometry::CALIBRATED &&
@@ -170,17 +175,14 @@ size_t ViewGraphCalibrator::FilterImagePairs(ViewGraph& view_graph) const {
       continue;
     if (image_pair.is_valid == false) continue;
 
-    Eigen::Vector2d error =
-        Eigen::Vector2d(residuals[counter], residuals[counter + 1]);
-
-    image_t image_id1 = image_pair.image_id1;
-    image_t image_id2 = image_pair.image_id2;
+    const Eigen::Vector2d error(residuals[counter], residuals[counter + 1]);
 
     // Set the two view geometry to be invalid if the error is too high
-    if (error.norm() > options_.thres_two_view_error) {
+    if (error.squaredNorm() > thres_two_view_error_sq) {
       invalid_counter++;
       image_pair.is_valid = false;
     }
+
     counter += 2;
   }
 

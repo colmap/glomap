@@ -1,6 +1,8 @@
 
 #pragma once
 
+#include <thread>
+
 #include <Eigen/Core>
 #include <ceres/ceres.h>
 
@@ -20,7 +22,7 @@ struct OptimizationBaseOptions {
   ceres::Solver::Options solver_options;
 
   OptimizationBaseOptions() {
-    solver_options.num_threads = 16;
+    solver_options.num_threads = std::thread::hardware_concurrency();
     solver_options.max_num_iterations = 100;
     solver_options.minimizer_progress_to_stdout = verbose;
     solver_options.function_tolerance = 1e-5;
