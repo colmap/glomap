@@ -1,57 +1,64 @@
 #include "glomap/estimators/relpose_estimation.h"
 
+#include <iomanip>
+
 #include <PoseLib/robust.h>
 
 namespace glomap {
+
 void EstimateRelativePoses(ViewGraph& view_graph,
                            std::unordered_map<camera_t, Camera>& cameras,
                            std::unordered_map<image_t, Image>& images,
                            const RelativePoseEstimationOptions& options) {
-  std::vector<image_pair_t> image_pair_ids;
+  std::vector<image_pair_t> valid_pair_ids;
   for (auto& [image_pair_id, image_pair] : view_graph.image_pairs) {
     if (!image_pair.is_valid) continue;
-    image_pair_ids.push_back(image_pair_id);
+    valid_pair_ids.push_back(image_pair_id);
   }
 
-  image_pair_t inverval = std::ceil(image_pair_ids.size() / 10.);
-  LOG(INFO) << "Estimating relative pose for " << image_pair_ids.size()
-            << " pairs";
-  for (image_pair_t chunks = 0; chunks < 10; chunks++) {
-    std::cout << "\r Estimating relative pose: " << chunks * 10 << "%"
-              << std::flush;
-    image_pair_t start = chunks * inverval;
-    image_pair_t end = std::min((chunks + 1) * inverval, image_pair_ids.size());
-#pragma omp parallel for
-    for (image_pair_t pair = start; pair < end; pair++) {
-      ImagePair& image_pair = view_graph.image_pairs[image_pair_ids[pair]];
-      image_t idx1 = image_pair.image_id1;
-      image_t idx2 = image_pair.image_id2;
+  const size_t num_valid_pairs = valid_pair_ids.size();
+  LOG(INFO) << "Estimating relative pose for " << num_valid_pairs << " pairs";
 
-      camera_t camera_id1 = images[idx1].camera_id;
-      camera_t camera_id2 = images[idx2].camera_id;
+#pragma omp parallel
+  {
+    // Define variables outside parallel for loop to reuse allocations.
+    std::vector<Eigen::Vector2d> points2D_1, points2D_2;
+    std::vector<char> inliers;
+
+    const int thread_id = omp_get_thread_num();
+    size_t num_processed_pairs = 0;
+
+#pragma omp parallel for schedule(dynamic)
+    for (size_t pair_idx = 0; pair_idx < num_valid_pairs; ++pair_idx) {
+      // Since we use dynamic scheduling, we can assume that each thread is
+      // progressing approximately at the same pace, so we simply log out the
+      // progress from the master thread.
+      if (thread_id == 0 && num_processed_pairs++ % 100 == 0) {
+        std::cout << "\r Estimating relative pose: " << std::setprecision(2)
+                  << 100.0 * pair_idx / num_valid_pairs << "%" << std::flush;
+      }
+
+      ImagePair& image_pair = view_graph.image_pairs[valid_pair_ids[pair_idx]];
+      const auto& image1 = images[image_pair.image_id1];
+      const auto& image2 = images[image_pair.image_id2];
 
       const Eigen::MatrixXi& matches = image_pair.matches;
 
       // Collect the original 2D points
-      std::vector<Eigen::Vector2d> points2D_1, points2D_2;
-      points2D_1.reserve(matches.rows());
-      points2D_2.reserve(matches.rows());
+      points2D_1.clear();
+      points2D_2.clear();
       for (size_t idx = 0; idx < matches.rows(); idx++) {
-        feature_t feature_id1 = matches(idx, 0);
-        feature_t feature_id2 = matches(idx, 1);
-
-        points2D_1.push_back(images[idx1].features[feature_id1]);
-        points2D_2.push_back(images[idx2].features[feature_id2]);
+        points2D_1.push_back(image1.features[matches(idx, 0)]);
+        points2D_2.push_back(image2.features[matches(idx, 1)]);
       }
 
-      // Estimate the relative pose with poselib
-      std::vector<char> inliers;
+      inliers.clear();
       poselib::CameraPose pose_rel_calc;
       poselib::estimate_relative_pose(
           points2D_1,
           points2D_2,
-          ColmapCameraToPoseLibCamera(cameras[images[idx1].camera_id]),
-          ColmapCameraToPoseLibCamera(cameras[images[idx2].camera_id]),
+          ColmapCameraToPoseLibCamera(cameras[image1.camera_id]),
+          ColmapCameraToPoseLibCamera(cameras[image2.camera_id]),
           options.ransac_options,
           options.bundle_options,
           &pose_rel_calc,
@@ -64,6 +71,7 @@ void EstimateRelativePoses(ViewGraph& view_graph,
       image_pair.cam2_from_cam1.translation = pose_rel_calc.t;
     }
   }
+
   std::cout << "\r Estimating relative pose: 100%" << std::endl;
   LOG(INFO) << "Estimating relative pose done";
 }
