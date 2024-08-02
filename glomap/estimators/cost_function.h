@@ -67,7 +67,8 @@ inline Eigen::Vector4d fetzer_d(const Eigen::Vector3d& ai,
   return d;
 }
 
-inline std::array<Eigen::Vector4d, 3> fetzer_ds(Eigen::Matrix3d& i1_G_i0) {
+inline std::array<Eigen::Vector4d, 3> fetzer_ds(
+    const Eigen::Matrix3d& i1_G_i0) {
   Eigen::JacobiSVD<Eigen::Matrix3d> svd(
       i1_G_i0, Eigen::ComputeFullU | Eigen::ComputeFullV);
   Eigen::Vector3d s = svd.singularValues();
@@ -119,9 +120,9 @@ class FetzerFocalLengthCost {
     K1(0, 2) = principal_point1(0);
     K1(1, 2) = principal_point1(1);
 
-    Eigen::Matrix3d i1_G_i0 = K1.transpose() * i1_F_i0 * K0;
+    const Eigen::Matrix3d i1_G_i0 = K1.transpose() * i1_F_i0 * K0;
 
-    std::array<Eigen::Vector4d, 3> ds = fetzer_ds(i1_G_i0);
+    const std::array<Eigen::Vector4d, 3> ds = fetzer_ds(i1_G_i0);
 
     d_01 = ds[0];
     d_02 = ds[1];
@@ -138,16 +139,19 @@ class FetzerFocalLengthCost {
 
   template <typename T>
   bool operator()(const T* const fi_, const T* const fj_, T* residuals) const {
-    Eigen::Vector<T, 4> d_01_ = d_01.cast<T>();
-    Eigen::Vector<T, 4> d_12_ = d_12.cast<T>();
+    const Eigen::Vector<T, 4> d_01_ = d_01.cast<T>();
+    const Eigen::Vector<T, 4> d_12_ = d_12.cast<T>();
 
-    T fi = fi_[0];
-    T fj = fj_[0];
+    const T fi = fi_[0];
+    const T fj = fj_[0];
 
-    T K0_01 =
-        -(fj * fj * d_01_(2) + d_01_(3)) / (fj * fj * d_01_(0) + d_01_(1));
-    T K1_12 =
-        -(fi * fi * d_12_(1) + d_12_(3)) / (fi * fi * d_12_(0) + d_12_(2));
+    T di = (fj * fj * d_01_(0) + d_01_(1));
+    T dj = (fi * fi * d_12_(0) + d_12_(2));
+    di = di == T(0) ? T(1e-6) : di;
+    dj = dj == T(0) ? T(1e-6) : dj;
+
+    const T K0_01 = -(fj * fj * d_01_(2) + d_01_(3)) / di;
+    const T K1_12 = -(fi * fi * d_12_(1) + d_12_(3)) / dj;
 
     residuals[0] = (fi * fi - K0_01) / (fi * fi);
     residuals[1] = (fj * fj - K1_12) / (fj * fj);
@@ -174,9 +178,9 @@ class FetzerFocalLengthSameCameraCost {
     K1(0, 2) = principal_point(0);
     K1(1, 2) = principal_point(1);
 
-    Eigen::Matrix3d i1_G_i0 = K1.transpose() * i1_F_i0 * K0;
+    const Eigen::Matrix3d i1_G_i0 = K1.transpose() * i1_F_i0 * K0;
 
-    std::array<Eigen::Vector4d, 3> ds = fetzer_ds(i1_G_i0);
+    const std::array<Eigen::Vector4d, 3> ds = fetzer_ds(i1_G_i0);
 
     d_01 = ds[0];
     d_02 = ds[1];
@@ -192,16 +196,19 @@ class FetzerFocalLengthSameCameraCost {
 
   template <typename T>
   bool operator()(const T* const fi_, T* residuals) const {
-    Eigen::Vector<T, 4> d_01_ = d_01.cast<T>();
-    Eigen::Vector<T, 4> d_12_ = d_12.cast<T>();
+    const Eigen::Vector<T, 4> d_01_ = d_01.cast<T>();
+    const Eigen::Vector<T, 4> d_12_ = d_12.cast<T>();
 
-    T fi = fi_[0];
-    T fj = fi_[0];
+    const T fi = fi_[0];
+    const T fj = fi_[0];
 
-    T K0_01 =
-        -(fj * fj * d_01_(2) + d_01_(3)) / (fj * fj * d_01_(0) + d_01_(1));
-    T K1_12 =
-        -(fi * fi * d_12_(1) + d_12_(3)) / (fi * fi * d_12_(0) + d_12_(2));
+    T di = (fj * fj * d_01_(0) + d_01_(1));
+    T dj = (fi * fi * d_12_(0) + d_12_(2));
+    di = di == T(0) ? T(1e-6) : di;
+    dj = dj == T(0) ? T(1e-6) : dj;
+
+    const T K0_01 = -(fj * fj * d_01_(2) + d_01_(3)) / di;
+    const T K1_12 = -(fi * fi * d_12_(1) + d_12_(3)) / dj;
 
     residuals[0] = (fi * fi - K0_01) / (fi * fi);
     residuals[1] = (fj * fj - K1_12) / (fj * fj);
