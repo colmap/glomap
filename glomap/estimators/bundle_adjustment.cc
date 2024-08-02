@@ -68,42 +68,10 @@ void BundleAdjuster::AddPointToCameraConstraints(
 
       Image& image = images[observation.first];
 
-      ceres::CostFunction* cost_function = nullptr;
-      switch (cameras[image.camera_id].model_id) {
-        case colmap::CameraModelId::kSimplePinhole:
-          cost_function = colmap::
-              ReprojErrorCostFunction<colmap::SimplePinholeCameraModel>::Create(
-                  image.features[observation.second]);
-          break;
-        case colmap::CameraModelId::kPinhole:
-          cost_function =
-              colmap::ReprojErrorCostFunction<colmap::PinholeCameraModel>::
-                  Create(image.features[observation.second]);
-          break;
-        case colmap::CameraModelId::kSimpleRadial:
-          cost_function =
-              colmap::ReprojErrorCostFunction<colmap::SimpleRadialCameraModel>::
-                  Create(image.features[observation.second]);
-          break;
-        case colmap::CameraModelId::kRadial:
-          cost_function =
-              colmap::ReprojErrorCostFunction<colmap::RadialCameraModel>::
-                  Create(image.features[observation.second]);
-          break;
-        case colmap::CameraModelId::kOpenCV:
-          cost_function =
-              colmap::ReprojErrorCostFunction<colmap::OpenCVCameraModel>::
-                  Create(image.features[observation.second]);
-          break;
-        case colmap::CameraModelId::kOpenCVFisheye:
-          cost_function = colmap::
-              ReprojErrorCostFunction<colmap::OpenCVFisheyeCameraModel>::Create(
-                  image.features[observation.second]);
-          break;
-        default:
-          LOG(ERROR) << "Camera model not supported";
-          break;
-      }
+      ceres::CostFunction* cost_function =
+          colmap::CameraCostFunction<colmap::ReprojErrorCostFunction>(
+              cameras[image.camera_id].model_id,
+              image.features[observation.second]);
 
       if (cost_function != nullptr) {
         problem_->AddResidualBlock(
@@ -113,6 +81,10 @@ void BundleAdjuster::AddPointToCameraConstraints(
             image.cam_from_world.translation.data(),
             tracks[track_id].xyz.data(),
             cameras[image.camera_id].params.data());
+      } else {
+        LOG(ERROR) << "Camera model not supported: "
+                   << colmap::CameraModelIdToName(
+                          cameras[image.camera_id].model_id);
       }
     }
   }
