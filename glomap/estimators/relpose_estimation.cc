@@ -1,7 +1,5 @@
 #include "glomap/estimators/relpose_estimation.h"
 
-#include <iomanip>
-
 #include <PoseLib/robust.h>
 
 namespace glomap {
@@ -16,32 +14,26 @@ void EstimateRelativePoses(ViewGraph& view_graph,
     valid_pair_ids.push_back(image_pair_id);
   }
 
-  const size_t num_valid_pairs = valid_pair_ids.size();
-  LOG(INFO) << "Estimating relative pose for " << num_valid_pairs << " pairs";
+  // Define outside loop to reuse memory and avoid reallocation.
+  std::vector<Eigen::Vector2d> points2D_1, points2D_2;
+  std::vector<char> inliers;
 
-#pragma omp parallel
-  {
-    // Define variables outside parallel for loop to reuse allocations.
-    std::vector<Eigen::Vector2d> points2D_1, points2D_2;
-    std::vector<char> inliers;
+  const size_t kNumChunks = 10;
+  size_t inverval = std::ceil(valid_pair_ids.size() / kNumChunks);
+  LOG(INFO) << "Estimating relative pose for " << valid_pair_ids.size()
+            << " pairs";
+  for (size_t chunk_id = 0; chunk_id < kNumChunks; chunk_id++) {
+    std::cout << "\r Estimating relative pose: " << chunk_id * kNumChunks << "%"
+              << std::flush;
+    const size_t start = chunk_id * inverval;
+    const size_t end = std::min((chunk_id + 1) * inverval, valid_pair_ids.size());
 
-    const int thread_id = omp_get_thread_num();
-    size_t num_processed_pairs = 0;
-
-#pragma omp parallel for schedule(dynamic)
-    for (size_t pair_idx = 0; pair_idx < num_valid_pairs; ++pair_idx) {
-      // Since we use dynamic scheduling, we can assume that each thread is
-      // progressing approximately at the same pace, so we simply log out the
-      // progress from the master thread.
-      if (thread_id == 0 && num_processed_pairs++ % 100 == 0) {
-        std::cout << "\r Estimating relative pose: " << std::setprecision(2)
-                  << 100.0 * pair_idx / num_valid_pairs << "%" << std::flush;
-      }
-
+#pragma omp parallel for schedule(dynamic) private( \
+        points2D_1, points2D_2, inliers)
+    for (size_t pair_idx = start; pair_idx < end; pair_idx++) {
       ImagePair& image_pair = view_graph.image_pairs[valid_pair_ids[pair_idx]];
-      const auto& image1 = images[image_pair.image_id1];
-      const auto& image2 = images[image_pair.image_id2];
-
+      const Image& image1 = images[image_pair.image_id1];
+      const Image& image2 = images[image_pair.image_id2];
       const Eigen::MatrixXi& matches = image_pair.matches;
 
       // Collect the original 2D points
@@ -63,11 +55,11 @@ void EstimateRelativePoses(ViewGraph& view_graph,
           options.bundle_options,
           &pose_rel_calc,
           &inliers);
-
       // Convert the relative pose to the glomap format
-      for (int i = 0; i < 4; i++)
+      for (int i = 0; i < 4; i++) {
         image_pair.cam2_from_cam1.rotation.coeffs()[i] =
             pose_rel_calc.q[(i + 1) % 4];
+      }
       image_pair.cam2_from_cam1.translation = pose_rel_calc.t;
     }
   }
