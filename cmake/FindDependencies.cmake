@@ -22,7 +22,7 @@ set(UNINSTALL_ENABLED OFF CACHE INTERNAL "")
 if (FETCH_COLMAP) 
     FetchContent_MakeAvailable(COLMAP)
 else()
-    find_package(COLMAP 3.11 REQUIRED)
+    find_package(COLMAP REQUIRED)
 endif()
 message(STATUS "Configuring COLMAP... done")
 
