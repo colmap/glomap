@@ -1,5 +1,7 @@
 #include "glomap/exe/global_mapper.h"
 
+#include <colmap/util/logging.h>
+
 #include <iostream>
 
 namespace {
@@ -30,6 +32,8 @@ int ShowHelp(
 }  // namespace
 
 int main(int argc, char** argv) {
+  colmap::InitializeGlog(argv);
+
   std::vector<std::pair<std::string, command_func_t>> commands;
   commands.emplace_back("mapper", &glomap::RunMapper);
   commands.emplace_back("mapper_resume", &glomap::RunMapperResume);

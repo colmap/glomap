@@ -282,7 +282,7 @@ void OptionManager::Parse(const int argc, char** argv) {
     config::store(config::parse_command_line(argc, argv, *desc_), vmap);
 
     if (vmap.count("help")) {
-      LOG(ERROR) << "Options can be specified via command-line.\n" << *desc_;
+      std::cout << "The following options can be specified via command-line:\n" << *desc_;
       // NOLINTNEXTLINE(concurrency-mt-unsafe)
       exit(EXIT_SUCCESS);
     }
