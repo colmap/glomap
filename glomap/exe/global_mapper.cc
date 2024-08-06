@@ -69,6 +69,11 @@ int RunMapper(int argc, char** argv) {
   const colmap::Database database(database_path);
   ConvertDatabaseToGlomap(database, view_graph, cameras, images);
 
+  if (view_graph.image_pairs.empty()) {
+    LOG(ERROR) << "Can't continue without image pairs";
+    return EXIT_FAILURE;
+  }
+
   GlobalMapper global_mapper(*options.mapper);
 
   // Main solver
