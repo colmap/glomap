@@ -39,4 +39,20 @@ else()
     message(STATUS "Disabling ccache support")
 endif()
 
+if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    # Some fixes for the Glog library.
+    add_definitions("-DGLOG_USE_GLOG_EXPORT")
+    add_definitions("-DGLOG_NO_ABBREVIATED_SEVERITIES")
+    add_definitions("-DGL_GLEXT_PROTOTYPES")
+    add_definitions("-DNOMINMAX")
+    add_compile_options(/EHsc)
+    # Disable warning: 'initializing': conversion from 'X' to 'Y', possible loss of data
+    add_compile_options(/wd4244 /wd4267 /wd4305)
+    # Enable object level parallel builds in Visual Studio.
+    add_compile_options(/MP)
+    if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug" OR "${CMAKE_BUILD_TYPE}" STREQUAL "RelWithDebInfo")
+        add_compile_options(/bigobj)
+    endif()
+endif()
+
 add_subdirectory(glomap)
