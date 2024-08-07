@@ -34,7 +34,7 @@ find_package(Boost REQUIRED)
 find_package(SuiteSparse COMPONENTS CHOLMOD REQUIRED)
 
 if(IS_MSVC)
-    LIST(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake_modules)
+    list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}")
 
     find_package(Glog REQUIRED)
     if(DEFINED glog_VERSION_MAJOR)
