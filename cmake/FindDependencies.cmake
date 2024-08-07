@@ -30,9 +30,6 @@ find_package(Eigen3 3.4 REQUIRED)
 find_package(Ceres REQUIRED COMPONENTS SuiteSparse)
 find_package(Boost REQUIRED)
 
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
-find_package(SuiteSparse COMPONENTS CHOLMOD)
-
 if(IS_MSVC)
     LIST(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake_modules)
 
