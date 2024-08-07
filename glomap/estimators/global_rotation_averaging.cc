@@ -12,9 +12,9 @@ namespace {
 double RelAngleError(double angle_12, double angle_1, double angle_2) {
   double est = (angle_2 - angle_1) - angle_12;
 
-  while (est >= M_PI) est -= TWO_PI;
+  while (est >= EIGEN_PI) est -= TWO_PI;
 
-  while (est < -M_PI) est += TWO_PI;
+  while (est < -EIGEN_PI) est += TWO_PI;
 
   return est;
 }
@@ -301,7 +301,7 @@ bool RotationEstimator::SolveL1Regression(
 
     tangent_space_step_.setZero();
     l1_solver.Solve(tangent_space_residual_, &tangent_space_step_);
-    if (tangent_space_step_.array().isNaN().sum() > 0) {
+    if (tangent_space_step_.array().isNaN().any()) {
       LOG(ERROR) << "nan error";
       iteration++;
       return false;

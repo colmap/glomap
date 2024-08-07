@@ -241,11 +241,12 @@ void ViewGraphManipulater::DecomposeRelPose(
       continue;
     image_pair_ids.push_back(pair_id);
   }
-  LOG(INFO) << "Decompose relative pose for " << image_pair_ids.size()
-            << " pairs";
+
+  const int64_t num_image_pairs = image_pair_ids.size();
+  LOG(INFO) << "Decompose relative pose for " << num_image_pairs << " pairs";
 
 #pragma omp parallel for
-  for (size_t idx = 0; idx < image_pair_ids.size(); idx++) {
+  for (int64_t idx = 0; idx < num_image_pairs; idx++) {
     ImagePair& image_pair = view_graph.image_pairs.at(image_pair_ids[idx]);
     image_t image_id1 = image_pair.image_id1;
     image_t image_id2 = image_pair.image_id2;

@@ -11,7 +11,7 @@ double CalcAngle(const Rigid3d& pose1, const Rigid3d& pose2) {
       2;
   cos_r = std::min(std::max(cos_r, -1.), 1.);
 
-  return std::acos(cos_r) * 180 / M_PI;
+  return std::acos(cos_r) * 180 / EIGEN_PI;
 }
 
 double CalcTrans(const Rigid3d& pose1, const Rigid3d& pose2) {
@@ -23,7 +23,7 @@ double CalcTransAngle(const Rigid3d& pose1, const Rigid3d& pose2) {
                  (pose1.translation.norm() * pose2.translation.norm());
   cos_r = std::min(std::max(cos_r, -1.), 1.);
 
-  return std::acos(cos_r) * 180 / M_PI;
+  return std::acos(cos_r) * 180 / EIGEN_PI;
 }
 
 double CalcAngle(const Eigen::Matrix3d& rotation1,
@@ -31,12 +31,12 @@ double CalcAngle(const Eigen::Matrix3d& rotation1,
   double cos_r = ((rotation1.transpose() * rotation2).trace() - 1) / 2;
   cos_r = std::min(std::max(cos_r, -1.), 1.);
 
-  return std::acos(cos_r) * 180 / M_PI;
+  return std::acos(cos_r) * 180 / EIGEN_PI;
 }
 
-double DegToRad(double degree) { return degree * M_PI / 180; }
+double DegToRad(double degree) { return degree * EIGEN_PI / 180; }
 
-double RadToDeg(double radian) { return radian * 180 / M_PI; }
+double RadToDeg(double radian) { return radian * 180 / EIGEN_PI; }
 
 Eigen::Vector3d Rigid3dToAngleAxis(const Rigid3d& pose) {
   Eigen::AngleAxis<double> aa(pose.rotation);
