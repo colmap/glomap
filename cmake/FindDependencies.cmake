@@ -1,3 +1,5 @@
+set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
+
 include(FetchContent)
 FetchContent_Declare(PoseLib
     GIT_REPOSITORY    https://github.com/PoseLib/PoseLib.git
@@ -29,15 +31,16 @@ message(STATUS "Configuring COLMAP... done")
 find_package(Eigen3 3.4 REQUIRED)
 find_package(Ceres REQUIRED COMPONENTS SuiteSparse)
 find_package(Boost REQUIRED)
+find_package(SuiteSparse COMPONENTS CHOLMOD REQUIRED)
 
 if(IS_MSVC)
     LIST(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake_modules)
 
-    find_package(Glog ${COLMAP_FIND_TYPE})
+    find_package(Glog REQUIRED)
     if(DEFINED glog_VERSION_MAJOR)
-    # Older versions of glog don't export version variables.
-    add_definitions("-DGLOG_VERSION_MAJOR=${glog_VERSION_MAJOR}")
-    add_definitions("-DGLOG_VERSION_MINOR=${glog_VERSION_MINOR}")
+        # Older versions of glog don't export version variables.
+        add_definitions("-DGLOG_VERSION_MAJOR=${glog_VERSION_MAJOR}")
+        add_definitions("-DGLOG_VERSION_MINOR=${glog_VERSION_MINOR}")
     endif()
 endif()
 
