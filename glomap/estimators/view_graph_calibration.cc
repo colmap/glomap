@@ -5,6 +5,8 @@
 
 #include <colmap/scene/two_view_geometry.h>
 
+#include <thread>
+
 namespace glomap {
 
 bool ViewGraphCalibrator::Solve(ViewGraph& view_graph,
@@ -12,6 +14,7 @@ bool ViewGraphCalibrator::Solve(ViewGraph& view_graph,
                                 std::unordered_map<image_t, Image>& images) {
   // Reset the problem
   LOG(INFO) << "Start ViewGraphCalibrator";
+
   Reset(cameras);
 
   // Set the solver options.
@@ -24,7 +27,7 @@ bool ViewGraphCalibrator::Solve(ViewGraph& view_graph,
   AddImagePairsToProblem(view_graph, cameras, images);
 
   // Set the cameras to be constant if they have prior intrinsics
-  size_t num_cameras = ParameterizeCameras(cameras);
+  const size_t num_cameras = ParameterizeCameras(cameras);
 
   if (num_cameras == 0) {
     LOG(INFO) << "No cameras to optimize";
@@ -37,21 +40,23 @@ bool ViewGraphCalibrator::Solve(ViewGraph& view_graph,
   ceres::Solve(options_.solver_options, problem_.get(), &summary);
 
   // Print the summary only if verbose
-  if (options_.verbose) LOG(INFO) << summary.FullReport();
+  if (options_.verbose) {
+    LOG(INFO) << summary.FullReport();
+  }
 
   // Convert the results back to the camera
-  ConvertResults(cameras);
-
-  // Filter the image pairs
-  FilterImagePair(view_graph, images);
+  CopyBackResults(cameras);
+  FilterImagePairs(view_graph);
 
   return summary.IsSolutionUsable();
 }
 
-void ViewGraphCalibrator::Reset(std::unordered_map<camera_t, Camera>& cameras) {
+void ViewGraphCalibrator::Reset(
+    const std::unordered_map<camera_t, Camera>& cameras) {
   // Initialize the problem
   focals_.clear();
-  for (auto& [camera_id, camera] : cameras) {
+  focals_.reserve(cameras.size());
+  for (const auto& [camera_id, camera] : cameras) {
     focals_[camera_id] = camera.Focal();
   }
 
@@ -64,9 +69,9 @@ void ViewGraphCalibrator::Reset(std::unordered_map<camera_t, Camera>& cameras) {
 }
 
 void ViewGraphCalibrator::AddImagePairsToProblem(
-    ViewGraph& view_graph,
-    std::unordered_map<camera_t, Camera>& cameras,
-    std::unordered_map<image_t, Image>& images) {
+    const ViewGraph& view_graph,
+    const std::unordered_map<camera_t, Camera>& cameras,
+    const std::unordered_map<image_t, Image>& images) {
   for (auto& [image_pair_id, image_pair] : view_graph.image_pairs) {
     if (image_pair.config != colmap::TwoViewGeometry::CALIBRATED &&
         image_pair.config != colmap::TwoViewGeometry::UNCALIBRATED)
@@ -78,36 +83,31 @@ void ViewGraphCalibrator::AddImagePairsToProblem(
 }
 
 void ViewGraphCalibrator::AddImagePair(
-    ImagePair& image_pair,
-    std::unordered_map<camera_t, Camera>& cameras,
-    std::unordered_map<image_t, Image>& images) {
-  // Collect the cost terms
-  image_t image_id1 = image_pair.image_id1;
-  image_t image_id2 = image_pair.image_id2;
+    const ImagePair& image_pair,
+    const std::unordered_map<camera_t, Camera>& cameras,
+    const std::unordered_map<image_t, Image>& images) {
+  const camera_t camera_id1 = images.at(image_pair.image_id1).camera_id;
+  const camera_t camera_id2 = images.at(image_pair.image_id2).camera_id;
 
-  camera_t camera_id1 = images.at(image_id1).camera_id;
-  camera_t camera_id2 = images.at(image_id2).camera_id;
-
-  ceres::CostFunction* cost_function;
   if (camera_id1 == camera_id2) {
-    cost_function = FetzerFocalLengthSameCameraCost::Create(
-        image_pair.F, cameras[camera_id1].PrincipalPoint());
     problem_->AddResidualBlock(
-        cost_function, options_.loss_function.get(), &(focals_[camera_id1]));
+        FetzerFocalLengthSameCameraCost::Create(
+            image_pair.F, cameras.at(camera_id1).PrincipalPoint()),
+        options_.loss_function.get(),
+        &(focals_[camera_id1]));
   } else {
-    cost_function =
+    problem_->AddResidualBlock(
         FetzerFocalLengthCost::Create(image_pair.F,
-                                      cameras[camera_id1].PrincipalPoint(),
-                                      cameras[camera_id2].PrincipalPoint());
-    problem_->AddResidualBlock(cost_function,
-                               options_.loss_function.get(),
-                               &(focals_[camera_id1]),
-                               &(focals_[camera_id2]));
+                                      cameras.at(camera_id1).PrincipalPoint(),
+                                      cameras.at(camera_id2).PrincipalPoint()),
+        options_.loss_function.get(),
+        &(focals_[camera_id1]),
+        &(focals_[camera_id2]));
   }
 }
 
 size_t ViewGraphCalibrator::ParameterizeCameras(
-    std::unordered_map<camera_t, Camera>& cameras) {
+    const std::unordered_map<camera_t, Camera>& cameras) {
   size_t num_cameras = 0;
   for (auto& [camera_id, camera] : cameras) {
     if (!problem_->HasParameterBlock(&(focals_[camera_id]))) continue;
@@ -123,7 +123,7 @@ size_t ViewGraphCalibrator::ParameterizeCameras(
   return num_cameras;
 }
 
-void ViewGraphCalibrator::ConvertResults(
+void ViewGraphCalibrator::CopyBackResults(
     std::unordered_map<camera_t, Camera>& cameras) {
   size_t counter = 0;
   for (auto& [camera_id, camera] : cameras) {
@@ -155,17 +155,19 @@ void ViewGraphCalibrator::ConvertResults(
   LOG(INFO) << counter << " cameras are rejected in view graph calibration";
 }
 
-size_t ViewGraphCalibrator::FilterImagePair(
-    ViewGraph& view_graph, std::unordered_map<image_t, Image>& images) {
-  ceres::Problem::EvaluateOptions EvalOpts;
-  EvalOpts.num_threads = 16;
-  EvalOpts.apply_loss_function = false;
+size_t ViewGraphCalibrator::FilterImagePairs(ViewGraph& view_graph) const {
+  ceres::Problem::EvaluateOptions eval_options;
+  eval_options.num_threads = options_.solver_options.num_threads;
+  eval_options.apply_loss_function = false;
   std::vector<double> residuals;
-  problem_->Evaluate(EvalOpts, nullptr, &residuals, nullptr, nullptr);
+  problem_->Evaluate(eval_options, nullptr, &residuals, nullptr, nullptr);
 
   // Dump the residuals into the original data structure
   size_t counter = 0;
   size_t invalid_counter = 0;
+
+  const double thres_two_view_error_sq =
+      options_.thres_two_view_error * options_.thres_two_view_error;
 
   for (auto& [image_pair_id, image_pair] : view_graph.image_pairs) {
     if (image_pair.config != colmap::TwoViewGeometry::CALIBRATED &&
@@ -173,17 +175,14 @@ size_t ViewGraphCalibrator::FilterImagePair(
       continue;
     if (image_pair.is_valid == false) continue;
 
-    Eigen::Vector2d error =
-        Eigen::Vector2d(residuals[counter], residuals[counter + 1]);
-
-    image_t image_id1 = image_pair.image_id1;
-    image_t image_id2 = image_pair.image_id2;
+    const Eigen::Vector2d error(residuals[counter], residuals[counter + 1]);
 
     // Set the two view geometry to be invalid if the error is too high
-    if (error.norm() > options_.thres_two_view_error) {
+    if (error.squaredNorm() > thres_two_view_error_sq) {
       invalid_counter++;
       image_pair.is_valid = false;
     }
+
     counter += 2;
   }
 

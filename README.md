@@ -1,6 +1,6 @@
 # GLOMAP: Global Structure-from-Motion Revisited
 
-[Project page](https://lpanaf.github.io/eccv24_glomap/) | [Paper](https://demuc.de/papers/pan2024glomap.pdf) | [ Supplementary](https://demuc.de/papers/pan2024glomap_supp.pdf)
+[Project page](https://lpanaf.github.io/eccv24_glomap/) | [Paper](https://arxiv.org/pdf/2407.20219)
 ---
 
 ## About
@@ -36,7 +36,6 @@ After installation, one can run GLOMAP by (starting from a database)
 glomap mapper --database_path DATABASE_PATH --output_path OUTPUT_PATH --image_path IMAGE_PATH
 ```
 For more details on the command line interface, one can type `glomap -h` or `glomap mapper -h` for help.
-
 
 Note:
 - GLOMAP depends on two external libraries - [COLMAP](https://github.com/colmap/colmap) and [PoseLib](https://github.com/PoseLib/PoseLib).
@@ -90,7 +89,7 @@ colmap sequential_matcher --database_path DATABASE_PATH
 colmap vocab_tree_matcher --database_path DATABASE_PATH --VocabTreeMatching.vocab_tree_path VOCAB_TREE_PATH
 ```
 - Alternatively, one can use
-  [hloc](https://github.com/cvg/Hierarchical-Localization/) for image retrival
+  [hloc](https://github.com/cvg/Hierarchical-Localization/) for image retrieval
   and matching with learning-based descriptors.
 
 

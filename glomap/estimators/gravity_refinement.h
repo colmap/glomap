@@ -13,7 +13,7 @@ struct GravityRefinerOptions : public OptimizationBaseOptions {
   // The minimal ratio that the gravity vector should be consistent with
   double max_outlier_ratio = 0.5;
   // The maximum allowed angle error in degree
-  bool max_gravity_error = 1.;
+  double max_gravity_error = 1.;
   // Only refine the gravity of the images with more than min_neighbors
   int min_num_neighbors = 7;
 

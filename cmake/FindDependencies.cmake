@@ -14,7 +14,7 @@ message(STATUS "Configuring PoseLib... done")
 
 FetchContent_Declare(COLMAP
     GIT_REPOSITORY    https://github.com/colmap/colmap.git
-    GIT_TAG           b5c381ad71e6a970266a1f1280de523c0b10f107
+    GIT_TAG           66fd8e56a0d160d68af2f29e9ac6941d442d2322
     EXCLUDE_FROM_ALL
 )
 message(STATUS "Configuring COLMAP...")
@@ -52,4 +52,12 @@ endif()
 if (OPENMP_ENABLED)
     message(STATUS "Enabling OpenMP")
     find_package(OpenMP REQUIRED)
+endif()
+
+find_package(SuiteSparse QUIET)
+if(SuiteSparse_FOUND)
+    set(SuiteSparse_CHOLMOD_INCLUDE_DIR "${SUITESPARSE_INCLUDE_DIRS}/suitesparse")
+    set(SuiteSparse_CHOLMOD_LIBRARY SuiteSparse::cholmod)
+else()
+    message(STATUS "SuiteSparse not found, assuming Ceres provides SuiteSparse")
 endif()

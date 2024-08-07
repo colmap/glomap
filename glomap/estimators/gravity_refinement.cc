@@ -3,7 +3,7 @@
 #include "glomap/estimators/cost_function.h"
 #include "glomap/math/gravity.h"
 
-#include <colmap/estimators/cost_functions.h>
+#include <colmap/estimators/manifold.h>
 
 namespace glomap {
 void GravityRefiner::RefineGravity(const ViewGraph& view_graph,
@@ -116,14 +116,14 @@ void GravityRefiner::IdentifyErrorProneGravity(
     const auto& image2 = images.at(image_pair.image_id2);
     if (image1.gravity_info.has_gravity && image2.gravity_info.has_gravity) {
       // Calculate the gravity aligned relative rotation
-      Eigen::Matrix3d R_rel =
+      const Eigen::Matrix3d R_rel =
           image2.gravity_info.GetRAlign().transpose() *
           image_pair.cam2_from_cam1.rotation.toRotationMatrix() *
           image1.gravity_info.GetRAlign();
       // Convert it to the closest upright rotation
-      Eigen::Matrix3d R_rel_up = AngleToRotUp(RotUpToAngle(R_rel));
+      const Eigen::Matrix3d R_rel_up = AngleToRotUp(RotUpToAngle(R_rel));
 
-      double angle = CalcAngle(R_rel, R_rel_up);
+      const double angle = CalcAngle(R_rel, R_rel_up);
 
       // increment the total count
       image_counter[image_pair.image_id1].second++;

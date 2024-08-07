@@ -41,24 +41,18 @@ else()
 endif()
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    set(IS_MSVC TRUE)
-endif()
-
-if(IS_MSVC)
     # Some fixes for the Glog library.
     add_definitions("-DGLOG_USE_GLOG_EXPORT")
     add_definitions("-DGLOG_NO_ABBREVIATED_SEVERITIES")
     add_definitions("-DGL_GLEXT_PROTOTYPES")
     add_definitions("-DNOMINMAX")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc")
+    add_compile_options(/EHsc)
     # Disable warning: 'initializing': conversion from 'X' to 'Y', possible loss of data
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4244 /wd4267 /wd4305")
+    add_compile_options(/wd4244 /wd4267 /wd4305)
     # Enable object level parallel builds in Visual Studio.
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /MP")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
+    add_compile_options(/MP)
     if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug" OR "${CMAKE_BUILD_TYPE}" STREQUAL "RelWithDebInfo")
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /bigobj")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
+        add_compile_options(/bigobj)
     endif()
 endif()
 
