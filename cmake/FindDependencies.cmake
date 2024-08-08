@@ -1,5 +1,10 @@
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
+find_package(Eigen3 3.4 REQUIRED)
+find_package(SuiteSparse COMPONENTS CHOLMOD REQUIRED)
+find_package(Ceres REQUIRED COMPONENTS SuiteSparse)
+find_package(Boost REQUIRED)
+
 if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     find_package(Glog REQUIRED)
     if(DEFINED glog_VERSION_MAJOR)
@@ -8,11 +13,6 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
         add_definitions("-DGLOG_VERSION_MINOR=${glog_VERSION_MINOR}")
     endif()
 endif()
-
-find_package(Eigen3 3.4 REQUIRED)
-find_package(SuiteSparse COMPONENTS CHOLMOD REQUIRED)
-find_package(Ceres REQUIRED COMPONENTS SuiteSparse)
-find_package(Boost REQUIRED)
 
 if(TESTS_ENABLED)
     message(STATUS "Enabling tests")
