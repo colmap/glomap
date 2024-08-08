@@ -1,0 +1,46 @@
+{
+    "name": "glomap",
+    "description": "GLOMAP is a general purpose global structure-from-motion pipeline for image-based reconstruction. GLOMAP requires a COLMAP database as input and outputs a COLMAP sparse reconstruction. As compared to COLMAP, this project provides a much more efficient and scalable reconstruction process, typically 1-2 orders of magnitude faster, with on-par or superior reconstruction quality.",
+    "homepage": "https://github.com/colmap/glomap",
+    "license": "BSD-3-Clause",
+    "supports": "(linux | (windows & !static) | osx) & (x86 | x64 | arm64)",
+    "dependencies": [
+        "boost-algorithm",
+        "boost-filesystem",
+        "boost-graph",
+        "boost-heap",
+        "boost-program-options",
+        "boost-property-map",
+        "boost-property-tree",
+        {
+            "name": "ceres",
+            "features": [
+                "lapack",
+                "suitesparse"
+            ]
+        },
+        "eigen3",
+        "flann",
+        "freeimage",
+        "gflags",
+        "glog",
+        {
+            "name": "jasper",
+            "default-features": false
+        },
+        "metis",
+        "sqlite3",
+        {
+            "name": "vcpkg-cmake",
+            "host": true
+        },
+        {
+            "name": "vcpkg-cmake-config",
+            "host": true
+        },
+        "gtest",
+        "suitesparse"
+    ],
+    "features": {
+    }
+}

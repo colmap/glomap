@@ -162,8 +162,6 @@ jobs:
             -DCMAKE_BUILD_TYPE=${{ matrix.config.cmakeBuildType }} \
             -DCMAKE_INSTALL_PREFIX=./install \
             -DCMAKE_CUDA_ARCHITECTURES=50 \
-            -DSuiteSparse_CHOLMOD_LIBRARY="/usr/lib/x86_64-linux-gnu/libcholmod.so" \
-            -DSuiteSparse_CHOLMOD_INCLUDE_DIR="/usr/include/suitesparse" \
             -DTESTS_ENABLED=ON \
             -DASAN_ENABLED=${{ matrix.config.asanEnabled }}
           ninja -k 10000

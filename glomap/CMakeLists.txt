@@ -79,15 +79,10 @@ target_link_libraries(
     PUBLIC
         Eigen3::Eigen
         Ceres::ceres
+        SuiteSparse::CHOLMOD
         ${BOOST_LIBRARIES}
-        ${SuiteSparse_CHOLMOD_LIBRARY}
 )
-target_include_directories(
-    glomap
-    PUBLIC
-        ..
-        ${SuiteSparse_CHOLMOD_INCLUDE_DIR}
-)
+target_include_directories(glomap PUBLIC ..)
 
 if(OPENMP_FOUND)
     target_link_libraries(glomap PUBLIC OpenMP::OpenMP_CXX)
