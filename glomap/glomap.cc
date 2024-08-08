@@ -33,6 +33,7 @@ int ShowHelp(
 
 int main(int argc, char** argv) {
   colmap::InitializeGlog(argv);
+  FLAGS_alsologtostderr = true;
 
   std::vector<std::pair<std::string, command_func_t>> commands;
   commands.emplace_back("mapper", &glomap::RunMapper);
