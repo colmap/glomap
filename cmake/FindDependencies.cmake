@@ -1,6 +1,6 @@
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
-if(IS_MSVC)
+if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     find_package(Glog REQUIRED)
     if(DEFINED glog_VERSION_MAJOR)
         # Older versions of glog don't export version variables.
