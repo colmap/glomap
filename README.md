@@ -37,6 +37,8 @@ glomap mapper --database_path DATABASE_PATH --output_path OUTPUT_PATH --image_pa
 ```
 For more details on the command line interface, one can type `glomap -h` or `glomap mapper -h` for help.
 
+We also provide a guide on improving the obtained reconstruction, which can be found [here](docs/getting_started.md)
+
 Note:
 - GLOMAP depends on two external libraries - [COLMAP](https://github.com/colmap/colmap) and [PoseLib](https://github.com/PoseLib/PoseLib).
   With the default setting, the library is built automatically by GLOMAP via `FetchContent`.
@@ -79,6 +81,22 @@ glomap mapper \
     --image_path    ./data/south-building/images \
     --output_path   ./output/south-building/sparse
 ```
+
+### Visualize and use the results
+
+The results are written out in the COLMAP sparse reconstruction format. Please
+refer to [COLMAP](https://colmap.github.io/format.html#sparse-reconstruction)
+for more details.
+
+The reconstruction can be visualized using the COLMAP GUI, for example:
+```shell
+colmap gui --import_path ./output/south-building/sparse/0
+```
+Alternatives like [rerun.io](https://rerun.io/examples/3d-reconstruction/glomap)
+also enable visualization of COLMAP and GLOMAP outputs.
+
+If you want to inspect the reconstruction programmatically, you can use
+`pycolmap` in Python or link against COLMAP's C++ library interface.
 
 ### Notes
 
