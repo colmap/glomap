@@ -37,6 +37,8 @@ glomap mapper --database_path DATABASE_PATH --output_path OUTPUT_PATH --image_pa
 ```
 For more details on the command line interface, one can type `glomap -h` or `glomap mapper -h` for help.
 
+We also provide a guide on improving the obtained reconstruction, which can be found [here](docs/getting_started.md)
+
 Note:
 - GLOMAP depends on two external libraries - [COLMAP](https://github.com/colmap/colmap) and [PoseLib](https://github.com/PoseLib/PoseLib).
   With the default setting, the library is built automatically by GLOMAP via `FetchContent`.
