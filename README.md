@@ -23,7 +23,7 @@ If you use this project for your research, please cite
 
 ## Getting Started
 
-To install GLOMAP, first install [COLMAP](https://colmap.github.io/install.html#build-from-source)
+To build GLOMAP, first install [COLMAP](https://colmap.github.io/install.html#build-from-source)
 dependencies and then build GLOMAP using the following commands: 
 ```shell
 mkdir build
@@ -31,6 +31,9 @@ cd build
 cmake .. -GNinja
 ninja && ninja install
 ```
+Pre-compiled Windows binaries can be downloaded from the official
+[release page](https://github.com/colmap/glomap/releases).
+
 After installation, one can run GLOMAP by (starting from a database)
 ```shell
 glomap mapper --database_path DATABASE_PATH --output_path OUTPUT_PATH --image_path IMAGE_PATH
