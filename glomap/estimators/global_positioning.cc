@@ -87,6 +87,9 @@ void GlobalPositioner::SetupProblem(
   ceres::Problem::Options problem_options;
   problem_options.loss_function_ownership = ceres::DO_NOT_TAKE_OWNERSHIP;
   problem_ = std::make_unique<ceres::Problem>(problem_options);
+  // Allocate enough memory for the scales. One for each residual.
+  // Due to possibly invalid image pairs or tracks, the actual number of
+  // residuals may be smaller.
   scales_.clear();
   scales_.reserve(
       view_graph.image_pairs.size() +
