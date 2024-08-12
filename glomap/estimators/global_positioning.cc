@@ -42,8 +42,8 @@ bool GlobalPositioner::Solve(const ViewGraph& view_graph,
 
   LOG(INFO) << "Setting up the global positioner problem";
 
-  // Initialize the problem
-  Reset();
+  // Setup the problem.
+  SetupProblem(view_graph, tracks);
 
   // Initialize camera translations to be random.
   // Also, convert the camera pose translation to be the camera center.
@@ -81,11 +81,21 @@ bool GlobalPositioner::Solve(const ViewGraph& view_graph,
   return summary.IsSolutionUsable();
 }
 
-void GlobalPositioner::Reset() {
+void GlobalPositioner::SetupProblem(
+    const ViewGraph& view_graph,
+    const std::unordered_map<track_t, Track>& tracks) {
   ceres::Problem::Options problem_options;
   problem_options.loss_function_ownership = ceres::DO_NOT_TAKE_OWNERSHIP;
   problem_ = std::make_unique<ceres::Problem>(problem_options);
   scales_.clear();
+  scales_.reserve(
+      view_graph.image_pairs.size() +
+      std::accumulate(tracks.begin(),
+                      tracks.end(),
+                      0,
+                      [](int sum, const std::pair<track_t, Track>& track) {
+                        return sum + track.second.observations.size();
+                      }));
 }
 
 void GlobalPositioner::InitializeRandomPositions(
@@ -145,8 +155,9 @@ void GlobalPositioner::AddCameraToCameraConstraints(
         images.find(image_id2) == images.end())
       continue;
 
-    track_t counter = scales_.size();
-    scales_.insert(std::make_pair(counter, 1));
+    CHECK_GT(scales_.capacity(), scales_.size())
+        << "Not enough capacity was reserved for the scales.";
+    double& scale = scales_.emplace_back(1);
 
     Eigen::Vector3d translation =
         -(images[image_id2].cam_from_world.rotation.inverse() *
@@ -158,9 +169,9 @@ void GlobalPositioner::AddCameraToCameraConstraints(
         options_.loss_function.get(),
         images[image_id1].cam_from_world.translation.data(),
         images[image_id2].cam_from_world.translation.data(),
-        &(scales_[counter]));
+        &scale);
 
-    problem_->SetParameterLowerBound(&(scales_[counter]), 0, 1e-5);
+    problem_->SetParameterLowerBound(&scale, 0, 1e-5);
   }
 
   if (options_.verbose)
@@ -246,14 +257,14 @@ void GlobalPositioner::AddTrackToProblem(
     ceres::CostFunction* cost_function =
         BATAPairwiseDirectionError::Create(translation);
 
-    track_t counter = scales_.size();
-    if (options_.generate_scales || !tracks[track_id].is_initialized) {
-      scales_.insert(std::make_pair(counter, 1));
-    } else {
-      Eigen::Vector3d trans_calc =
+    CHECK_GT(scales_.capacity(), scales_.size())
+        << "Not enough capacity was reserved for the scales.";
+    double& scale = scales_.emplace_back(1);
+    if (!options_.generate_scales && tracks[track_id].is_initialized) {
+      const Eigen::Vector3d trans_calc =
           tracks[track_id].xyz - image.cam_from_world.translation;
-      double scale = translation.dot(trans_calc) / trans_calc.squaredNorm();
-      scales_.insert(std::make_pair(counter, std::max(scale, 1e-5)));
+      scale = std::max(1e-5,
+                       translation.dot(trans_calc) / trans_calc.squaredNorm());
     }
 
     // For calibrated and uncalibrated cameras, use different loss functions
@@ -263,14 +274,14 @@ void GlobalPositioner::AddTrackToProblem(
                                      loss_function_ptcam_calibrated_.get(),
                                      image.cam_from_world.translation.data(),
                                      tracks[track_id].xyz.data(),
-                                     &(scales_[counter]))
+                                     &scale)
         : problem_->AddResidualBlock(cost_function,
                                      loss_function_ptcam_uncalibrated_.get(),
                                      image.cam_from_world.translation.data(),
                                      tracks[track_id].xyz.data(),
-                                     &(scales_[counter]));
+                                     &scale);
 
-    problem_->SetParameterLowerBound(&(scales_[counter]), 0, 1e-5);
+    problem_->SetParameterLowerBound(&scale, 0, 1e-5);
   }
 }
 
@@ -284,8 +295,8 @@ void GlobalPositioner::AddCamerasAndPointsToParameterGroups(
       options_.solver_options.linear_solver_ordering.get();
 
   // Add scale parameters to group 0 (large and independent)
-  for (auto& [i, scale] : scales_) {
-    parameter_ordering->AddElementToGroup(&(scales_[i]), 0);
+  for (double& scale : scales_) {
+    parameter_ordering->AddElementToGroup(&scale, 0);
   }
 
   // Add point parameters to group 1.
@@ -332,8 +343,8 @@ void GlobalPositioner::ParameterizeVariables(
 
   // If do not optimize the scales, set the scales to be constant
   if (!options_.optimize_scales) {
-    for (auto& [i, scale] : scales_) {
-      problem_->SetParameterBlockConstant(&(scales_[i]));
+    for (double& scale : scales_) {
+      problem_->SetParameterBlockConstant(&scale);
     }
   }
 
