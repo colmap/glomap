@@ -290,13 +290,13 @@ void GlobalPositioner::AddTrackToProblem(
                                  loss_function_ptcam_calibrated_.get(),
                                  image.cam_from_world.translation.data(),
                                  tracks[track_id].xyz.data(),
-                                 &(scales_[counter]));
+                                 &scale);
     } else {
       problem_->AddResidualBlock(cost_function,
                                  loss_function_ptcam_uncalibrated_.get(),
                                  image.cam_from_world.translation.data(),
                                  tracks[track_id].xyz.data(),
-                                 &(scales_[counter]));
+                                 &scale);
     }
 
     problem_->SetParameterLowerBound(&scale, 0, 1e-5);
