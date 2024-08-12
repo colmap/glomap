@@ -61,8 +61,8 @@ class GlobalPositioner {
   GlobalPositionerOptions& GetOptions() { return options_; }
 
  protected:
-  // Reset the problem
-  void Reset();
+  void SetupProblem(const ViewGraph& view_graph,
+                    const std::unordered_map<track_t, Track>& tracks);
 
   // Initialize all cameras to be random.
   void InitializeRandomPositions(const ViewGraph& view_graph,
@@ -98,17 +98,17 @@ class GlobalPositioner {
   // center Convert the results back to camera poses
   void ConvertResults(std::unordered_map<image_t, Image>& images);
 
-  // Data members
   GlobalPositionerOptions options_;
 
   std::mt19937 random_generator_;
   std::unique_ptr<ceres::Problem> problem_;
 
-  // loss functions for reweighted terms
+  // Loss functions for reweighted terms.
   std::shared_ptr<ceres::LossFunction> loss_function_ptcam_uncalibrated_;
   std::shared_ptr<ceres::LossFunction> loss_function_ptcam_calibrated_;
 
-  std::unordered_map<track_t, double> scales_;
+  // Auxiliary scale variables.
+  std::vector<double> scales_;
 };
 
 }  // namespace glomap
