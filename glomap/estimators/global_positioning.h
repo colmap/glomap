@@ -80,7 +80,7 @@ class GlobalPositioner {
       std::unordered_map<track_t, Track>& tracks);
 
   // Add a single track to the problem
-  void AddTrackToProblem(const track_t& track_id,
+  void AddTrackToProblem(track_t track_id,
                          std::unordered_map<camera_t, Camera>& cameras,
                          std::unordered_map<image_t, Image>& images,
                          std::unordered_map<track_t, Track>& tracks);

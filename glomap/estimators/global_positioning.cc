@@ -155,14 +155,15 @@ void GlobalPositioner::AddCameraToCameraConstraints(
     const image_t image_id1 = image_pair.image_id1;
     const image_t image_id2 = image_pair.image_id2;
     if (images.find(image_id1) == images.end() ||
-        images.find(image_id2) == images.end())
+        images.find(image_id2) == images.end()) {
       continue;
+    }
 
     CHECK_GT(scales_.capacity(), scales_.size())
         << "Not enough capacity was reserved for the scales.";
     double& scale = scales_.emplace_back(1);
 
-    Eigen::Vector3d translation =
+    const Eigen::Vector3d translation =
         -(images[image_id2].cam_from_world.rotation.inverse() *
           image_pair.cam2_from_cam1.translation);
     ceres::CostFunction* cost_function =
@@ -244,7 +245,7 @@ void GlobalPositioner::AddPointToCameraConstraints(
 }
 
 void GlobalPositioner::AddTrackToProblem(
-    const track_t& track_id,
+    track_t track_id,
     std::unordered_map<camera_t, Camera>& cameras,
     std::unordered_map<image_t, Image>& images,
     std::unordered_map<track_t, Track>& tracks) {
@@ -255,8 +256,19 @@ void GlobalPositioner::AddTrackToProblem(
     Image& image = images[observation.first];
     if (!image.is_registered) continue;
 
-    Eigen::Vector3d translation = image.cam_from_world.rotation.inverse() *
-                                  image.features_undist[observation.second];
+    const Eigen::Vector3d& feature_undist =
+        image.features_undist[observation.second];
+    if (feature_undist.array().isNaN().any()) {
+      LOG(WARNING)
+          << "Ignoring feature because it failed to undistort: track_id="
+          << track_id << ", image_id=" << observation.first
+          << ", feature_id=" << observation.second;
+      continue;
+    }
+
+    const Eigen::Vector3d translation =
+        image.cam_from_world.rotation.inverse() *
+        image.features_undist[observation.second];
     ceres::CostFunction* cost_function =
         BATAPairwiseDirectionError::Create(translation);
 
@@ -272,17 +284,19 @@ void GlobalPositioner::AddTrackToProblem(
 
     // For calibrated and uncalibrated cameras, use different loss functions
     // Down weight the uncalibrated cameras
-    (cameras[image.camera_id].has_prior_focal_length)
-        ? problem_->AddResidualBlock(cost_function,
-                                     loss_function_ptcam_calibrated_.get(),
-                                     image.cam_from_world.translation.data(),
-                                     tracks[track_id].xyz.data(),
-                                     &scale)
-        : problem_->AddResidualBlock(cost_function,
-                                     loss_function_ptcam_uncalibrated_.get(),
-                                     image.cam_from_world.translation.data(),
-                                     tracks[track_id].xyz.data(),
-                                     &scale);
+    if (cameras[image.camera_id].has_prior_focal_length) {
+      problem_->AddResidualBlock(cost_function,
+                                 loss_function_ptcam_calibrated_.get(),
+                                 image.cam_from_world.translation.data(),
+                                 tracks[track_id].xyz.data(),
+                                 &scale);
+    } else {
+      problem_->AddResidualBlock(cost_function,
+                                 loss_function_ptcam_uncalibrated_.get(),
+                                 image.cam_from_world.translation.data(),
+                                 tracks[track_id].xyz.data(),
+                                 &scale);
+    }
 
     problem_->SetParameterLowerBound(&scale, 0, 1e-5);
   }

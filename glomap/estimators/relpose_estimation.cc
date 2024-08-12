@@ -47,15 +47,22 @@ void EstimateRelativePoses(ViewGraph& view_graph,
 
       inliers.clear();
       poselib::CameraPose pose_rel_calc;
-      poselib::estimate_relative_pose(
-          points2D_1,
-          points2D_2,
-          ColmapCameraToPoseLibCamera(cameras[image1.camera_id]),
-          ColmapCameraToPoseLibCamera(cameras[image2.camera_id]),
-          options.ransac_options,
-          options.bundle_options,
-          &pose_rel_calc,
-          &inliers);
+      try {
+        poselib::estimate_relative_pose(
+            points2D_1,
+            points2D_2,
+            ColmapCameraToPoseLibCamera(cameras[image1.camera_id]),
+            ColmapCameraToPoseLibCamera(cameras[image2.camera_id]),
+            options.ransac_options,
+            options.bundle_options,
+            &pose_rel_calc,
+            &inliers);
+      } catch (const std::exception& e) {
+        LOG(ERROR) << "Error in relative pose estimation: " << e.what();
+        image_pair.is_valid = false;
+        continue;
+      }
+
       // Convert the relative pose to the glomap format
       for (int i = 0; i < 4; i++) {
         image_pair.cam2_from_cam1.rotation.coeffs()[i] =

@@ -37,7 +37,7 @@ int TrackFilter::FilterTracksByReprojection(
 
       // If the reprojection error is smaller than the threshold, then keep it
       if (reprojection_error < max_reprojection_error) {
-        observation_new.emplace_back(std::make_pair(image_id, feature_id));
+        observation_new.emplace_back(image_id, feature_id);
       }
     }
     if (observation_new.size() != track.observations.size()) {

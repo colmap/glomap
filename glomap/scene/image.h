@@ -47,11 +47,10 @@ struct Image {
   // Gravity information
   GravityInfo gravity_info;
 
-  // Features
+  // Distorted feature points in pixels.
   std::vector<Eigen::Vector2d> features;
-  std::vector<Eigen::Vector3d>
-      features_undist;  // store the normalized features, can be obtained by
-                        // calling UndistortImages
+  // Normalized feature rays, can be obtained by calling UndistortImages.
+  std::vector<Eigen::Vector3d> features_undist;
 
   // Methods
   inline Eigen::Vector3d Center() const;
