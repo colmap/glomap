@@ -30,7 +30,7 @@ void EstimateRelativePoses(ViewGraph& view_graph,
         std::min<int64_t>((chunk_id + 1) * inverval, num_image_pairs);
 
 #pragma omp parallel for schedule(dynamic) private( \
-        points2D_1, points2D_2, inliers)
+    points2D_1, points2D_2, inliers)
     for (int64_t pair_idx = start; pair_idx < end; pair_idx++) {
       ImagePair& image_pair = view_graph.image_pairs[valid_pair_ids[pair_idx]];
       const Image& image1 = images[image_pair.image_id1];
