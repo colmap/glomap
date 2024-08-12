@@ -57,7 +57,8 @@ bool RotationEstimator::EstimateRotations(
           rotation_estimated_.segment(image_id_to_idx_[image_id], 3)));
     }
     // Restore the prior position (t = -Rc)
-    image.cam_from_world.translation = -(image.cam_from_world.rotation * image.cam_from_world.translation);
+    image.cam_from_world.translation =
+        -(image.cam_from_world.rotation * image.cam_from_world.translation);
   }
 
   return true;
