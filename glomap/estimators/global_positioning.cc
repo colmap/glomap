@@ -159,8 +159,7 @@ void GlobalPositioner::AddCameraToCameraConstraints(
       continue;
     }
 
-
-        CHECK_GT(scales_.capacity(), scales_.size())
+    CHECK_GT(scales_.capacity(), scales_.size())
         << "Not enough capacity was reserved for the scales.";
     double& scale = scales_.emplace_back(1);
 
