@@ -14,7 +14,7 @@ namespace glomap {
 // from two positions such that t_ij - scale * (c_j - c_i) is minimized.
 struct BATAPairwiseDirectionError {
   BATAPairwiseDirectionError(const Eigen::Vector3d& translation_obs)
-      : translation_obs_(translation_obs){};
+      : translation_obs_(translation_obs) {}
 
   // The error is given by the position error described above.
   template <typename T>
@@ -22,19 +22,11 @@ struct BATAPairwiseDirectionError {
                   const T* position2,
                   const T* scale,
                   T* residuals) const {
-    Eigen::Matrix<T, 3, 1> translation;
-    translation[0] = position2[0] - position1[0];
-    translation[1] = position2[1] - position1[1];
-    translation[2] = position2[2] - position1[2];
-
-    Eigen::Matrix<T, 3, 1> residual_vec;
-
-    residual_vec = translation_obs_.cast<T>() - scale[0] * translation;
-
-    residuals[0] = residual_vec(0);
-    residuals[1] = residual_vec(1);
-    residuals[2] = residual_vec(2);
-
+    Eigen::Map<Eigen::Matrix<T, 3, 1>> residuals_vec(residuals);
+    residuals_vec =
+        translation_obs_.cast<T>() -
+        scale[0] * (Eigen::Map<const Eigen::Matrix<T, 3, 1>>(position2) -
+                    Eigen::Map<const Eigen::Matrix<T, 3, 1>>(position1));
     return true;
   }
 

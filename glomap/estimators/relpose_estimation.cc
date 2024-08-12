@@ -30,7 +30,7 @@ void EstimateRelativePoses(ViewGraph& view_graph,
         std::min<int64_t>((chunk_id + 1) * inverval, num_image_pairs);
 
 #pragma omp parallel for schedule(dynamic) private( \
-    points2D_1, points2D_2, inliers)
+        points2D_1, points2D_2, inliers)
     for (int64_t pair_idx = start; pair_idx < end; pair_idx++) {
       ImagePair& image_pair = view_graph.image_pairs[valid_pair_ids[pair_idx]];
       const Image& image1 = images[image_pair.image_id1];
@@ -47,15 +47,22 @@ void EstimateRelativePoses(ViewGraph& view_graph,
 
       inliers.clear();
       poselib::CameraPose pose_rel_calc;
-      poselib::estimate_relative_pose(
-          points2D_1,
-          points2D_2,
-          ColmapCameraToPoseLibCamera(cameras[image1.camera_id]),
-          ColmapCameraToPoseLibCamera(cameras[image2.camera_id]),
-          options.ransac_options,
-          options.bundle_options,
-          &pose_rel_calc,
-          &inliers);
+      try {
+        poselib::estimate_relative_pose(
+            points2D_1,
+            points2D_2,
+            ColmapCameraToPoseLibCamera(cameras[image1.camera_id]),
+            ColmapCameraToPoseLibCamera(cameras[image2.camera_id]),
+            options.ransac_options,
+            options.bundle_options,
+            &pose_rel_calc,
+            &inliers);
+      } catch (const std::exception& e) {
+        LOG(ERROR) << "Error in relative pose estimation: " << e.what();
+        image_pair.is_valid = false;
+        continue;
+      }
+
       // Convert the relative pose to the glomap format
       for (int i = 0; i < 4; i++) {
         image_pair.cam2_from_cam1.rotation.coeffs()[i] =
