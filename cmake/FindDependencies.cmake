@@ -27,7 +27,7 @@ endif()
 include(FetchContent)
 FetchContent_Declare(PoseLib
     GIT_REPOSITORY    https://github.com/PoseLib/PoseLib.git
-    GIT_TAG           b3691b791bcedccd5451621b2275a1df0d9dcdeb
+    GIT_TAG           0439b2d361125915b8821043fca9376e6cc575b9
     EXCLUDE_FROM_ALL
 )
 message(STATUS "Configuring PoseLib...")
