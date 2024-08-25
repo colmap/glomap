@@ -156,10 +156,6 @@ void RotationEstimator::SetupLinearSystem(
     }
   }
 
-  if (options_.verbose)
-    LOG(INFO) << "num_img: " << image_id_to_idx_.size()
-              << ", num_dof: " << num_dof;
-
   rotation_estimated_.conservativeResize(num_dof);
 
   // Prepare the relative information
@@ -204,8 +200,7 @@ void RotationEstimator::SetupLinearSystem(
     }
   }
 
-  if (options_.verbose)
-    LOG(INFO) << counter << " image pairs are gravity aligned" << std::endl;
+  VLOG(2) << counter << " image pairs are gravity aligned" << std::endl;
 
   std::vector<Eigen::Triplet<double>> coeffs;
   coeffs.reserve(rel_temp_info_.size() * 6 + 3);
@@ -290,11 +285,11 @@ bool RotationEstimator::SolveL1Regression(
   double curr_norm = 0;
 
   ComputeResiduals(view_graph, images);
-  if (options_.verbose) LOG(INFO) << "ComputeResiduals done ";
+  VLOG(2) << "ComputeResiduals done";
 
   int iteration = 0;
   for (iteration = 0; iteration < options_.max_num_l1_iterations; iteration++) {
-    if (options_.verbose) LOG(INFO) << "L1 ADMM iteration: " << iteration;
+    VLOG(2) << "L1 ADMM iteration: " << iteration;
 
     last_norm = curr_norm;
     // use the current residual as b (Ax - b)
@@ -307,7 +302,7 @@ bool RotationEstimator::SolveL1Regression(
       return false;
     }
 
-    if (options_.verbose)
+    if (VLOG_IS_ON(2))
       LOG(INFO) << "residual:"
                 << (sparse_matrix_ * tangent_space_step_ -
                     tangent_space_residual_)
@@ -332,7 +327,7 @@ bool RotationEstimator::SolveL1Regression(
     opt_l1_solver.max_num_iterations =
         std::min(opt_l1_solver.max_num_iterations * 2, 100);
   }
-  if (options_.verbose) LOG(INFO) << "L1 ADMM total iteration: " << iteration;
+  VLOG(2) << "L1 ADMM total iteration: " << iteration;
   return true;
 }
 
@@ -347,8 +342,7 @@ bool RotationEstimator::SolveIRLS(const ViewGraph& view_graph,
   llt.analyzePattern(sparse_matrix_.transpose() * sparse_matrix_);
 
   const double sigma = DegToRad(options_.irls_loss_parameter_sigma);
-  if (options_.verbose)
-    LOG(INFO) << "sigma: " << options_.irls_loss_parameter_sigma;
+  VLOG(2) << "sigma: " << options_.irls_loss_parameter_sigma;
 
   Eigen::ArrayXd weights_irls(sparse_matrix_.rows());
   Eigen::SparseMatrix<double> at_weight;
@@ -362,7 +356,7 @@ bool RotationEstimator::SolveIRLS(const ViewGraph& view_graph,
   int iteration = 0;
   for (iteration = 0; iteration < options_.max_num_irls_iterations;
        iteration++) {
-    if (options_.verbose) LOG(INFO) << "IRLS iteration: " << iteration;
+    VLOG(2) << "IRLS iteration: " << iteration;
 
     // Compute the weights for IRLS
     for (auto& [pair_id, pair_info] : rel_temp_info_) {
@@ -416,7 +410,7 @@ bool RotationEstimator::SolveIRLS(const ViewGraph& view_graph,
       break;
     }
   }
-  if (options_.verbose) LOG(INFO) << "IRLS total iteration: " << iteration;
+  VLOG(2) << "IRLS total iteration: " << iteration;
 
   return true;
 }

@@ -40,13 +40,6 @@ void ExpectEqualReconstructions(const colmap::Reconstruction& gt,
 
 GlobalMapperOptions CreateTestOptions() {
   GlobalMapperOptions options;
-  // Control the verbosity of the global sfm
-  options.opt_vgcalib.verbose = false;
-  options.opt_ra.verbose = false;
-  options.opt_gp.verbose = false;
-  options.opt_ba.verbose = false;
-
-  // Control the flow of the global sfm
   options.skip_view_graph_calibration = false;
   options.skip_relative_pose_estimation = false;
   options.skip_rotation_averaging = false;

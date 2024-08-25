@@ -68,10 +68,10 @@ bool GlobalPositioner::Solve(const ViewGraph& view_graph,
   LOG(INFO) << "Solving the global positioner problem";
 
   ceres::Solver::Summary summary;
-  options_.solver_options.minimizer_progress_to_stdout = options_.verbose;
+  options_.solver_options.minimizer_progress_to_stdout = VLOG_IS_ON(2);
   ceres::Solve(options_.solver_options, problem_.get(), &summary);
 
-  if (options_.verbose) {
+  if (VLOG_IS_ON(2)) {
     LOG(INFO) << summary.FullReport();
   } else {
     LOG(INFO) << summary.BriefReport();
@@ -143,8 +143,7 @@ void GlobalPositioner::InitializeRandomPositions(
       image.cam_from_world.translation = image.Center();
   }
 
-  if (options_.verbose)
-    LOG(INFO) << "Constrained positions: " << constrained_positions.size();
+  VLOG(2) << "Constrained positions: " << constrained_positions.size();
 }
 
 void GlobalPositioner::AddCameraToCameraConstraints(
@@ -178,10 +177,9 @@ void GlobalPositioner::AddCameraToCameraConstraints(
     problem_->SetParameterLowerBound(&scale, 0, 1e-5);
   }
 
-  if (options_.verbose)
-    LOG(INFO) << problem_->NumResidualBlocks()
-              << " camera to camera constraints were added to the position "
-                 "estimation problem.";
+  VLOG(2) << problem_->NumResidualBlocks()
+          << " camera to camera constraints were added to the position "
+             "estimation problem.";
 }
 
 void GlobalPositioner::AddPointToCameraConstraints(
@@ -194,10 +192,9 @@ void GlobalPositioner::AddPointToCameraConstraints(
   // Find the tracks that are relevant to the current set of cameras
   const size_t num_pt_to_cam = tracks.size();
 
-  if (options_.verbose)
-    LOG(INFO) << num_pt_to_cam
-              << " point to camera constriants were added to the position "
-                 "estimation problem.";
+  VLOG(2) << num_pt_to_cam
+          << " point to camera constriants were added to the position "
+             "estimation problem.";
 
   if (num_pt_to_cam == 0) return;
 
@@ -211,8 +208,7 @@ void GlobalPositioner::AddPointToCameraConstraints(
                       static_cast<double>(num_cam_to_cam) /
                       static_cast<double>(num_pt_to_cam);
   }
-  if (options_.verbose)
-    LOG(INFO) << "Point to camera weight scaled: " << weight_scale_pt;
+  VLOG(2) << "Point to camera weight scaled: " << weight_scale_pt;
 
   if (loss_function_ptcam_uncalibrated_ == nullptr) {
     loss_function_ptcam_uncalibrated_ =

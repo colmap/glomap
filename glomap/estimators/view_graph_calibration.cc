@@ -36,13 +36,10 @@ bool ViewGraphCalibrator::Solve(ViewGraph& view_graph,
 
   // Solve the problem
   ceres::Solver::Summary summary;
-  options_.solver_options.minimizer_progress_to_stdout = options_.verbose;
+  options_.solver_options.minimizer_progress_to_stdout = VLOG_IS_ON(2);
   ceres::Solve(options_.solver_options, problem_.get(), &summary);
 
-  // Print the summary only if verbose
-  if (options_.verbose) {
-    LOG(INFO) << summary.FullReport();
-  }
+  VLOG(2) << summary.FullReport();
 
   // Convert the results back to the camera
   CopyBackResults(cameras);
@@ -132,10 +129,9 @@ void ViewGraphCalibrator::CopyBackResults(
     // if the estimated parameter is too crazy, reject it
     if (focals_[camera_id] / camera.Focal() > options_.thres_higher_ratio ||
         focals_[camera_id] / camera.Focal() < options_.thres_lower_ratio) {
-      if (options_.verbose)
-        LOG(INFO) << "NOT ACCEPTED: Camera " << camera_id
-                  << " focal: " << focals_[camera_id]
-                  << " original focal: " << camera.Focal();
+      VLOG(2) << "Ignoring degenerate camera camera " << camera_id
+              << " focal: " << focals_[camera_id]
+              << " original focal: " << camera.Focal();
       counter++;
 
       continue;
@@ -147,9 +143,6 @@ void ViewGraphCalibrator::CopyBackResults(
     // Update the focal length
     for (const size_t idx : camera.FocalLengthIdxs()) {
       camera.params[idx] = focals_[camera_id];
-      if (options_.verbose)
-        LOG(INFO) << "Camera " << idx << " focal: " << focals_[camera_id]
-                  << std::endl;
     }
   }
   LOG(INFO) << counter << " cameras are rejected in view graph calibration";

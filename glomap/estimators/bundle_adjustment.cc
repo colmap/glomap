@@ -40,9 +40,9 @@ bool BundleAdjuster::Solve(const ViewGraph& view_graph,
   options_.solver_options.linear_solver_type = ceres::SPARSE_SCHUR;
   options_.solver_options.preconditioner_type = ceres::CLUSTER_TRIDIAGONAL;
 
-  options_.solver_options.minimizer_progress_to_stdout = options_.verbose;
+  options_.solver_options.minimizer_progress_to_stdout = VLOG_IS_ON(2);
   ceres::Solve(options_.solver_options, problem_.get(), &summary);
-  if (options_.verbose)
+  if (VLOG_IS_ON(2))
     LOG(INFO) << summary.FullReport();
   else
     LOG(INFO) << summary.BriefReport();
