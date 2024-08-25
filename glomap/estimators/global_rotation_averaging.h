@@ -68,9 +68,6 @@ struct RotationEstimatorOptions {
 
   // Flag to use gravity for rotation averaging
   bool use_gravity = false;
-
-  // Flag whether report the verbose information
-  bool verbose = false;
 };
 
 // TODO: Implement the stratified camera rotation estimation
