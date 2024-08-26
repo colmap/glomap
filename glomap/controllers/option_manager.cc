@@ -17,6 +17,9 @@ OptionManager::OptionManager(bool add_project_options) {
   Reset();
 
   desc_->add_options()("help,h", "");
+
+  AddAndRegisterDefaultOption("log_to_stderr", &FLAGS_logtostderr);
+  AddAndRegisterDefaultOption("log_level", &FLAGS_v);
 }
 
 void OptionManager::AddAllOptions() {
