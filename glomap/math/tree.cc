@@ -89,6 +89,15 @@ image_t MaximumSpanningTree(const ViewGraph& view_graph,
     image_id_to_idx[image_id] = image_id_to_idx.size();
   }
 
+  int max_weight = 0;
+  for (auto& [pair_id, image_pair] : view_graph.image_pairs) {
+    if (image_pair.is_valid == false) continue;
+    if (type == INLIER_RATIO)
+      max_weight = max_weight > image_pair.weight ? max_weight : image_pair.weight;
+    else
+      max_weight = max_weight > image_pair.inliers.size() ? max_weight : image_pair.inliers.size();
+  }
+
   // establish graph
   weighted_graph G(image_id_to_idx.size());
   weight_map weights_boost = boost::get(boost::edge_weight, G);
@@ -111,11 +120,11 @@ image_t MaximumSpanningTree(const ViewGraph& view_graph,
     // spanning tree
     e = boost::add_edge(idx1, idx2, G).first;
     if (type == INLIER_NUM)
-      weights_boost[e] = -image_pair.inliers.size();
+      weights_boost[e] = max_weight - image_pair.inliers.size();
     else if (type == INLIER_RATIO)
-      weights_boost[e] = -image_pair.weight;
+      weights_boost[e] = max_weight - image_pair.weight;
     else
-      weights_boost[e] = -image_pair.inliers.size();
+      weights_boost[e] = max_weight - image_pair.inliers.size();
   }
 
   std::vector<edge_desc>
