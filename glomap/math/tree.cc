@@ -89,13 +89,13 @@ image_t MaximumSpanningTree(const ViewGraph& view_graph,
     image_id_to_idx[image_id] = image_id_to_idx.size();
   }
 
-  int max_weight = 0;
+  double max_weight = 0;
   for (const auto& [pair_id, image_pair] : view_graph.image_pairs) {
     if (image_pair.is_valid == false) continue;
     if (type == INLIER_RATIO)
       max_weight = std::max(max_weight, image_pair.weight);
     else
-      max_weight = std::max(max_weight, image_pair.inliers.size());
+      max_weight = std::max(max_weight, static_cast<double>(image_pair.inliers.size()));
   }
 
   // establish graph
