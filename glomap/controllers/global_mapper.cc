@@ -63,7 +63,10 @@ bool GlobalMapper::Solve(const colmap::Database& database,
     RelPoseFilter::FilterInlierRatio(
         view_graph, options_.inlier_thresholds.min_inlier_ratio);
 
-    view_graph.KeepLargestConnectedComponents(images);
+    if (view_graph.KeepLargestConnectedComponents(images) == 0) {
+      LOG(ERROR) << "no connected components are found";
+      return false;
+    }
 
     run_timer.PrintSeconds();
   }
@@ -83,7 +86,10 @@ bool GlobalMapper::Solve(const colmap::Database& database,
 
     RelPoseFilter::FilterRotations(
         view_graph, images, options_.inlier_thresholds.max_rotation_error);
-    view_graph.KeepLargestConnectedComponents(images);
+    if (view_graph.KeepLargestConnectedComponents(images) == 0) {
+      LOG(ERROR) << "no connected components are found";
+      return false;
+    }
 
     // The second run is for final estimation
     if (!ra_engine.EstimateRotations(view_graph, images)) {
@@ -92,6 +98,10 @@ bool GlobalMapper::Solve(const colmap::Database& database,
     RelPoseFilter::FilterRotations(
         view_graph, images, options_.inlier_thresholds.max_rotation_error);
     image_t num_img = view_graph.KeepLargestConnectedComponents(images);
+    if (num_img == 0) {
+      LOG(ERROR) << "no connected components are found";
+      return false;
+    }
     LOG(INFO) << num_img << " / " << images.size()
               << " images are within the connected component." << std::endl;
 
