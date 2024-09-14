@@ -21,6 +21,8 @@ int ViewGraph::KeepLargestConnectedComponents(
     }
   }
 
+  if (max_img == 0) return 0;
+
   std::unordered_set<image_t> largest_component = connected_components[max_idx];
 
   // Set all images to not registered
