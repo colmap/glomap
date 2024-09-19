@@ -84,10 +84,6 @@ target_link_libraries(
 )
 target_include_directories(glomap PUBLIC ..)
 
-if(OPENMP_FOUND)
-    target_link_libraries(glomap PUBLIC OpenMP::OpenMP_CXX)
-endif()
-
 if(MSVC)
     target_compile_options(glomap PRIVATE /bigobj)
 else()

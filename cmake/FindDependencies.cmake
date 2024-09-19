@@ -19,11 +19,6 @@ if(TESTS_ENABLED)
     find_package(GTest REQUIRED)
 endif()
 
-if (OPENMP_ENABLED)
-    message(STATUS "Enabling OpenMP")
-    find_package(OpenMP REQUIRED)
-endif()
-
 include(FetchContent)
 FetchContent_Declare(PoseLib
     GIT_REPOSITORY    https://github.com/PoseLib/PoseLib.git

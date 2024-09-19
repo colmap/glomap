@@ -185,4 +185,4 @@ jobs:
           # Delete cache older than 10 days.
           find "$CTCACHE_DIR"/*/ -mtime +10 -print0 | xargs -0 rm -rf
           echo "Size of ctcache after:  $(du -sh $CTCACHE_DIR)"
-          echo "Number of ctcache files after: $(find $CTCACHE_DIR | wc -l)"
+          echo "Number of ctcache files after: $(find $CTCACHE_DIR | wc -l)"''

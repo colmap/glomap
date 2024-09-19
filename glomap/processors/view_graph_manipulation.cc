@@ -3,7 +3,10 @@
 #include "glomap/math/two_view_geometry.h"
 #include "glomap/math/union_find.h"
 
+#include <colmap/util/threading.h>
+
 namespace glomap {
+
 image_pair_t ViewGraphManipulater::SparsifyGraph(
     ViewGraph& view_graph,
     std::unordered_map<image_t, Image>& images,
@@ -245,46 +248,51 @@ void ViewGraphManipulater::DecomposeRelPose(
   const int64_t num_image_pairs = image_pair_ids.size();
   LOG(INFO) << "Decompose relative pose for " << num_image_pairs << " pairs";
 
-#pragma omp parallel for
+  colmap::ThreadPool thread_pool(colmap::ThreadPool::kMaxNumThreads);
   for (int64_t idx = 0; idx < num_image_pairs; idx++) {
-    ImagePair& image_pair = view_graph.image_pairs.at(image_pair_ids[idx]);
-    image_t image_id1 = image_pair.image_id1;
-    image_t image_id2 = image_pair.image_id2;
+    thread_pool.AddTask([&, idx]() {
+      ImagePair& image_pair = view_graph.image_pairs.at(image_pair_ids[idx]);
+      image_t image_id1 = image_pair.image_id1;
+      image_t image_id2 = image_pair.image_id2;
 
-    camera_t camera_id1 = images.at(image_id1).camera_id;
-    camera_t camera_id2 = images.at(image_id2).camera_id;
+      camera_t camera_id1 = images.at(image_id1).camera_id;
+      camera_t camera_id2 = images.at(image_id2).camera_id;
 
-    // Use the two-view geometry to re-estimate the relative pose
-    colmap::TwoViewGeometry two_view_geometry;
-    two_view_geometry.E = image_pair.E;
-    two_view_geometry.F = image_pair.F;
-    two_view_geometry.H = image_pair.H;
-    two_view_geometry.config = image_pair.config;
+      // Use the two-view geometry to re-estimate the relative pose
+      colmap::TwoViewGeometry two_view_geometry;
+      two_view_geometry.E = image_pair.E;
+      two_view_geometry.F = image_pair.F;
+      two_view_geometry.H = image_pair.H;
+      two_view_geometry.config = image_pair.config;
 
-    colmap::EstimateTwoViewGeometryPose(cameras[camera_id1],
-                                        images[image_id1].features,
-                                        cameras[camera_id2],
-                                        images[image_id2].features,
-                                        &two_view_geometry);
+      colmap::EstimateTwoViewGeometryPose(cameras[camera_id1],
+                                          images[image_id1].features,
+                                          cameras[camera_id2],
+                                          images[image_id2].features,
+                                          &two_view_geometry);
 
-    // if it planar, then use the estimated relative pose
-    if (image_pair.config == colmap::TwoViewGeometry::PLANAR &&
-        cameras[camera_id1].has_prior_focal_length &&
-        cameras[camera_id2].has_prior_focal_length) {
-      image_pair.config = colmap::TwoViewGeometry::CALIBRATED;
-      continue;
-    } else if (!(cameras[camera_id1].has_prior_focal_length &&
-                 cameras[camera_id2].has_prior_focal_length))
-      continue;
+      // if it planar, then use the estimated relative pose
+      if (image_pair.config == colmap::TwoViewGeometry::PLANAR &&
+          cameras[camera_id1].has_prior_focal_length &&
+          cameras[camera_id2].has_prior_focal_length) {
+        image_pair.config = colmap::TwoViewGeometry::CALIBRATED;
+        return;
+      } else if (!(cameras[camera_id1].has_prior_focal_length &&
+                   cameras[camera_id2].has_prior_focal_length))
+        return;
 
-    image_pair.config = two_view_geometry.config;
-    image_pair.cam2_from_cam1 = two_view_geometry.cam2_from_cam1;
+      image_pair.config = two_view_geometry.config;
+      image_pair.cam2_from_cam1 = two_view_geometry.cam2_from_cam1;
 
-    if (image_pair.cam2_from_cam1.translation.norm() > EPS) {
-      image_pair.cam2_from_cam1.translation =
-          image_pair.cam2_from_cam1.translation.normalized();
-    }
+      if (image_pair.cam2_from_cam1.translation.norm() > EPS) {
+        image_pair.cam2_from_cam1.translation =
+            image_pair.cam2_from_cam1.translation.normalized();
+      }
+    });
   }
+
+  thread_pool.Wait();
+
   size_t counter = 0;
   for (size_t idx = 0; idx < image_pair_ids.size(); idx++) {
     ImagePair& image_pair = view_graph.image_pairs.at(image_pair_ids[idx]);
