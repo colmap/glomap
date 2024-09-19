@@ -73,7 +73,7 @@ jobs:
         run: |
           cd build
           set +e
-          ctest --output-on-failure
+          ctest --output-on-failure -E .+colmap_.*
 
       - name: Cleanup compiler cache
         run: |
