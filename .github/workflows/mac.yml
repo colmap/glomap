@@ -1,4 +1,4 @@
-name: COLMAP (Mac)
+name: Mac
 
 on:
   push:
