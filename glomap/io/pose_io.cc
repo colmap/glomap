@@ -90,7 +90,6 @@ void WriteGlobalRotation(const std::string& file_path,
       file << image.cam_from_world.rotation.coeffs()[(i + 3) % 4] << " ";
     }
     file << "\n";
-    counter++;
   }
 }
 }  // namespace glomap
