@@ -41,7 +41,7 @@ bool RotationAverager::Solve(ViewGraph& view_graph,
   // If there is no image pairs with gravity or most image pairs are with
   // gravity, then just run the 3dof version
   bool status = false;
-  status = total_pairs || grav_pairs == 0;
+  status = status || grav_pairs == 0;
   status = status || grav_pairs > total_pairs * 0.95;
   solve_1dof_system = solve_1dof_system && (!status);
 

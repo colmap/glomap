@@ -1,6 +1,7 @@
 #include "pose_io.h"
 
 #include <fstream>
+#include <set>
 
 namespace glomap {
 void ReadRelPose(const std::string& file_path,
@@ -75,13 +76,21 @@ void ReadRelPose(const std::string& file_path,
 void WriteGlobalRotation(const std::string& file_path,
                          const std::unordered_map<image_t, Image>& images) {
   std::ofstream file(file_path);
+  std::set<image_t> existing_images;
   for (const auto& [image_id, image] : images) {
+    if (image.is_registered) {
+      existing_images.insert(image_id);
+    }
+  }
+  for (const auto& image_id : existing_images) {
+    const auto image = images.at(image_id);
     if (!image.is_registered) continue;
     file << image.file_name << " ";
     for (int i = 0; i < 4; i++) {
       file << image.cam_from_world.rotation.coeffs()[(i + 3) % 4] << " ";
     }
     file << "\n";
+    counter++;
   }
 }
 }  // namespace glomap
