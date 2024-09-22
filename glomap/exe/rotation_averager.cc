@@ -1,6 +1,7 @@
 
-#include "glomap/controllers/option_manager.h"
 #include "glomap/controllers/rotation_averager.h"
+
+#include "glomap/controllers/option_manager.h"
 #include "glomap/io/colmap_io.h"
 #include "glomap/io/gravity_io.h"
 #include "glomap/io/pose_io.h"
@@ -19,7 +20,7 @@ int RunRotationAverager(int argc, char** argv) {
   std::string gravity_path = "";
 
   bool use_stratified = true;
-  
+
   OptionManager options;
   options.AddRequiredOption("relpose_path", &relpose_path);
   options.AddRequiredOption("output_path", &output_path);
@@ -39,29 +40,30 @@ int RunRotationAverager(int argc, char** argv) {
   }
 
   RotationAveragerOptions rotation_averager_options;
-    rotation_averager_options.skip_initialization = true;
-    rotation_averager_options.use_gravity = true;
+  rotation_averager_options.skip_initialization = true;
+  rotation_averager_options.use_gravity = true;
 
-    rotation_averager_options.use_stratified = use_stratified;
+  rotation_averager_options.use_stratified = use_stratified;
 
   // Load the database
   ViewGraph view_graph;
   std::unordered_map<image_t, Image> images;
 
-    ReadRelPose(relpose_path, images, view_graph);
+  ReadRelPose(relpose_path, images, view_graph);
 
-    if (gravity_path != "") {
-      ReadGravity(gravity_path, images);
-    }
+  if (gravity_path != "") {
+    ReadGravity(gravity_path, images);
+  }
 
-    int num_img = view_graph.KeepLargestConnectedComponents(images);
-    LOG(INFO) << num_img << " / " << images.size() << " are within the largest connected component";
+  int num_img = view_graph.KeepLargestConnectedComponents(images);
+  LOG(INFO) << num_img << " / " << images.size()
+            << " are within the largest connected component";
 
-    RotationAverager rotation_averager(rotation_averager_options);
-    if (!rotation_averager.Solve(view_graph, images)) {
-      LOG(ERROR) << "Failed to solve global rotation averaging";
-      return EXIT_FAILURE;
-    }
+  RotationAverager rotation_averager(rotation_averager_options);
+  if (!rotation_averager.Solve(view_graph, images)) {
+    LOG(ERROR) << "Failed to solve global rotation averaging";
+    return EXIT_FAILURE;
+  }
 
   // Write out the estimated rotation
   WriteGlobalRotation(output_path, images);

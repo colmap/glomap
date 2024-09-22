@@ -10,13 +10,13 @@ struct RotationAveragerOptions : public RotationEstimatorOptions {
 
 class RotationAverager {
  public:
-  RotationAverager(const RotationAveragerOptions& options) : options_(options) {};
+  RotationAverager(const RotationAveragerOptions& options)
+      : options_(options){};
 
-  bool Solve(ViewGraph& view_graph,
-             std::unordered_map<image_t, Image>& images);
+  bool Solve(ViewGraph& view_graph, std::unordered_map<image_t, Image>& images);
 
  private:
   const RotationAveragerOptions options_;
 };
 
-} // namespace glomap
+}  // namespace glomap
