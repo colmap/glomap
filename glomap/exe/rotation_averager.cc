@@ -1,9 +1,8 @@
 
 #include "glomap/controllers/rotation_averager.h"
-
 #include "glomap/controllers/option_manager.h"
+#include "glomap/estimators/gravity_refinement.h"
 #include "glomap/io/colmap_io.h"
-#include "glomap/io/gravity_io.h"
 #include "glomap/io/pose_io.h"
 #include "glomap/types.h"
 
@@ -20,13 +19,15 @@ int RunRotationAverager(int argc, char** argv) {
   std::string gravity_path = "";
 
   bool use_stratified = true;
+  bool refine_gravity = false;
 
   OptionManager options;
   options.AddRequiredOption("relpose_path", &relpose_path);
   options.AddRequiredOption("output_path", &output_path);
   options.AddDefaultOption("gravity_path", &gravity_path);
   options.AddDefaultOption("use_stratified", &use_stratified);
-
+  options.AddDefaultOption("refine_gravity", &refine_gravity);
+  options.AddGravityRefinerOptions();
   options.Parse(argc, argv);
 
   if (!colmap::ExistsFile(relpose_path)) {
@@ -59,6 +60,11 @@ int RunRotationAverager(int argc, char** argv) {
   LOG(INFO) << num_img << " / " << images.size()
             << " are within the largest connected component";
 
+  if (refine_gravity && gravity_path != "") {
+    GravityRefiner grav_refiner(*options.gravity_refiner);
+    grav_refiner.RefineGravity(view_graph, images);
+  }
+
   RotationAverager rotation_averager(rotation_averager_options);
   colmap::Timer run_timer;
   run_timer.Start();
@@ -67,8 +73,8 @@ int RunRotationAverager(int argc, char** argv) {
     return EXIT_FAILURE;
   }
   run_timer.Pause();
-  LOG(INFO) << "Global rotation averaging done in " << run_timer.ElapsedSeconds()
-            << " seconds";
+  LOG(INFO) << "Global rotation averaging done in "
+            << run_timer.ElapsedSeconds() << " seconds";
 
   // Write out the estimated rotation
   WriteGlobalRotation(output_path, images);

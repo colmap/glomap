@@ -18,6 +18,7 @@ struct GlobalPositionerOptions;
 struct BundleAdjusterOptions;
 struct TriangulatorOptions;
 struct InlierThresholdOptions;
+struct GravityRefinerOptions;
 
 class OptionManager {
  public:
@@ -37,6 +38,7 @@ class OptionManager {
   void AddBundleAdjusterOptions();
   void AddTriangulatorOptions();
   void AddInlierThresholdOptions();
+  void AddGravityRefinerOptions();
 
   template <typename T>
   void AddRequiredOption(const std::string& name,
@@ -56,6 +58,7 @@ class OptionManager {
   std::shared_ptr<std::string> image_path;
 
   std::shared_ptr<GlobalMapperOptions> mapper;
+  std::shared_ptr<GravityRefinerOptions> gravity_refiner;
 
  private:
   template <typename T>
@@ -88,6 +91,7 @@ class OptionManager {
   bool added_bundle_adjustment_options_ = false;
   bool added_triangulation_options_ = false;
   bool added_inliers_options_ = false;
+  bool added_gravity_refiner_options_ = false;
 };
 
 template <typename T>
