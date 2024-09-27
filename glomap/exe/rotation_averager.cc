@@ -60,10 +60,15 @@ int RunRotationAverager(int argc, char** argv) {
             << " are within the largest connected component";
 
   RotationAverager rotation_averager(rotation_averager_options);
+  colmap::Timer run_timer;
+  run_timer.Start();
   if (!rotation_averager.Solve(view_graph, images)) {
     LOG(ERROR) << "Failed to solve global rotation averaging";
     return EXIT_FAILURE;
   }
+  run_timer.Pause();
+  LOG(INFO) << "Global rotation averaging done in " << run_timer.ElapsedSeconds()
+            << " seconds";
 
   // Write out the estimated rotation
   WriteGlobalRotation(output_path, images);
