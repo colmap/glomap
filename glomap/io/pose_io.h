@@ -11,7 +11,7 @@ void ReadRelPose(const std::string& file_path,
                  std::unordered_map<image_t, Image>& images,
                  ViewGraph& view_graph);
 
-// Require the gravity in the format: 
+// Require the gravity in the format:
 // IMAGE_NAME GX GY GZ
 // Gravity should be the direction of [0,1,0] in the image frame
 // image.cam_from_world * [0,1,0]^T = g

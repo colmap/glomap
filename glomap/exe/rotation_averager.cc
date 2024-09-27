@@ -1,5 +1,6 @@
 
 #include "glomap/controllers/rotation_averager.h"
+
 #include "glomap/controllers/option_manager.h"
 #include "glomap/estimators/gravity_refinement.h"
 #include "glomap/io/colmap_io.h"
