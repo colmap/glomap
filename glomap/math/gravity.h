@@ -15,6 +15,6 @@ double RotUpToAngle(const Eigen::Matrix3d& R_up);
 Eigen::Matrix3d AngleToRotUp(double angle);
 
 // Estimate the average gravity direction from a set of gravity directions
-Eigen::Vector3d AverageGravity(std::vector<Eigen::Vector3d>& gravities);
+Eigen::Vector3d AverageGravity(const std::vector<Eigen::Vector3d>& gravities);
 
 }  // namespace glomap
