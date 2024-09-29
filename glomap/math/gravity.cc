@@ -34,7 +34,7 @@ Eigen::Matrix3d AngleToRotUp(double angle) {
 
 // Code adapted from
 // https://gist.github.com/PeteBlackerThe3rd/f73e9d569e29f23e8bd828d7886636a0
-Eigen::Vector3d AverageGravity(std::vector<Eigen::Vector3d>& gravities) {
+Eigen::Vector3d AverageGravity(const std::vector<Eigen::Vector3d>& gravities) {
   if (gravities.size() == 0) {
     std::cerr
         << "Error trying to calculate the average gravities of an empty set!\n";
