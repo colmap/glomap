@@ -7,8 +7,7 @@ bool RotationAverager::Solve(ViewGraph& view_graph,
   view_graph.KeepLargestConnectedComponents(images);
 
   bool solve_1dof_system = false;
-  solve_1dof_system = solve_1dof_system || options_.use_gravity;
-  solve_1dof_system = solve_1dof_system && options_.use_stratified;
+  const bool solve_1dof_system = options_.use_gravity && options_.use_stratified;
 
   ViewGraph view_graph_grav;
   image_pair_t total_pairs = 0;
