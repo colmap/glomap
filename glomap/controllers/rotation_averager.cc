@@ -1,4 +1,4 @@
-#include "rotation_averager.h"
+#include "glomap/estimators/rotation_averager.h"
 
 namespace glomap {
 
