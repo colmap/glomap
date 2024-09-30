@@ -66,10 +66,9 @@ int RunRotationAverager(int argc, char** argv) {
     grav_refiner.RefineGravity(view_graph, images);
   }
 
-  RotationAverager rotation_averager(rotation_averager_options);
   colmap::Timer run_timer;
   run_timer.Start();
-  if (!rotation_averager.Solve(view_graph, images)) {
+  if (!SolveRotationAveraging(view_graph, images, rotation_averager_options)) {
     LOG(ERROR) << "Failed to solve global rotation averaging";
     return EXIT_FAILURE;
   }
