@@ -2,13 +2,14 @@
 
 namespace glomap {
 
-bool RotationAverager::Solve(ViewGraph& view_graph,
-                             std::unordered_map<image_t, Image>& images) {
+bool SolveRotationAveraging(ViewGraph& view_graph,
+                            std::unordered_map<image_t, Image>& images,
+                            const RotationAveragerOptions& options) {
   view_graph.KeepLargestConnectedComponents(images);
 
   bool solve_1dof_system = false;
-  solve_1dof_system = solve_1dof_system || options_.use_gravity;
-  solve_1dof_system = solve_1dof_system && options_.use_stratified;
+  solve_1dof_system = solve_1dof_system || options.use_gravity;
+  solve_1dof_system = solve_1dof_system && options.use_stratified;
 
   ViewGraph view_graph_grav;
   image_pair_t total_pairs = 0;
@@ -40,9 +41,7 @@ bool RotationAverager::Solve(ViewGraph& view_graph,
 
   // If there is no image pairs with gravity or most image pairs are with
   // gravity, then just run the 3dof version
-  bool status = false;
-  status = status || grav_pairs == 0;
-  status = status || grav_pairs > total_pairs * 0.95;
+  bool status = (grav_pairs == 0) || (grav_pairs > total_pairs * 0.95);
   solve_1dof_system = solve_1dof_system && (!status);
 
   if (solve_1dof_system) {
@@ -50,14 +49,14 @@ bool RotationAverager::Solve(ViewGraph& view_graph,
     LOG(INFO) << "Solving subset 1DoF rotation averaging problem in the mixed "
                  "prior system";
     int num_img_grv = view_graph_grav.KeepLargestConnectedComponents(images);
-    RotationEstimator rotation_estimator_grav(options_);
+    RotationEstimator rotation_estimator_grav(options);
     if (!rotation_estimator_grav.EstimateRotations(view_graph_grav, images)) {
       return false;
     }
     view_graph.KeepLargestConnectedComponents(images);
   }
 
-  RotationEstimator rotation_estimator(options_);
+  RotationEstimator rotation_estimator(options);
   return rotation_estimator.EstimateRotations(view_graph, images);
 }
 
