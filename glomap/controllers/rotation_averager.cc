@@ -1,13 +1,13 @@
-#include "glomap/estimators/rotation_averager.h"
+#include "glomap/controllers/rotation_averager.h"
 
 namespace glomap {
 
-bool RotationAverager::Solve(ViewGraph& view_graph,
-                             std::unordered_map<image_t, Image>& images) {
+bool SolveRotationAveraging(ViewGraph& view_graph,
+                            std::unordered_map<image_t, Image>& images,
+                            const RotationAveragerOptions& options) {
   view_graph.KeepLargestConnectedComponents(images);
 
-  bool solve_1dof_system = false;
-  const bool solve_1dof_system = options.use_gravity && options.use_stratified;
+  bool solve_1dof_system = options.use_gravity && options.use_stratified;
 
   ViewGraph view_graph_grav;
   image_pair_t total_pairs = 0;
