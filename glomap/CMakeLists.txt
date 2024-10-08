@@ -109,7 +109,11 @@ install(TARGETS glomap_main DESTINATION bin)
 install(TARGETS glomap 
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)
-install(FILES ${HEADERS} DESTINATION include/glomap)
+# install(FILES ${HEADERS} DESTINATION include/glomap)
+
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
+        DESTINATION include/glomap
+        FILES_MATCHING PATTERN "*.h")
 
 if(TESTS_ENABLED)
     add_executable(glomap_test

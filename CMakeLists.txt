@@ -10,8 +10,8 @@ set_property(GLOBAL PROPERTY GLOBAL_DEPENDS_NO_CYCLES ON)
 option(TESTS_ENABLED "Whether to build test binaries" OFF)
 option(ASAN_ENABLED "Whether to enable AddressSanitizer flags" OFF)
 option(CCACHE_ENABLED "Whether to enable compiler caching, if available" ON)
-option(FETCH_COLMAP "Whether to use COLMAP with FetchContent or with self-installed software" ON)
-option(FETCH_POSELIB "Whether to use PoseLib with FetchContent or with self-installed software" ON)
+option(FETCH_COLMAP "Whether to use COLMAP with FetchContent or with self-installed software" OFF)
+option(FETCH_POSELIB "Whether to use PoseLib with FetchContent or with self-installed software" OFF)
 
 include(cmake/FindDependencies.cmake)
 
