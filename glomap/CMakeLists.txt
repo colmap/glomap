@@ -105,6 +105,11 @@ target_link_libraries(glomap_main glomap)
 set_target_properties(glomap_main PROPERTIES OUTPUT_NAME glomap)
 install(TARGETS glomap_main DESTINATION bin)
 
+# adding the library to the install target
+install(TARGETS glomap 
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib)
+install(FILES ${HEADERS} DESTINATION include/glomap)
 
 if(TESTS_ENABLED)
     add_executable(glomap_test
