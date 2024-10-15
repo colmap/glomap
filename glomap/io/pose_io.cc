@@ -9,10 +9,8 @@ void ReadRelPose(const std::string& file_path,
                  ViewGraph& view_graph) {
   std::unordered_map<std::string, image_t> name_idx;
   image_t max_image_id = 0;
-  std::unordered_set<image_t> existing_images;
   for (const auto& [image_id, image] : images) {
     name_idx[image.file_name] = image_id;
-    existing_images.insert(image_id);
 
     max_image_id = std::max(max_image_id, image_id);
   }
@@ -73,6 +71,52 @@ void ReadRelPose(const std::string& file_path,
   LOG(INFO) << counter << " relpose are loaded" << std::endl;
 }
 
+void ReadRelWeight(const std::string& file_path,
+                   const std::unordered_map<image_t, Image>& images,
+                   ViewGraph& view_graph) {
+  std::unordered_map<std::string, image_t> name_idx;
+  for (const auto& [image_id, image] : images) {
+    name_idx[image.file_name] = image_id;
+  }
+
+  std::ifstream file(file_path);
+
+  // Read in data
+  std::string line;
+  std::string item;
+
+  size_t counter = 0;
+
+  // Required data structures
+  // IMAGE_NAME_1 IMAGE_NAME_2 QW QX QY QZ TX TY TZ
+  while (std::getline(file, line)) {
+    std::stringstream line_stream(line);
+
+    std::string file1, file2;
+    std::getline(line_stream, item, ' ');
+    file1 = item;
+    std::getline(line_stream, item, ' ');
+    file2 = item;
+
+    if (name_idx.find(file1) == name_idx.end() ||
+        name_idx.find(file2) == name_idx.end())
+      continue;
+
+    image_t index1 = name_idx[file1];
+    image_t index2 = name_idx[file2];
+
+    image_pair_t pair_id = ImagePair::ImagePairToPairId(index1, index2);
+
+    if (view_graph.image_pairs.find(pair_id) == view_graph.image_pairs.end())
+      continue;
+
+    std::getline(line_stream, item, ' ');
+    view_graph.image_pairs[pair_id].weight = std::stod(item);
+    counter++;
+  }
+  LOG(INFO) << counter << " weights are used are loaded" << std::endl;
+}
+
 void ReadGravity(const std::string& gravity_path,
                  std::unordered_map<image_t, Image>& images) {
   std::unordered_map<std::string, image_t> name_idx;
@@ -130,5 +174,36 @@ void WriteGlobalRotation(const std::string& file_path,
     }
     file << "\n";
   }
+}
+
+void WriteRelPose(const std::string& file_path,
+                  const std::unordered_map<image_t, Image>& images,
+                  const ViewGraph& view_graph) {
+  std::ofstream file(file_path);
+
+  // Prepare the image pairs to be written
+  std::set<image_pair_t> existing_pairs;
+  for (const auto& [pair_id, image_pair] : view_graph.image_pairs) {
+    if (image_pair.is_valid) {
+      existing_pairs.insert(pair_id);
+    }
+  }
+
+  // Write the image pairs
+  for (const auto& pair_id : existing_pairs) {
+    const auto image_pair = view_graph.image_pairs.at(pair_id);
+    if (!image_pair.is_valid) continue;
+    file << images.at(image_pair.image_id1).file_name << " "
+         << images.at(image_pair.image_id2).file_name << " ";
+    for (int i = 0; i < 4; i++) {
+      file << image_pair.cam2_from_cam1.rotation.coeffs()[(i + 3) % 4] << " ";
+    }
+    for (int i = 0; i < 3; i++) {
+      file << image_pair.cam2_from_cam1.translation[i] << " ";
+    }
+    file << "\n";
+  }
+
+  LOG(INFO) << existing_pairs.size() << " relpose are written" << std::endl;
 }
 }  // namespace glomap
