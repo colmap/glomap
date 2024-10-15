@@ -1,6 +1,7 @@
 #include "pose_io.h"
 
 #include <fstream>
+#include <map>
 #include <set>
 
 namespace glomap {
@@ -168,9 +169,9 @@ void WriteGlobalRotation(const std::string& file_path,
   for (const auto& image_id : existing_images) {
     const auto image = images.at(image_id);
     if (!image.is_registered) continue;
-    file << image.file_name << " ";
+    file << image.file_name;
     for (int i = 0; i < 4; i++) {
-      file << image.cam_from_world.rotation.coeffs()[(i + 3) % 4] << " ";
+      file << " " << image.cam_from_world.rotation.coeffs()[(i + 3) % 4];
     }
     file << "\n";
   }
@@ -181,29 +182,31 @@ void WriteRelPose(const std::string& file_path,
                   const ViewGraph& view_graph) {
   std::ofstream file(file_path);
 
-  // Prepare the image pairs to be written
-  std::set<image_pair_t> existing_pairs;
+  // Sort the image pairs by image name
+  std::map<std::string, image_pair_t> name_pair;
   for (const auto& [pair_id, image_pair] : view_graph.image_pairs) {
     if (image_pair.is_valid) {
-      existing_pairs.insert(pair_id);
+      const auto image1 = images.at(image_pair.image_id1);
+      const auto image2 = images.at(image_pair.image_id2);
+      name_pair[image1.file_name + " " + image2.file_name] = pair_id;
     }
   }
 
   // Write the image pairs
-  for (const auto& pair_id : existing_pairs) {
+  for (const auto& [name, pair_id] : name_pair) {
     const auto image_pair = view_graph.image_pairs.at(pair_id);
     if (!image_pair.is_valid) continue;
     file << images.at(image_pair.image_id1).file_name << " "
-         << images.at(image_pair.image_id2).file_name << " ";
+         << images.at(image_pair.image_id2).file_name;
     for (int i = 0; i < 4; i++) {
-      file << image_pair.cam2_from_cam1.rotation.coeffs()[(i + 3) % 4] << " ";
+      file << " " << image_pair.cam2_from_cam1.rotation.coeffs()[(i + 3) % 4];
     }
     for (int i = 0; i < 3; i++) {
-      file << image_pair.cam2_from_cam1.translation[i] << " ";
+      file << " " << image_pair.cam2_from_cam1.translation[i];
     }
     file << "\n";
   }
 
-  LOG(INFO) << existing_pairs.size() << " relpose are written" << std::endl;
+  LOG(INFO) << name_pair.size() << " relpose are written" << std::endl;
 }
 }  // namespace glomap
