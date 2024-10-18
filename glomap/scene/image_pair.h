@@ -27,7 +27,7 @@ struct ImagePair {
   bool is_valid = true;
 
   // weight is the initial inlier rate
-  double weight = 0;
+  double weight = -1;
 
   // one of `ConfigurationType`.
   int config = colmap::TwoViewGeometry::UNDEFINED;

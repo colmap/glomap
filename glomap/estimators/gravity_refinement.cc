@@ -12,6 +12,10 @@ void GravityRefiner::RefineGravity(const ViewGraph& view_graph,
       view_graph.image_pairs;
   const std::unordered_map<image_t, std::unordered_set<image_t>>&
       adjacency_list = view_graph.GetAdjacencyList();
+  if (adjacency_list.empty()) {
+    LOG(INFO) << "Adjacency list not established" << std::endl;
+    return;
+  }
 
   // Identify the images that are error prone
   int counter_rect = 0;
@@ -74,6 +78,7 @@ void GravityRefiner::RefineGravity(const ViewGraph& view_graph,
     if (gravities.size() < options_.min_num_neighbors) continue;
 
     // Then, run refinment
+    gravity = AverageGravity(gravities);
     colmap::SetSphereManifold<3>(&problem, gravity.data());
     ceres::Solver::Summary summary_solver;
     ceres::Solve(options_.solver_options, &problem, &summary_solver);
