@@ -17,3 +17,4 @@ Checks: >
 WarningsAsErrors: '*'
 FormatStyle: 'file'
 User: 'user'
+HeaderFilterRegex: '.*\\/glomap\\/.*'
