@@ -9,9 +9,10 @@ void ConvertGlomapToColmapImage(const Image& image,
                                 bool keep_points) {
   image_colmap.SetImageId(image.image_id);
   image_colmap.SetCameraId(image.camera_id);
-  image_colmap.SetRegistered(image.is_registered);
   image_colmap.SetName(image.file_name);
-  image_colmap.CamFromWorld() = image.cam_from_world;
+  if (image.is_registered) {
+    image_colmap.SetCamFromWorld(image.cam_from_world);
+  }
 
   if (keep_points) {
     image_colmap.SetPoints2D(image.features);
@@ -130,8 +131,10 @@ void ConvertColmapToGlomap(const colmap::Reconstruction& reconstruction,
                                                   image_colmap.Name())));
 
     Image& image = ite.first->second;
-    image.is_registered = image_colmap.IsRegistered();
-    image.cam_from_world = static_cast<Rigid3d>(image_colmap.CamFromWorld());
+    image.is_registered = image_colmap.HasPose();
+    if (image_colmap.HasPose()) {
+      image.cam_from_world = static_cast<Rigid3d>(image_colmap.CamFromWorld());
+    }
     image.features.clear();
     image.features.reserve(image_colmap.NumPoints2D());
 

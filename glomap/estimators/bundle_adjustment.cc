@@ -70,7 +70,7 @@ void BundleAdjuster::AddPointToCameraConstraints(
       Image& image = images[observation.first];
 
       ceres::CostFunction* cost_function =
-          colmap::CameraCostFunction<colmap::ReprojErrorCostFunction>(
+          colmap::CreateCameraCostFunction<colmap::ReprojErrorCostFunctor>(
               cameras[image.camera_id].model_id,
               image.features[observation.second]);
 
