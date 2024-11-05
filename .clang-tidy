@@ -17,4 +17,4 @@ Checks: >
 WarningsAsErrors: '*'
 FormatStyle: 'file'
 User: 'user'
-HeaderFilterRegex: '.*\\/glomap\\/.*'
+HeaderFilterRegex: '.*\\/glomap\\/(controllers|estimators|exe|io|math|processors|scene|types\\.h).*'
