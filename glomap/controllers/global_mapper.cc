@@ -7,6 +7,7 @@
 #include "glomap/processors/track_filter.h"
 #include "glomap/processors/view_graph_manipulation.h"
 
+#include <colmap/util/file.h>
 #include <colmap/util/timer.h>
 
 namespace glomap {

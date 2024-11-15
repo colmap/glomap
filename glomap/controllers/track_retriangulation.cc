@@ -2,9 +2,11 @@
 
 #include "glomap/io/colmap_converter.h"
 
-#include <colmap/controllers/incremental_mapper.h>
+#include <colmap/controllers/incremental_pipeline.h>
 #include <colmap/estimators/bundle_adjustment.h>
 #include <colmap/scene/database_cache.h>
+
+#include <set>
 
 namespace glomap {
 
@@ -40,7 +42,7 @@ bool RetriangulateTracks(const TriangulatorOptions& options,
                         std::unordered_map<track_t, Track>(),
                         *reconstruction_ptr);
 
-  colmap::IncrementalMapperOptions options_colmap;
+  colmap::IncrementalPipelineOptions options_colmap;
   options_colmap.triangulation.complete_max_reproj_error =
       options.tri_complete_max_reproj_error;
   options_colmap.triangulation.merge_max_reproj_error =
@@ -57,13 +59,13 @@ bool RetriangulateTracks(const TriangulatorOptions& options,
   const auto tri_options = options_colmap.Triangulation();
   const auto mapper_options = options_colmap.Mapper();
 
-  const std::vector<image_t>& reg_image_ids = reconstruction_ptr->RegImageIds();
+  const std::set<image_t>& reg_image_ids = reconstruction_ptr->RegImageIds();
 
-  for (size_t i = 0; i < reg_image_ids.size(); ++i) {
-    std::cout << "\r Triangulating image " << i + 1 << " / "
+  size_t image_idx = 0;
+  for (const image_t image_id : reg_image_ids) {
+    std::cout << "\r Triangulating image " << image_idx++ + 1 << " / "
               << reg_image_ids.size() << std::flush;
 
-    const image_t image_id = reg_image_ids[i];
     const auto& image = reconstruction_ptr->Image(image_id);
 
     int num_tris = mapper.TriangulateImage(tri_options, image_id);
