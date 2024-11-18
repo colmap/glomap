@@ -1,5 +1,6 @@
 #include "global_mapper.h"
 
+#include "glomap/io/colmap_converter.h"
 #include "glomap/processors/image_pair_inliers.h"
 #include "glomap/processors/image_undistorter.h"
 #include "glomap/processors/reconstruction_pruning.h"
@@ -167,6 +168,13 @@ bool GlobalMapper::Solve(const colmap::Database& database,
         images,
         tracks,
         options_.inlier_thresholds.max_angle_error);
+
+    // Normalize the structure
+    colmap::Reconstruction reconstruction;
+    ConvertGlomapToColmap(cameras, images, tracks, reconstruction, -1, true);
+    reconstruction.Normalize();
+    ConvertColmapToGlomap(reconstruction, cameras, images, tracks);
+
     run_timer.PrintSeconds();
   }
 
@@ -208,6 +216,12 @@ bool GlobalMapper::Solve(const colmap::Database& database,
                 << ", stage 2 finished";
       if (ite != options_.num_iteration_bundle_adjustment - 1)
         run_timer.PrintSeconds();
+
+      // Normalize the structure
+      colmap::Reconstruction reconstruction;
+      ConvertGlomapToColmap(cameras, images, tracks, reconstruction, -1, true);
+      reconstruction.Normalize();
+      ConvertColmapToGlomap(reconstruction, cameras, images, tracks);
 
       // 6.3. Filter tracks based on the estimation
       // For the filtering, in each round, the criteria for outlier is
@@ -291,6 +305,12 @@ bool GlobalMapper::Solve(const colmap::Database& database,
       }
       run_timer.PrintSeconds();
     }
+
+    // Normalize the structure
+    colmap::Reconstruction reconstruction;
+    ConvertGlomapToColmap(cameras, images, tracks, reconstruction, -1, true);
+    reconstruction.Normalize();
+    ConvertColmapToGlomap(reconstruction, cameras, images, tracks);
 
     // Filter tracks based on the estimation
     UndistortImages(cameras, images, true);
