@@ -2,14 +2,14 @@
 
 namespace glomap {
 
-colmap::Sim3d NormalizeReconstruction(std::unordered_map<camera_t, Camera>& cameras,
-                             std::unordered_map<image_t, Image>& images,
-                             std::unordered_map<track_t, Track>& tracks,
-                             bool fixed_scale,
-                             double extent,
-                             double p0,
-                             double p1) {
-
+colmap::Sim3d NormalizeReconstruction(
+    std::unordered_map<camera_t, Camera>& cameras,
+    std::unordered_map<image_t, Image>& images,
+    std::unordered_map<track_t, Track>& tracks,
+    bool fixed_scale,
+    double extent,
+    double p0,
+    double p1) {
   // Coordinates of image centers or point locations.
   std::vector<float> coords_x;
   std::vector<float> coords_y;
@@ -18,9 +18,8 @@ colmap::Sim3d NormalizeReconstruction(std::unordered_map<camera_t, Camera>& came
   coords_x.reserve(images.size());
   coords_y.reserve(images.size());
   coords_z.reserve(images.size());
-  for (const auto &[image_id, image] : images) {
-    if (!image.is_registered)
-      continue;
+  for (const auto& [image_id, image] : images) {
+    if (!image.is_registered) continue;
     const Eigen::Vector3d proj_center = image.Center();
     coords_x.push_back(static_cast<float>(proj_center(0)));
     coords_y.push_back(static_cast<float>(proj_center(1)));
@@ -65,13 +64,12 @@ colmap::Sim3d NormalizeReconstruction(std::unordered_map<camera_t, Camera>& came
       image.cam_from_world = TransformCameraWorld(tform, image.cam_from_world);
     }
   }
-  
+
   for (auto& [_, track] : tracks) {
     track.xyz = tform * track.xyz;
   }
 
   return tform;
 }
-
 
 }  // namespace glomap
