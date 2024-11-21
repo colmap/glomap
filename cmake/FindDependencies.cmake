@@ -7,11 +7,12 @@ find_package(Boost REQUIRED)
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     find_package(Glog REQUIRED)
-    if(DEFINED glog_VERSION_MAJOR)
-        # Older versions of glog don't export version variables.
-        add_definitions("-DGLOG_VERSION_MAJOR=${glog_VERSION_MAJOR}")
-        add_definitions("-DGLOG_VERSION_MINOR=${glog_VERSION_MINOR}")
-    endif()
+endif()
+
+if(DEFINED glog_VERSION_MAJOR)
+    # Older versions of glog don't export version variables.
+    add_definitions("-DGLOG_VERSION_MAJOR=${glog_VERSION_MAJOR}")
+    add_definitions("-DGLOG_VERSION_MINOR=${glog_VERSION_MINOR}")
 endif()
 
 if(TESTS_ENABLED)
