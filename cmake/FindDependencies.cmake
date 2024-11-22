@@ -1,21 +1,6 @@
 set(CUDA_ENABLED OFF CACHE BOOL "" FORCE)
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
-# In FindDependencies.cmake
-# Add before finding other packages
-set(GLOG_USE_GFLAGS ON)
-find_package(gflags REQUIRED)
-find_package(Glog REQUIRED)
-
-# Add definitions
-add_definitions(-DGLOG_USE_GFLAGS)
-add_definitions(-DGFLAGS_IS_A_DLL=0)
-
-if(DEFINED glog_VERSION_MAJOR)
-    add_definitions("-DGLOG_VERSION_MAJOR=${glog_VERSION_MAJOR}")
-    add_definitions("-DGLOG_VERSION_MINOR=${glog_VERSION_MINOR}")
-endif()
-
 find_package(Eigen3 3.4 REQUIRED)
 find_package(SuiteSparse COMPONENTS CHOLMOD REQUIRED)
 find_package(Ceres REQUIRED COMPONENTS SuiteSparse)
@@ -23,11 +8,12 @@ find_package(Boost REQUIRED)
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     find_package(Glog REQUIRED)
-    if(DEFINED glog_VERSION_MAJOR)
-        # Older versions of glog don't export version variables.
-        add_definitions("-DGLOG_VERSION_MAJOR=${glog_VERSION_MAJOR}")
-        add_definitions("-DGLOG_VERSION_MINOR=${glog_VERSION_MINOR}")
-    endif()
+endif()
+
+if(DEFINED glog_VERSION_MAJOR)
+    # Older versions of glog don't export version variables.
+    add_definitions("-DGLOG_VERSION_MAJOR=${glog_VERSION_MAJOR}")
+    add_definitions("-DGLOG_VERSION_MINOR=${glog_VERSION_MINOR}")
 endif()
 
 if(TESTS_ENABLED)
