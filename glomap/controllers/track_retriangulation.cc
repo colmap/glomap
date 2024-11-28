@@ -98,10 +98,10 @@ bool RetriangulateTracks(const TriangulatorOptions& options,
     const size_t num_observations =
         reconstruction_ptr->ComputeNumObservations();
 
-    // PrintHeading1("Bundle adjustment");
-    colmap::BundleAdjuster bundle_adjuster(ba_options, ba_config);
-    // THROW_CHECK(bundle_adjuster.Solve(reconstruction.get()));
-    if (!bundle_adjuster.Solve(reconstruction_ptr.get())) {
+    std::unique_ptr<colmap::BundleAdjuster> bundle_adjuster;
+    bundle_adjuster =
+        CreateDefaultBundleAdjuster(ba_options, ba_config, *reconstruction_ptr);
+    if (bundle_adjuster->Solve().termination_type == ceres::FAILURE) {
       return false;
     }
 
