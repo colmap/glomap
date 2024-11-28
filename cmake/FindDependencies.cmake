@@ -1,3 +1,4 @@
+set(CUDA_ENABLED OFF CACHE BOOL "" FORCE)
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 find_package(Eigen3 3.4 REQUIRED)
