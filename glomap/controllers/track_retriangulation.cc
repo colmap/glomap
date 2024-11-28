@@ -99,7 +99,8 @@ bool RetriangulateTracks(const TriangulatorOptions& options,
         reconstruction_ptr->ComputeNumObservations();
 
     std::unique_ptr<colmap::BundleAdjuster> bundle_adjuster;
-    bundle_adjuster = CreateDefaultBundleAdjuster(ba_options, ba_config, *reconstruction_ptr);
+    bundle_adjuster =
+        CreateDefaultBundleAdjuster(ba_options, ba_config, *reconstruction_ptr);
     if (bundle_adjuster->Solve().termination_type != ceres::FAILURE) {
       return false;
     }
