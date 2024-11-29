@@ -20,6 +20,7 @@ If you use this project for your research, please cite
     year={2024},
 }
 ```
+To use the seperate rotation averaging module, refer to [this README](docs/rotation_averager.md).
 
 ## Getting Started
 
