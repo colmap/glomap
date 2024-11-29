@@ -1,3 +1,6 @@
 /build
 /data
 /.vscode
+/cmake-*
+.idea
+/glomap/external

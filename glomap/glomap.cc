@@ -1,6 +1,7 @@
 #include "glomap/exe/global_mapper.h"
 
 #include <colmap/util/logging.h>
+#include <torch/torch.h>
 
 #include <iostream>
 
@@ -35,6 +36,8 @@ int main(int argc, char** argv) {
   colmap::InitializeGlog(argv);
   FLAGS_alsologtostderr = true;
 
+  auto tensor_test = torch::randn({2, 3});
+  std::cout << tensor_test << std::endl;
   std::vector<std::pair<std::string, command_func_t>> commands;
   commands.emplace_back("mapper", &glomap::RunMapper);
   commands.emplace_back("mapper_resume", &glomap::RunMapperResume);

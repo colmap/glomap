@@ -76,12 +76,17 @@ else()
     target_link_libraries(glomap PUBLIC PoseLib)
 endif()
 
+set(LIBTORCH_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external/libtorch")
+set(CMAKE_PREFIX_PATH ${LIBTORCH_DIR})
+find_package(Torch REQUIRED)
+
 target_link_libraries(
     glomap
     PUBLIC
         Eigen3::Eigen
         Ceres::ceres
         SuiteSparse::CHOLMOD
+        ${TORCH_LIBRARIES}
         ${BOOST_LIBRARIES}
 )
 target_include_directories(glomap PUBLIC ..)
