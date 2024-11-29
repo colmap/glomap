@@ -8,8 +8,8 @@
 #include "glomap/types.h"
 
 // Standard libraries
-#include <unordered_map>
-#include <vector>
-
 #include <Eigen/Core>
 #include <Eigen/Geometry>
+
+#include <unordered_map>
+#include <vector>

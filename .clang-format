@@ -1,15 +1,118 @@
-BasedOnStyle: Google
-BinPackArguments: false
-BinPackParameters: false
-DerivePointerAlignment: false
+---
+Language: Cpp
+Standard: Latest
+
+# Access modifiers and indentation
+AccessModifierOffset: -4
+IndentWidth: 4
+ContinuationIndentWidth: 4
+TabWidth: 4
+UseTab: Never
+NamespaceIndentation: All
+
+# Alignment
+AlignAfterOpenBracket: Align
+AlignConsecutiveAssignments: false
+AlignConsecutiveDeclarations: false
+AlignConsecutiveMacros: Consecutive
+AlignEscapedNewlines: Left
+AlignOperands: true
+AlignTrailingComments: true
+
+# Allow behaviors
+AllowAllArgumentsOnNextLine: false
+AllowAllParametersOfDeclarationOnNextLine: false
+AllowShortBlocksOnASingleLine: Always
+AllowShortCaseLabelsOnASingleLine: true
+AllowShortEnumsOnASingleLine: true
+AllowShortFunctionsOnASingleLine: All
+AllowShortLambdasOnASingleLine: All
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AllowAllConstructorInitializersOnNextLine: false
+
+# Breaking and wrapping
+AlwaysBreakAfterDefinitionReturnType: None
+AlwaysBreakAfterReturnType: None
+AlwaysBreakBeforeMultilineStrings: false
+AlwaysBreakTemplateDeclarations: true
+BreakBeforeBinaryOperators: None
+BreakBeforeTernaryOperators: true
+BreakConstructorInitializersBeforeComma: false
+BreakConstructorInitializers: BeforeColon
+BreakInheritanceList: BeforeColon
+BreakStringLiterals: true
+ColumnLimit: 0
+
+# Brace wrapping
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterCaseLabel: false
+  AfterClass: false
+  AfterControlStatement: Always
+  AfterEnum: false
+  AfterFunction: false
+  AfterNamespace: false
+  AfterObjCDeclaration: false
+  AfterStruct: false
+  AfterUnion: false
+  AfterExternBlock: false
+  BeforeCatch: false
+  BeforeElse: false
+  IndentBraces: false
+  SplitEmptyFunction: true
+  SplitEmptyRecord: true
+  SplitEmptyNamespace: true
+
+# Constructor initialization
+ConstructorInitializerIndentWidth: 4
+ConstructorInitializerAllOnOneLineOrOnePerLine: true
+
+# Empty lines and spacing
+EmptyLineBeforeAccessModifier: Always
+KeepEmptyLinesAtTheStartOfBlocks: true
+MaxEmptyLinesToKeep: 1
+SpaceAfterCStyleCast: false
+SpaceAfterTemplateKeyword: true
+SpaceBeforeAssignmentOperators: true
+SpaceBeforeParens: ControlStatements
+SpaceInEmptyParentheses: false
+SpacesBeforeTrailingComments: 1
+SpacesInAngles: false
+SpacesInContainerLiterals: true
+SpacesInCStyleCastParentheses: false
+SpacesInParentheses: false
+SpacesInSquareBrackets: false
+
+# Include ordering
+SortIncludes: CaseInsensitive
 IncludeBlocks: Regroup
 IncludeCategories:
-  - Regex:    '^"glomap'
+  # C++ Standard Library headers
+  - Regex: '^<(cctype|span|cstring|string|string_view|vector|map|fstream|typeindex|source_location|stacktrace|array|iostream|memory|future|stdexcept|algorithm|random|atomic|sstream|chrono|cstdint|expected|filesystem|functional|mutex|queue|optional|shared_mutex|thread|utility|variant|unordered_map|unordered_set|condition_variable)>$'
     Priority: 1
-  - Regex:    '^<colmap'
+    SortPriority: 3
+  # C Standard Library headers
+  - Regex: '^<(ft2build\.h|GL/|GLFW/|glm/|spdlog/|fmt/).*>'
     Priority: 2
-  - Regex:    '^<[[:alnum:]_]+>'
-    Priority: 4
-  - Regex:    '.*'
-    Priority: 5
-SortIncludes: true
+    SortPriority: 2
+  - Regex: '^"(ft2build\.h|GL/|GLFW/|glm/|spdlog/|fmt/).*"'
+    Priority: 2
+    SortPriority: 2
+  # All project headers
+  - Regex: '.*'
+    Priority: 3
+    SortPriority: 1
+
+# Other settings
+Cpp11BracedListStyle: true
+DerivePointerAlignment: false
+FixNamespaceComments: true
+IndentCaseBlocks: false
+IndentCaseLabels: false
+IndentGotoLabels: false
+IndentPPDirectives: None
+IndentWrappedFunctionNames: false
+PointerAlignment: Left
+ReflowComments: true
+---
