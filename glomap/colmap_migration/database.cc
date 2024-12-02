@@ -29,9 +29,8 @@
 
 #include "glomap/colmap_migration/database.h"
 
-#include "colmap/util/sqlite3_utils.h"
-#include "colmap/util/string.h"
-#include "colmap/util/version.h"
+#include "glomap/colmap_migration/sqlite3_utils.h"
+#include "glomap/colmap_migration/string.h"
 
 #include <fstream>
 #include <memory>

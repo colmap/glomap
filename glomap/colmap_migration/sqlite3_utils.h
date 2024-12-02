@@ -29,56 +29,43 @@
 
 #pragma once
 
-#include "glomap/colmap_migration/feature_types.h"
-#include "glomap/colmap_migration/rigid3.h"
+#include "glomap/colmap_migration/logging.h"
+
+#include <cstdio>
+#include <cstdlib>
+#include <string>
+
+#include <sqlite3.h>
 
 namespace glomap {
 
-// Two-view geometry.
-struct TwoViewGeometry {
-  // The configuration of the two-view geometry.
-  enum ConfigurationType {
-    UNDEFINED = 0,
-    // Degenerate configuration (e.g., no overlap or not enough inliers).
-    DEGENERATE = 1,
-    // Essential matrix.
-    CALIBRATED = 2,
-    // Fundamental matrix.
-    UNCALIBRATED = 3,
-    // Homography, planar scene with baseline.
-    PLANAR = 4,
-    // Homography, pure rotation without baseline.
-    PANORAMIC = 5,
-    // Homography, planar or panoramic.
-    PLANAR_OR_PANORAMIC = 6,
-    // Watermark, pure 2D translation in image borders.
-    WATERMARK = 7,
-    // Multi-model configuration, i.e. the inlier matches result from multiple
-    // individual, non-degenerate configurations.
-    MULTIPLE = 8,
-  };
+inline int SQLite3CallHelper(int result_code,
+                             const std::string& filename,
+                             int line) {
+  switch (result_code) {
+    case SQLITE_OK:
+    case SQLITE_ROW:
+    case SQLITE_DONE:
+      return result_code;
+    default:
+      LogMessageFatalThrow<std::runtime_error>(filename.c_str(), line).stream()
+          << "SQLite error: " << sqlite3_errstr(result_code);
+      return result_code;
+  }
+}
 
-  // One of `ConfigurationType`.
-  int config = ConfigurationType::UNDEFINED;
+#define SQLITE3_CALL(func) SQLite3CallHelper(func, __FILE__, __LINE__)
 
-  // Essential matrix.
-  Eigen::Matrix3d E = Eigen::Matrix3d::Zero();
-  // Fundamental matrix.
-  Eigen::Matrix3d F = Eigen::Matrix3d::Zero();
-  // Homography matrix.
-  Eigen::Matrix3d H = Eigen::Matrix3d::Zero();
-
-  // Relative pose.
-  Rigid3d cam2_from_cam1;
-
-  // Inlier matches of the configuration.
-  FeatureMatches inlier_matches;
-
-  // Median triangulation angle.
-  double tri_angle = -1;
-
-  // Invert the geometry to match swapped cameras.
-  void Invert();
-};
+#define SQLITE3_EXEC(database, sql, callback)                             \
+  {                                                                       \
+    char* err_msg = nullptr;                                              \
+    const int result_code =                                               \
+        sqlite3_exec(database, sql, callback, nullptr, &err_msg);         \
+    if (result_code != SQLITE_OK) {                                       \
+      LOG(ERROR) << "SQLite error [" << __FILE__ << ", line " << __LINE__ \
+                 << "]: " << err_msg;                                     \
+      sqlite3_free(err_msg);                                              \
+    }                                                                     \
+  }
 
 }  // namespace glomap

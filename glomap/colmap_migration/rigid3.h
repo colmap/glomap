@@ -122,4 +122,4 @@ inline bool operator!=(const Rigid3d& left, const Rigid3d& right) {
 
 std::ostream& operator<<(std::ostream& stream, const Rigid3d& tform);
 
-}  // namespace colmap
+}  // namespace glomap

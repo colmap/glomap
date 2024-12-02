@@ -29,56 +29,41 @@
 
 #pragma once
 
-#include "glomap/colmap_migration/feature_types.h"
-#include "glomap/colmap_migration/rigid3.h"
+#include <string>
+#include <vector>
 
 namespace glomap {
 
-// Two-view geometry.
-struct TwoViewGeometry {
-  // The configuration of the two-view geometry.
-  enum ConfigurationType {
-    UNDEFINED = 0,
-    // Degenerate configuration (e.g., no overlap or not enough inliers).
-    DEGENERATE = 1,
-    // Essential matrix.
-    CALIBRATED = 2,
-    // Fundamental matrix.
-    UNCALIBRATED = 3,
-    // Homography, planar scene with baseline.
-    PLANAR = 4,
-    // Homography, pure rotation without baseline.
-    PANORAMIC = 5,
-    // Homography, planar or panoramic.
-    PLANAR_OR_PANORAMIC = 6,
-    // Watermark, pure 2D translation in image borders.
-    WATERMARK = 7,
-    // Multi-model configuration, i.e. the inlier matches result from multiple
-    // individual, non-degenerate configurations.
-    MULTIPLE = 8,
-  };
+// Format string by replacing embedded format specifiers with their respective
+// values, see `printf` for more details. This is a modified implementation
+// of Google's BSD-licensed StringPrintf function.
+std::string StringPrintf(const char* format, ...);
 
-  // One of `ConfigurationType`.
-  int config = ConfigurationType::UNDEFINED;
+// Replace all occurrences of `old_str` with `new_str` in the given string.
+std::string StringReplace(const std::string& str,
+                          const std::string& old_str,
+                          const std::string& new_str);
 
-  // Essential matrix.
-  Eigen::Matrix3d E = Eigen::Matrix3d::Zero();
-  // Fundamental matrix.
-  Eigen::Matrix3d F = Eigen::Matrix3d::Zero();
-  // Homography matrix.
-  Eigen::Matrix3d H = Eigen::Matrix3d::Zero();
+// Get substring of string after search key
+std::string StringGetAfter(const std::string& str, const std::string& key);
 
-  // Relative pose.
-  Rigid3d cam2_from_cam1;
+// Split string into list of words using the given delimiters.
+std::vector<std::string> StringSplit(const std::string& str,
+                                     const std::string& delim);
 
-  // Inlier matches of the configuration.
-  FeatureMatches inlier_matches;
+// Check whether a string starts with a certain prefix.
+bool StringStartsWith(const std::string& str, const std::string& prefix);
 
-  // Median triangulation angle.
-  double tri_angle = -1;
+// Remove whitespace from string on both, left, or right sides.
+void StringTrim(std::string* str);
+void StringLeftTrim(std::string* str);
+void StringRightTrim(std::string* str);
 
-  // Invert the geometry to match swapped cameras.
-  void Invert();
-};
+// Convert string to lower/upper case.
+void StringToLower(std::string* str);
+void StringToUpper(std::string* str);
+
+// Check whether the sub-string is contained in the given string.
+bool StringContains(const std::string& str, const std::string& sub_str);
 
 }  // namespace glomap

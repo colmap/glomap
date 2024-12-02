@@ -30,12 +30,12 @@
 #pragma once
 
 #include "glomap/colmap_migration/types.h"
+#include "glomap/colmap_migration/feature_types.h"
 #include "glomap/colmap_migration/gps.h"
 #include "glomap/colmap_migration/camera.h"
 #include "glomap/colmap_migration/image.h"
-#include "colmap/scene/two_view_geometry.h"
+#include "glomap/colmap_migration/two_view_geometry.h"
 #include "glomap/colmap_migration/eigen_alignment.h"
-#include "glomap/colmap_migration/types.h"
 
 #include <mutex>
 #include <unordered_map>

@@ -15,6 +15,8 @@ set(SOURCES
     colmap_migration/database.cc
     colmap_migration/visibility_pyramid.cc
     colmap_migration/two_view_geometry.cc
+    colmap_migration/feature_types.cc
+    colmap_migration/string.cc
     controllers/global_mapper.cc
     controllers/option_manager.cc
     controllers/track_establishment.cc
@@ -62,6 +64,9 @@ set(HEADERS
     colmap_migration/database.h
     colmap_migration/visibility_pyramid.h
     colmap_migration/two_view_geometry.h
+    colmap_migration/feature_types.h
+    colmap_migration/sqlite3_utils.h
+    colmap_migration/string.h
     controllers/global_mapper.h
     controllers/option_manager.h
     controllers/track_establishment.h
