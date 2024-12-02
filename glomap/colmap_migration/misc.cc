@@ -30,6 +30,7 @@
 #include "glomap/colmap_migration/misc.h"
 
 #include "glomap/colmap_migration/logging.h"
+#include "glomap/colmap_migration/string.h"
 
 #include <cstdarg>
 #include <sstream>

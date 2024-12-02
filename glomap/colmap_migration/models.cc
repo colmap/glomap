@@ -153,7 +153,7 @@ const std::string& CameraModelParamsInfo(const CameraModelId model_id) {
   return kEmptyParamsInfo;
 }
 
-span<const size_t> CameraModelFocalLengthIdxs(const CameraModelId model_id) {
+std::span<const size_t> CameraModelFocalLengthIdxs(const CameraModelId model_id) {
   switch (model_id) {
 #define CAMERA_MODEL_CASE(CameraModel)              \
   case CameraModel::model_id:                       \
@@ -169,7 +169,7 @@ span<const size_t> CameraModelFocalLengthIdxs(const CameraModelId model_id) {
   return {nullptr, 0};
 }
 
-span<const size_t> CameraModelPrincipalPointIdxs(const CameraModelId model_id) {
+std::span<const size_t> CameraModelPrincipalPointIdxs(const CameraModelId model_id) {
   switch (model_id) {
 #define CAMERA_MODEL_CASE(CameraModel)                 \
   case CameraModel::model_id:                          \
@@ -185,7 +185,7 @@ span<const size_t> CameraModelPrincipalPointIdxs(const CameraModelId model_id) {
   return {nullptr, 0};
 }
 
-span<const size_t> CameraModelExtraParamsIdxs(const CameraModelId model_id) {
+std::span<const size_t> CameraModelExtraParamsIdxs(const CameraModelId model_id) {
   switch (model_id) {
 #define CAMERA_MODEL_CASE(CameraModel)              \
   case CameraModel::model_id:                       \

@@ -4,7 +4,7 @@
 #include "glomap/scene/types_sfm.h"
 
 #include <colmap/util/file.h>
-#include <colmap/util/misc.h>
+#include <glomap/colmap_migration/misc.h>
 
 namespace glomap {
 

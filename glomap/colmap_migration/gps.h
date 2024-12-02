@@ -44,7 +44,7 @@ namespace glomap {
 // representation and vice versa.
 class GPSTransform {
  public:
-  MAKE_ENUM(ELLPSOID, 0, GRS80, WGS84);
+  MAKE_ENUM_GLOMAP(ELLPSOID, 0, GRS80, WGS84);
 
   explicit GPSTransform(int ellipsoid = GRS80);
 
@@ -87,7 +87,7 @@ class GPSTransform {
 
 struct PosePrior {
  public:
-  MAKE_ENUM_CLASS(CoordinateSystem,
+  MAKE_ENUM_CLASS_GLOMAP(CoordinateSystem,
                   -1,
                   UNDEFINED,  // = -1
                   WGS84,      // = 0

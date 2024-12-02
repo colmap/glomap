@@ -38,6 +38,9 @@
 #include <cfloat>
 #include <string>
 #include <vector>
+#include <string_view>
+#include <ostream>
+#include <span>
 
 #include <Eigen/Core>
 #include <Eigen/LU>
@@ -80,7 +83,7 @@ namespace glomap {
 // the upper left pixel center has coordinate (0.5, 0.5) and the lower right
 // pixel center has the coordinate (width - 0.5, height - 0.5).
 
-MAKE_ENUM_CLASS_OVERLOAD_STREAM(CameraModelId,
+MAKE_ENUM_CLASS_OVERLOAD_STREAM_GLOMAP(CameraModelId,
                                 -1,
                                 kInvalid,                // = -1
                                 kSimplePinhole,          // = 0
@@ -495,9 +498,9 @@ const std::string& CameraModelParamsInfo(CameraModelId model_id);
 // Get the indices of the parameter groups in the parameter vector.
 //
 // @param model_id     Unique identifier of camera model.
-span<const size_t> CameraModelFocalLengthIdxs(CameraModelId model_id);
-span<const size_t> CameraModelPrincipalPointIdxs(CameraModelId model_id);
-span<const size_t> CameraModelExtraParamsIdxs(CameraModelId model_id);
+std::span<const size_t> CameraModelFocalLengthIdxs(CameraModelId model_id);
+std::span<const size_t> CameraModelPrincipalPointIdxs(CameraModelId model_id);
+std::span<const size_t> CameraModelExtraParamsIdxs(CameraModelId model_id);
 
 // Get the total number of parameters of a camera model.
 size_t CameraModelNumParams(CameraModelId model_id);

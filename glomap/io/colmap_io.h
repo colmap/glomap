@@ -8,22 +8,19 @@
 #include "glomap/scene/camera.h"
 
 
-namespace colmap {
-    struct Reconstruction;
-}
-
 namespace glomap {
+    struct Reconstruction;
 
     void WriteGlomapReconstruction(
         const std::string& reconstruction_path,
-        const std::unordered_map<colmap_migration::camera_t, Camera>& cameras,
-        const std::unordered_map<colmap_migration::image_t, Image>& images,
+        const std::unordered_map<camera_t, Camera>& cameras,
+        const std::unordered_map<image_t, Image>& images,
         const std::unordered_map<glomap::track_t, Track>& tracks,
         const std::string output_format = "bin",
         const std::string image_path = "");
 
     void WriteColmapReconstruction(const std::string& reconstruction_path,
-                                   const colmap::Reconstruction& reconstruction,
+                                   const Reconstruction& reconstruction,
                                    const std::string output_format = "bin");
 
 } // namespace glomap
