@@ -1,25 +1,19 @@
 #include "tree.h"
-
-// BGL includes
-#include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/kruskal_min_spanning_tree.hpp>
+#include <queue>
 
 namespace glomap {
 
-    namespace {
+    struct Edge {
+        int to;
+        double weight;
+        Edge(int t, double w) : to(t), weight(w) {}
+    };
 
-        typedef boost::adjacency_list<boost::vecS,
-                                      boost::vecS,
-                                      boost::undirectedS,
-                                      boost::no_property,
-                                      boost::property<boost::edge_weight_t, double>>
-            weighted_graph;
-        typedef boost::property_map<weighted_graph, boost::edge_weight_t>::type
-            weight_map;
-        typedef boost::graph_traits<weighted_graph>::edge_descriptor edge_desc;
-        typedef boost::graph_traits<weighted_graph>::vertex_descriptor vertex_desc;
-
-    } // namespace
+    struct CompareEdge {
+        bool operator()(const Edge& e1, const Edge& e2) {
+            return e1.weight < e2.weight;  // For maximum spanning tree, use < instead of >
+        }
+    };
 
     // Function to perform breadth-first search (BFS) on a graph represented by an
     // adjacency list
@@ -82,83 +76,104 @@ namespace glomap {
                                 const std::unordered_map<image_t, Image>& images,
                                 std::unordered_map<image_t, image_t>& parents,
                                 WeightType type) {
+        // Create mapping between image IDs and indices
         std::unordered_map<image_t, int> image_id_to_idx;
-        image_id_to_idx.reserve(images.size());
         std::unordered_map<int, image_t> idx_to_image_id;
-        idx_to_image_id.reserve(images.size());
-        for (auto& [image_id, image] : images)
-        {
-            if (image.is_registered == false)
-                continue;
+        for (const auto& [image_id, image] : images) {
+            if (!image.is_registered) continue;
             idx_to_image_id[image_id_to_idx.size()] = image_id;
             image_id_to_idx[image_id] = image_id_to_idx.size();
         }
 
+        const int num_vertices = image_id_to_idx.size();
+        if (num_vertices == 0) return 0;
+
+        // Find maximum weight for weight normalization
         double max_weight = 0;
-        for (const auto& [pair_id, image_pair] : view_graph.image_pairs)
-        {
-            if (image_pair.is_valid == false)
-                continue;
-            if (type == INLIER_RATIO)
-                max_weight = std::max(max_weight, image_pair.weight);
-            else
-                max_weight =
-                    std::max(max_weight, static_cast<double>(image_pair.inliers.size()));
+        for (const auto& [pair_id, image_pair] : view_graph.image_pairs) {
+            if (!image_pair.is_valid) continue;
+            max_weight = std::max(max_weight,
+                                  type == INLIER_RATIO ? image_pair.weight :
+                                                       static_cast<double>(image_pair.inliers.size()));
         }
 
-        // establish graph
-        weighted_graph G(image_id_to_idx.size());
-        weight_map weights_boost = boost::get(boost::edge_weight, G);
-
-        edge_desc e;
-        for (auto& [pair_id, image_pair] : view_graph.image_pairs)
-        {
-            if (image_pair.is_valid == false)
-                continue;
+        // Create adjacency list representation
+        std::vector<std::vector<Edge>> adj_list(num_vertices);
+        for (const auto& [pair_id, image_pair] : view_graph.image_pairs) {
+            if (!image_pair.is_valid) continue;
 
             const Image& image1 = images.at(image_pair.image_id1);
             const Image& image2 = images.at(image_pair.image_id2);
 
-            if (image1.is_registered == false || image2.is_registered == false)
-            {
-                continue;
-            }
+            if (!image1.is_registered || !image2.is_registered) continue;
 
             int idx1 = image_id_to_idx[image_pair.image_id1];
             int idx2 = image_id_to_idx[image_pair.image_id2];
 
-            // Set the weight to be negative, then the result would be a maximum
-            // spanning tree
-            e = boost::add_edge(idx1, idx2, G).first;
-            if (type == INLIER_NUM)
-                weights_boost[e] = max_weight - image_pair.inliers.size();
-            else if (type == INLIER_RATIO)
-                weights_boost[e] = max_weight - image_pair.weight;
-            else
-                weights_boost[e] = max_weight - image_pair.inliers.size();
+            double weight = type == INLIER_RATIO ?
+                                                 image_pair.weight :
+                                                 static_cast<double>(image_pair.inliers.size());
+
+            // Add edges in both directions
+            adj_list[idx1].emplace_back(idx2, weight);
+            adj_list[idx2].emplace_back(idx1, weight);
         }
 
-        std::vector<edge_desc>
-            mst; // vector to store MST edges (not a property map!)
-        boost::kruskal_minimum_spanning_tree(G, std::back_inserter(mst));
+        // Prim's algorithm for maximum spanning tree
+        std::vector<bool> visited(num_vertices, false);
+        std::vector<int> parent_idx(num_vertices, -1);
+        std::priority_queue<Edge, std::vector<Edge>, CompareEdge> pq;
 
-        std::vector<std::vector<int>> edges_list(image_id_to_idx.size());
-        for (const auto& edge : mst)
-        {
-            auto source = boost::source(edge, G);
-            auto target = boost::target(edge, G);
-            edges_list[source].push_back(target);
-            edges_list[target].push_back(source);
+        // Start from vertex 0
+        visited[0] = true;
+        for (const Edge& edge : adj_list[0]) {
+            pq.push(edge);
         }
 
-        std::vector<int> parents_idx;
-        BFS(edges_list, 0, parents_idx);
+        // Build maximum spanning tree
+        std::vector<std::vector<int>> tree_edges(num_vertices);
+        while (!pq.empty()) {
+            Edge current = pq.top();
+            pq.pop();
 
-        // change the index back to image id
+            if (visited[current.to]) continue;
+
+            visited[current.to] = true;
+
+            // Add edges to tree representation
+            int from = -1;
+            for (int i = 0; i < num_vertices; ++i) {
+                if (visited[i]) {
+                    for (const Edge& edge : adj_list[i]) {
+                        if (edge.to == current.to && edge.weight == current.weight) {
+                            from = i;
+                            break;
+                        }
+                    }
+                    if (from != -1) break;
+                }
+            }
+
+            tree_edges[from].push_back(current.to);
+            tree_edges[current.to].push_back(from);
+            parent_idx[current.to] = from;
+
+            // Add edges from newly visited vertex
+            for (const Edge& edge : adj_list[current.to]) {
+                if (!visited[edge.to]) {
+                    pq.push(edge);
+                }
+            }
+        }
+
+        // Convert indices back to image IDs
         parents.clear();
-        for (int i = 0; i < parents_idx.size(); i++)
-        {
-            parents[idx_to_image_id[i]] = idx_to_image_id[parents_idx[i]];
+        for (int i = 0; i < num_vertices; ++i) {
+            if (parent_idx[i] != -1) {
+                parents[idx_to_image_id[i]] = idx_to_image_id[parent_idx[i]];
+            } else {
+                parents[idx_to_image_id[i]] = idx_to_image_id[i];  // Root points to itself
+            }
         }
 
         return idx_to_image_id[0];

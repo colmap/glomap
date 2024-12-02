@@ -80,6 +80,7 @@ set(LIBTORCH_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external/libtorch")
 set(CMAKE_PREFIX_PATH ${LIBTORCH_DIR})
 find_package(Torch REQUIRED)
 
+target_compile_options(glomap PRIVATE -Wno-restrict)
 target_link_libraries(
     glomap
     PUBLIC

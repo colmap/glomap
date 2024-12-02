@@ -3,7 +3,6 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 find_package(Eigen3 3.4 REQUIRED)
 find_package(SuiteSparse COMPONENTS CHOLMOD REQUIRED)
 find_package(Ceres REQUIRED COMPONENTS SuiteSparse)
-find_package(Boost REQUIRED)
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     find_package(Glog REQUIRED)
