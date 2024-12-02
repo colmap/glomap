@@ -17,6 +17,9 @@ set(SOURCES
     colmap_migration/two_view_geometry.cc
     colmap_migration/feature_types.cc
     colmap_migration/string.cc
+    colmap_migration/pose.cc
+    colmap_migration/triangulation.cc
+    colmap_migration/essential_matrix.cc
     controllers/global_mapper.cc
     controllers/option_manager.cc
     controllers/track_establishment.cc
@@ -67,6 +70,10 @@ set(HEADERS
     colmap_migration/feature_types.h
     colmap_migration/sqlite3_utils.h
     colmap_migration/string.h
+    colmap_migration/pose.h
+    colmap_migration/triangulation.h
+    colmap_migration/essential_matrix.h
+    colmap_migration/matrix.h
     controllers/global_mapper.h
     controllers/option_manager.h
     controllers/track_establishment.h
