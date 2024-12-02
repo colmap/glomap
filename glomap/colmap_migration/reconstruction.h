@@ -29,15 +29,15 @@
 
 #pragma once
 
-#include "colmap/geometry/sim3.h"
-#include "colmap/scene/camera.h"
+#include "glomap/colmap_migration/sim3.h"
+#include "glomap/colmap_migration/camera.h"
 #include "colmap/scene/database.h"
-#include "colmap/scene/image.h"
-#include "colmap/scene/point2d.h"
-#include "colmap/scene/point3d.h"
-#include "colmap/scene/track.h"
-#include "colmap/util/eigen_alignment.h"
-#include "colmap/util/types.h"
+#include "glomap/colmap_migration/image.h"
+#include "glomap/colmap_migration/point2d.h"
+#include "glomap/colmap_migration/point3d.h"
+#include "glomap/colmap_migration/track.h"
+#include "glomap/colmap_migration/eigen_alignment.h"
+#include "glomap/colmap_migration/types.h"
 
 #include "glomap/colmap_migration/types.h"
 #include "glomap/colmap_migration/camera.h"
@@ -77,7 +77,7 @@ class Reconstruction {
   inline size_t NumPoints3D() const;
 
   // Get const objects.
-  inline const struct Camera& Camera(colmap_migration::camera_t camera_id) const;
+  inline const struct Camera& Camera(camera_t camera_id) const;
   inline const class Image& Image(image_t image_id) const;
   inline const struct Point3D& Point3D(point3D_t point3D_id) const;
 

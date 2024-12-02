@@ -6,6 +6,15 @@ set(SOURCES
     colmap_migration/reconstruction.cc
     colmap_migration/track.cc
     colmap_migration/misc.cc
+    colmap_migration/sim3.cc
+    colmap_migration/point2d.cc
+    colmap_migration/point3d.cc
+    colmap_migration/image.cc
+    colmap_migration/rigid3.cc
+    colmap_migration/gps.cc
+    colmap_migration/database.cc
+    colmap_migration/visibility_pyramid.cc
+    colmap_migration/two_view_geometry.cc
     controllers/global_mapper.cc
     controllers/option_manager.cc
     controllers/track_establishment.cc
@@ -44,6 +53,15 @@ set(HEADERS
     colmap_migration/track.h
     colmap_migration/enum_to_string.h
     colmap_migration/misc.h
+    colmap_migration/sim3.h
+    colmap_migration/point2d.h
+    colmap_migration/point3d.h
+    colmap_migration/image.h
+    colmap_migration/rigid3.h
+    colmap_migration/gps.h
+    colmap_migration/database.h
+    colmap_migration/visibility_pyramid.h
+    colmap_migration/two_view_geometry.h
     controllers/global_mapper.h
     controllers/option_manager.h
     controllers/track_establishment.h
