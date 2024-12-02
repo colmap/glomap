@@ -1,6 +1,5 @@
 #pragma once
 
-#include <colmap/util/logging.h>
 #include <Eigen/Core>
 #include <limits>
 

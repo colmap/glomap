@@ -2,7 +2,7 @@
 
 #include "glomap/types.h"
 #include <colmap/scene/camera.h>
-#include <colmap/sensor/models.h>
+#include <glomap/colmap_migration/models.h>
 #include <PoseLib/misc/colmap_models.h>
 
 namespace glomap {

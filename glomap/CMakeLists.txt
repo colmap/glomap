@@ -1,4 +1,11 @@
 set(SOURCES
+    colmap_migration/camera.cc
+    colmap_migration/math.cc
+    colmap_migration/models.cc
+    colmap_migration/logging.cc
+    colmap_migration/reconstruction.cc
+    colmap_migration/track.cc
+    colmap_migration/misc.cc
     controllers/global_mapper.cc
     controllers/option_manager.cc
     controllers/track_establishment.cc
@@ -27,6 +34,16 @@ set(SOURCES
 )
 
 set(HEADERS
+    colmap_migration/eigen_alignment.h
+    colmap_migration/types.h
+    colmap_migration/camera.h
+    colmap_migration/logging.h
+    colmap_migration/math.h
+    colmap_migration/models.h
+    colmap_migration/reconstruction.h
+    colmap_migration/track.h
+    colmap_migration/enum_to_string.h
+    colmap_migration/misc.h
     controllers/global_mapper.h
     controllers/option_manager.h
     controllers/track_establishment.h

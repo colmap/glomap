@@ -1,5 +1,8 @@
 #include "glomap/io/colmap_io.h"
 
+#include "glomap/io/colmap_converter.h"
+#include "glomap/scene/types_sfm.h"
+
 #include <colmap/util/file.h>
 #include <colmap/util/misc.h>
 
@@ -7,9 +10,9 @@ namespace glomap {
 
     void WriteGlomapReconstruction(
         const std::string& reconstruction_path,
-        const std::unordered_map<camera_t, Camera>& cameras,
-        const std::unordered_map<image_t, Image>& images,
-        const std::unordered_map<track_t, Track>& tracks,
+        const std::unordered_map<colmap_migration::camera_t, Camera>& cameras,
+        const std::unordered_map<colmap_migration::image_t, Image>& images,
+        const std::unordered_map<glomap::track_t, glomap::Track>& tracks,
         const std::string output_format,
         const std::string image_path) {
         // Check whether reconstruction pruning is applied.
