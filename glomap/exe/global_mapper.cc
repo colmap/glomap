@@ -2,8 +2,9 @@
 
 #include "glomap/controllers/option_manager.h"
 #include "glomap/io/colmap_io.h"
-#include <colmap/util/file.h>
-#include <colmap/util/timer.h>
+#include <glomap/colmap_migration/file.h>
+#include <glomap/colmap_migration/timer.h>
+#include <glomap/colmap_migration/reconstruction.h>
 
 namespace glomap {
     // -------------------------------------
@@ -47,7 +48,7 @@ namespace glomap {
         options.Parse({argv, static_cast<size_t>(argc)});
 
         // Validate inputs
-        if (!colmap::ExistsFile(database_path))
+        if (!ExistsFile(database_path))
         {
             LOG(ERROR) << "`database_path` is not a file";
             return EXIT_FAILURE;
@@ -85,7 +86,7 @@ namespace glomap {
         std::unordered_map<image_t, Image> images;
         std::unordered_map<track_t, Track> tracks;
 
-        const colmap::Database database(database_path);
+        const Database database(database_path);
         ConvertDatabaseToGlomap(database, view_graph, cameras, images);
 
         if (view_graph.image_pairs.empty())
@@ -98,7 +99,7 @@ namespace glomap {
         GlobalMapper global_mapper(*options.mapper);
 
         LOG(INFO) << "Loaded database";
-        colmap::Timer run_timer;
+        Timer run_timer;
         run_timer.Start();
         global_mapper.Solve(database, view_graph, cameras, images, tracks);
         run_timer.Pause();
@@ -142,7 +143,7 @@ namespace glomap {
         options.Parse({argv, static_cast<size_t>(argc)});
 
         // Validate inputs
-        if (!colmap::ExistsDir(input_path))
+        if (!ExistsDir(input_path))
         {
             LOG(ERROR) << "`input_path` is not a directory";
             return EXIT_FAILURE;
@@ -157,20 +158,20 @@ namespace glomap {
 
         // Load the reconstruction
         ViewGraph view_graph;      // dummy variable
-        colmap::Database database; // dummy variable
+        Database database; // dummy variable
 
         std::unordered_map<camera_t, Camera> cameras;
         std::unordered_map<image_t, Image> images;
         std::unordered_map<track_t, Track> tracks;
 
-        colmap::Reconstruction reconstruction;
+        Reconstruction reconstruction;
         reconstruction.Read(input_path);
         ConvertColmapToGlomap(reconstruction, cameras, images, tracks);
 
         // Run mapper
         GlobalMapper global_mapper(*options.mapper);
 
-        colmap::Timer run_timer;
+        Timer run_timer;
         run_timer.Start();
         global_mapper.Solve(database, view_graph, cameras, images, tracks);
         run_timer.Pause();

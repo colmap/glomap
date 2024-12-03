@@ -3,15 +3,15 @@
 #include "glomap/io/colmap_converter.h"
 #include "glomap/scene/types_sfm.h"
 
-#include <colmap/util/file.h>
+#include <glomap/colmap_migration/file.h>
 #include <glomap/colmap_migration/misc.h>
 
 namespace glomap {
 
     void WriteGlomapReconstruction(
         const std::string& reconstruction_path,
-        const std::unordered_map<colmap_migration::camera_t, Camera>& cameras,
-        const std::unordered_map<colmap_migration::image_t, Image>& images,
+        const std::unordered_map<camera_t, Camera>& cameras,
+        const std::unordered_map<image_t, Image>& images,
         const std::unordered_map<glomap::track_t, glomap::Track>& tracks,
         const std::string output_format,
         const std::string image_path) {
@@ -26,7 +26,7 @@ namespace glomap {
         // If it is not seperated into several clusters, then output them as whole
         if (largest_component_num == -1)
         {
-            colmap::Reconstruction reconstruction;
+            Reconstruction reconstruction;
             ConvertGlomapToColmap(cameras, images, tracks, reconstruction);
             // Read in colors
             if (image_path != "")
@@ -34,7 +34,7 @@ namespace glomap {
                 LOG(INFO) << "Extracting colors ...";
                 reconstruction.ExtractColorsForAllImages(image_path);
             }
-            colmap::CreateDirIfNotExists(reconstruction_path + "/0", true);
+            CreateDirIfNotExists(reconstruction_path + "/0", true);
             if (output_format == "txt")
             {
                 reconstruction.WriteText(reconstruction_path + "/0");
@@ -51,14 +51,14 @@ namespace glomap {
             {
                 std::cout << "\r Exporting reconstruction " << comp + 1 << " / "
                           << largest_component_num + 1 << std::flush;
-                colmap::Reconstruction reconstruction;
+                Reconstruction reconstruction;
                 ConvertGlomapToColmap(cameras, images, tracks, reconstruction, comp);
                 // Read in colors
                 if (image_path != "")
                 {
                     reconstruction.ExtractColorsForAllImages(image_path);
                 }
-                colmap::CreateDirIfNotExists(
+                CreateDirIfNotExists(
                     reconstruction_path + "/" + std::to_string(comp), true);
                 if (output_format == "txt")
                 {
@@ -78,9 +78,9 @@ namespace glomap {
     }
 
     void WriteColmapReconstruction(const std::string& reconstruction_path,
-                                   const colmap::Reconstruction& reconstruction,
+                                   const Reconstruction& reconstruction,
                                    const std::string output_format) {
-        colmap::CreateDirIfNotExists(reconstruction_path, true);
+        CreateDirIfNotExists(reconstruction_path, true);
         if (output_format == "txt")
         {
             reconstruction.WriteText(reconstruction_path);

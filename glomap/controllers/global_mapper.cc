@@ -8,12 +8,12 @@
 #include "glomap/processors/relpose_filter.h"
 #include "glomap/processors/track_filter.h"
 #include "glomap/processors/view_graph_manipulation.h"
-#include <colmap/util/file.h>
-#include <colmap/util/timer.h>
+#include <glomap/colmap_migration/file.h>
+#include <glomap/colmap_migration/timer.h>
 
 namespace glomap {
 
-    bool GlobalMapper::Solve(const colmap::Database& database,
+    bool GlobalMapper::Solve(const Database& database,
                              ViewGraph& view_graph,
                              std::unordered_map<camera_t, Camera>& cameras,
                              std::unordered_map<image_t, Image>& images,
@@ -25,7 +25,7 @@ namespace glomap {
             std::cout << "Running preprocessing ..." << std::endl;
             std::cout << "-------------------------------------" << std::endl;
 
-            colmap::Timer run_timer;
+            Timer run_timer;
             run_timer.Start();
             // If camera intrinsics seem to be good, force the pair to use essential
             // matrix
@@ -54,7 +54,7 @@ namespace glomap {
             std::cout << "Running relative pose estimation ..." << std::endl;
             std::cout << "-------------------------------------" << std::endl;
 
-            colmap::Timer run_timer;
+            Timer run_timer;
             run_timer.Start();
             // Relative pose relies on the undistorted images
             UndistortImages(cameras, images, true);
@@ -85,7 +85,7 @@ namespace glomap {
             std::cout << "Running rotation averaging ..." << std::endl;
             std::cout << "-------------------------------------" << std::endl;
 
-            colmap::Timer run_timer;
+            Timer run_timer;
             run_timer.Start();
 
             RotationEstimator ra_engine(options_.opt_ra);
@@ -122,7 +122,7 @@ namespace glomap {
         // 4. Track establishment and selection
         if (!options_.skip_track_establishment)
         {
-            colmap::Timer run_timer;
+            Timer run_timer;
             run_timer.Start();
 
             std::cout << "-------------------------------------" << std::endl;
@@ -147,7 +147,7 @@ namespace glomap {
             std::cout << "Running global positioning ..." << std::endl;
             std::cout << "-------------------------------------" << std::endl;
 
-            colmap::Timer run_timer;
+            Timer run_timer;
             run_timer.Start();
             // Undistort images in case all previous steps are skipped
             // Skip images where an undistortion already been done
@@ -197,7 +197,7 @@ namespace glomap {
             std::cout << "-------------------------------------" << std::endl;
             LOG(INFO) << "Bundle adjustment start" << std::endl;
 
-            colmap::Timer run_timer;
+            Timer run_timer;
             run_timer.Start();
 
             for (int ite = 0; ite < options_.num_iteration_bundle_adjustment; ite++)
@@ -293,7 +293,7 @@ namespace glomap {
             std::cout << "-------------------------------------" << std::endl;
             for (int ite = 0; ite < options_.num_iteration_retriangulation; ite++)
             {
-                colmap::Timer run_timer;
+                Timer run_timer;
                 run_timer.Start();
                 RetriangulateTracks(
                     options_.opt_triangulator, database, cameras, images, tracks);
@@ -351,7 +351,7 @@ namespace glomap {
             std::cout << "Running postprocessing ..." << std::endl;
             std::cout << "-------------------------------------" << std::endl;
 
-            colmap::Timer run_timer;
+            Timer run_timer;
             run_timer.Start();
 
             // Prune weakly connected images

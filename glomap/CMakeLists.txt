@@ -41,6 +41,7 @@ set(SOURCES
     colmap_migration/specs.cc
     colmap_migration/database_sensor.cc
     colmap_migration/timer.cc
+    colmap_migration/threading.cc
     controllers/global_mapper.cc
     controllers/option_manager.cc
     controllers/track_establishment.cc
@@ -120,6 +121,7 @@ set(HEADERS
     colmap_migration/specs.h
     colmap_migration/database_sensor.h
     colmap_migration/timer.h
+    colmap_migration/threading.h
     controllers/global_mapper.h
     controllers/option_manager.h
     controllers/track_establishment.h
