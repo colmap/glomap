@@ -1,7 +1,7 @@
 #pragma once
 
 #include "glomap/types.h"
-#include <colmap/scene/camera.h>
+#include <glomap/colmap_migration/camera.h>
 #include <glomap/colmap_migration/models.h>
 #include <PoseLib/misc/colmap_models.h>
 

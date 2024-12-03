@@ -1,7 +1,7 @@
 #pragma once
 
-#include <colmap/geometry/rigid3.h>
-#include <colmap/util/types.h>
+#include <glomap/colmap_migration/rigid3.h>
+#include <glomap/colmap_migration/types.h>
 #include <limits>
 
 #include <cstdint>
@@ -13,13 +13,6 @@ namespace glomap {
     ////////////////////////////////////////////////////////////////////////////////
     // Index types, determines the maximum number of objects.
     ////////////////////////////////////////////////////////////////////////////////
-
-    // Unique identifier for cameras.
-    using colmap::camera_t;
-
-    // Unique identifier for images.
-    using colmap::image_t;
-
     // Each image pair gets a unique ID, see `Database::ImagePairToPairId`.
     typedef uint64_t image_pair_t;
 

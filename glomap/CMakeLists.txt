@@ -20,6 +20,16 @@ set(SOURCES
     colmap_migration/pose.cc
     colmap_migration/triangulation.cc
     colmap_migration/essential_matrix.cc
+    colmap_migration/two_view_geometry_estimator.cc
+    colmap_migration/random_sampler.cc
+    colmap_migration/random.cc
+    colmap_migration/support_measurement.cc
+    colmap_migration/fundamental_matrix.cc
+    colmap_migration/homography_matrix.cc
+    colmap_migration/homography_matrix_estimator.cc
+    colmap_migration/fundamental_matrix_estimator.cc
+    colmap_migration/utils_estimator.cc
+    colmap_migration/polynomial.cc
     controllers/global_mapper.cc
     controllers/option_manager.cc
     controllers/track_establishment.cc
@@ -74,6 +84,20 @@ set(HEADERS
     colmap_migration/triangulation.h
     colmap_migration/essential_matrix.h
     colmap_migration/matrix.h
+    colmap_migration/two_view_geometry_estimator.h
+    colmap_migration/sampler.h
+    colmap_migration/random_sampler.h
+    colmap_migration/random.h
+    colmap_migration/ransac.h
+    colmap_migration/support_measurement.h
+    colmap_migration/fundamental_matrix.h
+    colmap_migration/fundamental_matrix_estimator.h
+    colmap_migration/homography_matrix.h
+    colmap_migration/homography_matrix_estimator.h
+    colmap_migration/translation_transform.h
+    colmap_migration/loransac.h
+    colmap_migration/utils_estimator.h
+    colmap_migration/polynomial.h
     controllers/global_mapper.h
     controllers/option_manager.h
     controllers/track_establishment.h
