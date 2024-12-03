@@ -59,4 +59,4 @@ class Timer {
   std::chrono::high_resolution_clock::time_point pause_time_;
 };
 
-}  // namespace colmap
+}  // namespace glomap

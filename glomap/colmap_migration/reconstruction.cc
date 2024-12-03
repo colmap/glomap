@@ -762,4 +762,4 @@ std::ostream& operator<<(std::ostream& stream,
   return stream;
 }
 
-}  // namespace colmap
+}  // namespace glomap

@@ -35,7 +35,7 @@
 #include <set>
 #include <unordered_set>
 
-namespace colmap {
+namespace glomap {
 namespace {
 
 std::vector<Eigen::Vector2d> FeatureKeypointsToPointsVector(
@@ -286,4 +286,4 @@ bool DatabaseCache::SetupPosePriors() {
   return true;
 }
 
-}  // namespace colmap
+}  // namespace glomap

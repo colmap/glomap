@@ -39,4 +39,4 @@ std::ostream& operator<<(std::ostream& stream, const Point2D& point2D) {
   return stream;
 }
 
-}  // namespace colmap
+}  // namespace glomap

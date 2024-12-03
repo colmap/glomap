@@ -169,4 +169,4 @@ void ExportVRML(const Reconstruction& reconstruction,
                 double image_scale,
                 const Eigen::Vector3d& image_rgb);
 
-}  // namespace colmap
+}  // namespace glomap

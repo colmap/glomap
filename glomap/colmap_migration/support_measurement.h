@@ -104,4 +104,4 @@ struct MEstimatorSupportMeasurer {
   bool IsLeftBetter(const Support& left, const Support& right);
 };
 
-}  // namespace colmap
+}  // namespace glomap

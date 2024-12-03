@@ -102,4 +102,4 @@ std::vector<double> CalculateTriangulationAngles(
     const Eigen::Vector3d& proj_center2,
     const std::vector<Eigen::Vector3d>& points3D);
 
-}  // namespace colmap
+}  // namespace glomap

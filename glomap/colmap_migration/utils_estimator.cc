@@ -108,4 +108,4 @@ void ComputeSquaredReprojectionError(
   }
 }
 
-}  // namespace colmap
+}  // namespace glomap

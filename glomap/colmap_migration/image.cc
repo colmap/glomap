@@ -122,4 +122,4 @@ std::ostream& operator<<(std::ostream& stream, const Image& image) {
   return stream;
 }
 
-}  // namespace colmap
+}  // namespace glomap

@@ -1642,4 +1642,4 @@ DatabaseTransaction::DatabaseTransaction(Database* database)
 
 DatabaseTransaction::~DatabaseTransaction() { database_->EndTransaction(); }
 
-}  // namespace colmap
+}  // namespace glomap

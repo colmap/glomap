@@ -95,4 +95,4 @@ void Timer::PrintHours() const {
   LOG(INFO) << StringPrintf("Elapsed time: %.3f [hours]", ElapsedHours());
 }
 
-}  // namespace colmap
+}  // namespace glomap

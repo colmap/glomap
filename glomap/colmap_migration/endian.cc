@@ -56,4 +56,4 @@ bool IsBigEndian() {
 #endif
 }
 
-}  // namespace colmap
+}  // namespace glomap

@@ -217,4 +217,4 @@ Eigen::Matrix3d HomographyMatrixFromPose(const Eigen::Matrix3d& K1,
   return K2 * (R - t * n.normalized().transpose() / d) * K1.inverse();
 }
 
-}  // namespace colmap
+}  // namespace glomap

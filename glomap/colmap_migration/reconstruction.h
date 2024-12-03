@@ -366,4 +366,4 @@ bool Reconstruction::IsImageRegistered(const image_t image_id) const {
   return reg_image_ids_.find(image_id) != reg_image_ids_.end();
 }
 
-}  // namespace colmap
+}  // namespace glomap

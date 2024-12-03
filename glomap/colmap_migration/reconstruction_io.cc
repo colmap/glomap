@@ -1166,4 +1166,4 @@ void ExportVRML(const Reconstruction& reconstruction,
   points3D_file << " ] } } }\n";
 }
 
-}  // namespace colmap
+}  // namespace glomap

@@ -180,4 +180,4 @@ void FundamentalMatrixEightPointEstimator::Residuals(
   ComputeSquaredSampsonError(points1, points2, E, residuals);
 }
 
-}  // namespace colmap
+}  // namespace glomap

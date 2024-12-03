@@ -69,4 +69,4 @@ bool Point2D::operator!=(const Point2D& other) const {
   return !(*this == other);
 }
 
-}  // namespace colmap
+}  // namespace glomap
