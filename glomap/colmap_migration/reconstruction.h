@@ -31,19 +31,19 @@
 
 #include "glomap/colmap_migration/sim3.h"
 #include "glomap/colmap_migration/camera.h"
-#include "colmap/scene/database.h"
+#include "glomap/colmap_migration/database.h"
 #include "glomap/colmap_migration/image.h"
 #include "glomap/colmap_migration/point2d.h"
 #include "glomap/colmap_migration/point3d.h"
 #include "glomap/colmap_migration/track.h"
 #include "glomap/colmap_migration/eigen_alignment.h"
 #include "glomap/colmap_migration/types.h"
+#include "glomap/colmap_migration/string.h"
 
-#include "glomap/colmap_migration/types.h"
 #include "glomap/colmap_migration/camera.h"
-#include "glomap/scene/image.h"
-#include "glomap/scene/camera.h"
-#include "glomap/scene/track.h"
+#include "glomap/colmap_migration/image.h"
+#include "glomap/colmap_migration/camera.h"
+#include "glomap/colmap_migration/track.h"
 
 #include <memory>
 #include <set>

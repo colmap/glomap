@@ -29,15 +29,15 @@
 
 #include "glomap/colmap_migration/reconstruction.h"
 
-#include "colmap/geometry/gps.h"
-#include "colmap/geometry/pose.h"
-#include "colmap/geometry/triangulation.h"
-#include "colmap/scene/database_cache.h"
-#include "colmap/scene/projection.h"
-#include "colmap/scene/reconstruction_io.h"
-#include "colmap/sensor/bitmap.h"
-#include "colmap/util/file.h"
-#include "colmap/util/ply.h"
+#include "glomap/colmap_migration/gps.h"
+#include "glomap/colmap_migration/pose.h"
+#include "glomap/colmap_migration/triangulation.h"
+#include "glomap/colmap_migration/database_cache.h"
+#include "glomap/colmap_migration/projection.h"
+#include "glomap/colmap_migration/reconstruction_io.h"
+#include "glomap/colmap_migration/bitmap.h"
+#include "glomap/colmap_migration/file.h"
+#include "glomap/colmap_migration/ply.h"
 
 namespace glomap {
 

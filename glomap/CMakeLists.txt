@@ -30,6 +30,17 @@ set(SOURCES
     colmap_migration/fundamental_matrix_estimator.cc
     colmap_migration/utils_estimator.cc
     colmap_migration/polynomial.cc
+    colmap_migration/bitmap.cc
+    colmap_migration/correspondence_graph.cc
+    colmap_migration/database_cache.cc
+    colmap_migration/file.cc
+    colmap_migration/ply.cc
+    colmap_migration/projection.cc
+    colmap_migration/reconstruction_io.cc
+    colmap_migration/endian.cc
+    colmap_migration/specs.cc
+    colmap_migration/database_sensor.cc
+    colmap_migration/timer.cc
     controllers/global_mapper.cc
     controllers/option_manager.cc
     controllers/track_establishment.cc
@@ -98,6 +109,17 @@ set(HEADERS
     colmap_migration/loransac.h
     colmap_migration/utils_estimator.h
     colmap_migration/polynomial.h
+    colmap_migration/bitmap.h
+    colmap_migration/correspondence_graph.h
+    colmap_migration/database_cache.h
+    colmap_migration/file.h
+    colmap_migration/ply.h
+    colmap_migration/projection.h
+    colmap_migration/reconstruction_io.h
+    colmap_migration/endian.h
+    colmap_migration/specs.h
+    colmap_migration/database_sensor.h
+    colmap_migration/timer.h
     controllers/global_mapper.h
     controllers/option_manager.h
     controllers/track_establishment.h
