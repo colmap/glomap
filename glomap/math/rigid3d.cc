@@ -1,7 +1,5 @@
 #include "glomap/math/rigid3d.h"
 
-#include "glomap/scene/camera.h"
-
 namespace glomap {
 
     double CalcAngle(const Rigid3d& pose1, const Rigid3d& pose2) {
@@ -33,10 +31,6 @@ namespace glomap {
 
         return std::acos(cos_r) * 180 / EIGEN_PI;
     }
-
-    double DegToRad(double degree) { return degree * EIGEN_PI / 180; }
-
-    double RadToDeg(double radian) { return radian * 180 / EIGEN_PI; }
 
     Eigen::Vector3d Rigid3dToAngleAxis(const Rigid3d& pose) {
         Eigen::AngleAxis<double> aa(pose.rotation);

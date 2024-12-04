@@ -1,6 +1,6 @@
 #pragma once
 
-#include "glomap/scene/camera.h"
+#include "glomap/colmap_migration/camera.h"
 #include "glomap/scene/image.h"
 #include "glomap/scene/image_pair.h"
 #include "glomap/scene/types.h"

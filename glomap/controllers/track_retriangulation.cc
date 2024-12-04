@@ -1,21 +1,19 @@
 #include "glomap/controllers/track_retriangulation.h"
 
 #include "glomap/io/colmap_converter.h"
-#include <colmap/controllers/incremental_pipeline.h>
-#include <glomap/colmap_migration/bundle_adjustment.h>
-#include <glomap/colmap_migration/database_cache.h>
+#include <glomap/colmap_migration/incremental_pipeline.h>
 #include <set>
 
 namespace glomap {
 
     bool RetriangulateTracks(const TriangulatorOptions& options,
-                             const colmap::Database& database,
+                             const Database& database,
                              std::unordered_map<camera_t, Camera>& cameras,
                              std::unordered_map<image_t, Image>& images,
                              std::unordered_map<track_t, Track>& tracks) {
         // Following code adapted from COLMAP
         auto database_cache =
-            colmap::DatabaseCache::Create(database,
+            DatabaseCache::Create(database,
                                           options.min_num_matches,
                                           false, // ignore_watermarks
                                           {}     // reconstruct all possible images
@@ -35,14 +33,14 @@ namespace glomap {
         }
 
         // Convert the glomap data structures to colmap data structures
-        std::shared_ptr<colmap::Reconstruction> reconstruction_ptr =
-            std::make_shared<colmap::Reconstruction>();
+        std::shared_ptr<Reconstruction> reconstruction_ptr =
+            std::make_shared<Reconstruction>();
         ConvertGlomapToColmap(cameras,
                               images,
                               std::unordered_map<track_t, Track>(),
                               *reconstruction_ptr);
 
-        colmap::IncrementalPipelineOptions options_colmap;
+        IncrementalPipelineOptions options_colmap;
         options_colmap.triangulation.complete_max_reproj_error =
             options.tri_complete_max_reproj_error;
         options_colmap.triangulation.merge_max_reproj_error =
@@ -52,7 +50,7 @@ namespace glomap {
         reconstruction_ptr->DeleteAllPoints2DAndPoints3D();
         reconstruction_ptr->TranscribeImageIdsToDatabase(database);
 
-        colmap::IncrementalMapper mapper(database_cache);
+        IncrementalMapper mapper(database_cache);
         mapper.BeginReconstruction(reconstruction_ptr);
 
         // Triangulate all images.
@@ -83,13 +81,13 @@ namespace glomap {
         ba_options.refine_extrinsics = false;
 
         // Configure bundle adjustment.
-        colmap::BundleAdjustmentConfig ba_config;
+        BundleAdjustmentConfig ba_config;
         for (const image_t image_id : reg_image_ids)
         {
             ba_config.AddImage(image_id);
         }
 
-        colmap::ObservationManager observation_manager(*reconstruction_ptr);
+        ObservationManager observation_manager(*reconstruction_ptr);
 
         for (int i = 0; i < options_colmap.ba_global_max_refinements; ++i)
         {
@@ -101,7 +99,7 @@ namespace glomap {
             const size_t num_observations =
                 reconstruction_ptr->ComputeNumObservations();
 
-            std::unique_ptr<colmap::BundleAdjuster> bundle_adjuster;
+            std::unique_ptr<BundleAdjuster> bundle_adjuster;
             bundle_adjuster =
                 CreateDefaultBundleAdjuster(ba_options, ba_config, *reconstruction_ptr);
             if (bundle_adjuster->Solve().termination_type == ceres::FAILURE)
@@ -125,7 +123,7 @@ namespace glomap {
         for (const auto& image_id : image_ids_notconnected)
         {
             images[image_id].is_registered = true;
-            colmap::Image image_colmap;
+            Image image_colmap;
             ConvertGlomapToColmapImage(images[image_id], image_colmap, true);
             reconstruction_ptr->AddImage(std::move(image_colmap));
         }

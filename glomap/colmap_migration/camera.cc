@@ -28,11 +28,8 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 #include "glomap/colmap_migration/camera.h"
-#include "glomap/colmap_migration/models.h"
-#include "glomap/colmap_migration/logging.h"
 #include "glomap/colmap_migration/misc.h"
 
-#include "glomap/colmap_migration/types.h"
 #include <iomanip>
 #include <span>
 

@@ -1,6 +1,7 @@
 #include "global_mapper.h"
 
 #include "glomap/io/colmap_converter.h"
+#include "glomap/controllers/track_retriangulation.h"
 #include "glomap/processors/image_pair_inliers.h"
 #include "glomap/processors/image_undistorter.h"
 #include "glomap/processors/reconstruction_normalizer.h"

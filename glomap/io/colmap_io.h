@@ -5,7 +5,7 @@
 #include "glomap/scene/types.h"
 #include "glomap/scene/track.h"
 #include "glomap/scene/image.h"
-#include "glomap/scene/camera.h"
+#include "glomap/colmap_migration/camera.h"
 
 
 namespace glomap {

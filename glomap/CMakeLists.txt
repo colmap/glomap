@@ -53,6 +53,8 @@ set(SOURCES
     colmap_migration/incremental_pipeline.cc
     colmap_migration/base_controller.cc
     colmap_migration/reconstruction_manager.cc
+    colmap_migration/testing.cc
+    colmap_migration/synthetic.cc
     controllers/global_mapper.cc
     controllers/option_manager.cc
     controllers/track_establishment.cc
@@ -147,6 +149,8 @@ set(HEADERS
     colmap_migration/incremental_pipeline.h
     colmap_migration/base_controller.h
     colmap_migration/reconstruction_manager.h
+    colmap_migration/testing.h
+    colmap_migration/synthetic.h
     controllers/global_mapper.h
     controllers/option_manager.h
     controllers/track_establishment.h
@@ -175,7 +179,6 @@ set(HEADERS
     processors/relpose_filter.h
     processors/track_filter.h
     processors/view_graph_manipulation.h
-    scene/camera.h
     scene/image_pair.h
     scene/image.h
     scene/track.h

@@ -1,16 +1,15 @@
 #include "glomap/controllers/global_mapper.h"
-#include "glomap/io/colmap_io.h"
-#include "glomap/types.h"
-#include <colmap/estimators/alignment.h>
-#include <colmap/scene/synthetic.h>
-#include <colmap/util/testing.h>
+#include <glomap/colmap_migration/alignment.h>
+#include <glomap/colmap_migration/synthetic.h>
+#include <glomap/colmap_migration/testing.h>
+#include <glomap/io/colmap_converter.h>
 #include <gtest/gtest.h>
 
 namespace glomap {
     namespace {
 
-        void ExpectEqualReconstructions(const colmap::Reconstruction& gt,
-                                        const colmap::Reconstruction& computed,
+        void ExpectEqualReconstructions(const Reconstruction& gt,
+                                        const Reconstruction& computed,
                                         const double max_rotation_error_deg,
                                         const double max_proj_center_error,
                                         const double num_obs_tolerance) {
@@ -20,14 +19,14 @@ namespace glomap {
             EXPECT_GE(computed.ComputeNumObservations(),
                       (1 - num_obs_tolerance) * gt.ComputeNumObservations());
 
-            colmap::Sim3d gtFromComputed;
-            colmap::AlignReconstructionsViaProjCenters(computed,
+            Sim3d gtFromComputed;
+            AlignReconstructionsViaProjCenters(computed,
                                                        gt,
                                                        /*max_proj_center_error=*/0.1,
                                                        &gtFromComputed);
 
-            const std::vector<colmap::ImageAlignmentError> errors =
-                colmap::ComputeImageAlignmentError(computed, gt, gtFromComputed);
+            const std::vector<ImageAlignmentError> errors =
+                ComputeImageAlignmentError(computed, gt, gtFromComputed);
             EXPECT_EQ(errors.size(), gt.NumImages());
             for (const auto& error : errors)
             {
@@ -49,16 +48,16 @@ namespace glomap {
         }
 
         TEST(GlobalMapper, WithoutNoise) {
-            const std::string database_path = colmap::CreateTestDir() + "/database.db";
+            const std::string database_path = CreateTestDir() + "/database.db";
 
-            colmap::Database database(database_path);
-            colmap::Reconstruction gt_reconstruction;
-            colmap::SyntheticDatasetOptions synthetic_dataset_options;
+            Database database(database_path);
+            Reconstruction gt_reconstruction;
+            SyntheticDatasetOptions synthetic_dataset_options;
             synthetic_dataset_options.num_cameras = 2;
             synthetic_dataset_options.num_images = 7;
             synthetic_dataset_options.num_points3D = 50;
             synthetic_dataset_options.point2D_stddev = 0;
-            colmap::SynthesizeDataset(
+            SynthesizeDataset(
                 synthetic_dataset_options, &gt_reconstruction, &database);
 
             ViewGraph view_graph;
@@ -71,7 +70,7 @@ namespace glomap {
             GlobalMapper global_mapper(CreateTestOptions());
             global_mapper.Solve(database, view_graph, cameras, images, tracks);
 
-            colmap::Reconstruction reconstruction;
+            Reconstruction reconstruction;
             ConvertGlomapToColmap(cameras, images, tracks, reconstruction);
 
             ExpectEqualReconstructions(gt_reconstruction,
@@ -82,17 +81,17 @@ namespace glomap {
         }
 
         TEST(GlobalMapper, WithNoiseAndOutliers) {
-            const std::string database_path = colmap::CreateTestDir() + "/database.db";
+            const std::string database_path = CreateTestDir() + "/database.db";
 
-            colmap::Database database(database_path);
-            colmap::Reconstruction gt_reconstruction;
-            colmap::SyntheticDatasetOptions synthetic_dataset_options;
+            Database database(database_path);
+            Reconstruction gt_reconstruction;
+            SyntheticDatasetOptions synthetic_dataset_options;
             synthetic_dataset_options.num_cameras = 2;
             synthetic_dataset_options.num_images = 7;
             synthetic_dataset_options.num_points3D = 100;
             synthetic_dataset_options.point2D_stddev = 0.5;
             synthetic_dataset_options.inlier_match_ratio = 0.6;
-            colmap::SynthesizeDataset(
+            SynthesizeDataset(
                 synthetic_dataset_options, &gt_reconstruction, &database);
 
             ViewGraph view_graph;
@@ -105,7 +104,7 @@ namespace glomap {
             GlobalMapper global_mapper(CreateTestOptions());
             global_mapper.Solve(database, view_graph, cameras, images, tracks);
 
-            colmap::Reconstruction reconstruction;
+            Reconstruction reconstruction;
             ConvertGlomapToColmap(cameras, images, tracks, reconstruction);
 
             ExpectEqualReconstructions(gt_reconstruction,
