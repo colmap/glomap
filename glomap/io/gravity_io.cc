@@ -43,7 +43,7 @@ namespace glomap {
                     images[ite->second].gravity_info.GetRAlign().transpose();
             }
         }
-       // LOG(INFO) << counter << " images are loaded with gravity" << std::endl;
+        // LOG(INFO) << counter << " images are loaded with gravity" << std::endl;
     }
 
 } // namespace glomap

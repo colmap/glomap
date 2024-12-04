@@ -35,10 +35,10 @@
 
 namespace glomap {
 
-// { make1 : ({ model1 : sensor-width in mm }, ...), ... }
-typedef std::vector<std::pair<std::string, float>> camera_make_specs_t;
-typedef std::unordered_map<std::string, camera_make_specs_t> camera_specs_t;
+    // { make1 : ({ model1 : sensor-width in mm }, ...), ... }
+    typedef std::vector<std::pair<std::string, float>> camera_make_specs_t;
+    typedef std::unordered_map<std::string, camera_make_specs_t> camera_specs_t;
 
-camera_specs_t InitializeCameraSpecs();
+    camera_specs_t InitializeCameraSpecs();
 
-}  // namespace glomap
+} // namespace glomap

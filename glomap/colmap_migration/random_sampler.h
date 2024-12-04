@@ -33,22 +33,22 @@
 
 namespace glomap {
 
-// Random sampler for RANSAC-based methods.
-//
-// Note that a separate sampler should be instantiated per thread.
-class RandomSampler : public Sampler {
- public:
-  explicit RandomSampler(size_t num_samples);
+    // Random sampler for RANSAC-based methods.
+    //
+    // Note that a separate sampler should be instantiated per thread.
+    class RandomSampler : public Sampler {
+    public:
+        explicit RandomSampler(size_t num_samples);
 
-  void Initialize(size_t total_num_samples) override;
+        void Initialize(size_t total_num_samples) override;
 
-  size_t MaxNumSamples() override;
+        size_t MaxNumSamples() override;
 
-  void Sample(std::vector<size_t>* sampled_idxs) override;
+        void Sample(std::vector<size_t>* sampled_idxs) override;
 
- private:
-  const size_t num_samples_;
-  std::vector<size_t> sample_idxs_;
-};
+    private:
+        const size_t num_samples_;
+        std::vector<size_t> sample_idxs_;
+    };
 
-}  // namespace glomap
+} // namespace glomap

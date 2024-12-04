@@ -29,14 +29,15 @@
 
 #pragma once
 
-#include "glomap/colmap_migration/gps.h"
 #include "glomap/colmap_migration/camera.h"
 #include "glomap/colmap_migration/correspondence_graph.h"
 #include "glomap/colmap_migration/database.h"
+#include "glomap/colmap_migration/eigen_alignment.h"
+#include "glomap/colmap_migration/gps.h"
 #include "glomap/colmap_migration/image.h"
 #include "glomap/colmap_migration/models.h"
-#include "glomap/colmap_migration/eigen_alignment.h"
 #include "glomap/colmap_migration/types.h"
+#include <Eigen/Core>
 
 #include <memory>
 #include <string>
@@ -44,131 +45,129 @@
 #include <unordered_set>
 #include <vector>
 
-#include <Eigen/Core>
-
 namespace glomap {
 
-// A class that caches the contents of the database in memory, used to quickly
-// create new reconstruction instances when multiple models are reconstructed.
-class DatabaseCache {
- public:
-  // Load cameras, images, features, and matches from database.
-  //
-  // @param database              Source database from which to load data.
-  // @param min_num_matches       Only load image pairs with a minimum number
-  //                              of matches.
-  // @param ignore_watermarks     Whether to ignore watermark image pairs.
-  // @param image_names           Whether to use only load the data for a subset
-  //                              of the images. All images are used if empty.
-  static std::shared_ptr<DatabaseCache> Create(
-      const Database& database,
-      size_t min_num_matches,
-      bool ignore_watermarks,
-      const std::unordered_set<std::string>& image_names);
+    // A class that caches the contents of the database in memory, used to quickly
+    // create new reconstruction instances when multiple models are reconstructed.
+    class DatabaseCache {
+    public:
+        // Load cameras, images, features, and matches from database.
+        //
+        // @param database              Source database from which to load data.
+        // @param min_num_matches       Only load image pairs with a minimum number
+        //                              of matches.
+        // @param ignore_watermarks     Whether to ignore watermark image pairs.
+        // @param image_names           Whether to use only load the data for a subset
+        //                              of the images. All images are used if empty.
+        static std::shared_ptr<DatabaseCache> Create(
+            const Database& database,
+            size_t min_num_matches,
+            bool ignore_watermarks,
+            const std::unordered_set<std::string>& image_names);
 
-  // Get number of objects.
-  inline size_t NumCameras() const;
-  inline size_t NumImages() const;
-  inline size_t NumPosePriors() const;
+        // Get number of objects.
+        inline size_t NumCameras() const;
+        inline size_t NumImages() const;
+        inline size_t NumPosePriors() const;
 
-  // Get specific objects.
-  inline struct Camera& Camera(camera_t camera_id);
-  inline const struct Camera& Camera(camera_t camera_id) const;
-  inline class Image& Image(image_t image_id);
-  inline const class Image& Image(image_t image_id) const;
-  inline struct PosePrior& PosePrior(image_t image_id);
-  inline const struct PosePrior& PosePrior(image_t image_id) const;
+        // Get specific objects.
+        inline struct Camera& Camera(camera_t camera_id);
+        inline const struct Camera& Camera(camera_t camera_id) const;
+        inline class Image& Image(image_t image_id);
+        inline const class Image& Image(image_t image_id) const;
+        inline struct PosePrior& PosePrior(image_t image_id);
+        inline const struct PosePrior& PosePrior(image_t image_id) const;
 
-  // Get all objects.
-  inline const std::unordered_map<camera_t, struct Camera>& Cameras() const;
-  inline const std::unordered_map<image_t, class Image>& Images() const;
-  inline const std::unordered_map<image_t, struct PosePrior>& PosePriors()
-      const;
+        // Get all objects.
+        inline const std::unordered_map<camera_t, struct Camera>& Cameras() const;
+        inline const std::unordered_map<image_t, class Image>& Images() const;
+        inline const std::unordered_map<image_t, struct PosePrior>& PosePriors()
+            const;
 
-  // Check whether specific object exists.
-  inline bool ExistsCamera(camera_t camera_id) const;
-  inline bool ExistsImage(image_t image_id) const;
-  inline bool ExistsPosePrior(image_t image_id) const;
+        // Check whether specific object exists.
+        inline bool ExistsCamera(camera_t camera_id) const;
+        inline bool ExistsImage(image_t image_id) const;
+        inline bool ExistsPosePrior(image_t image_id) const;
 
-  // Get reference to const correspondence graph.
-  inline std::shared_ptr<const class CorrespondenceGraph> CorrespondenceGraph()
-      const;
+        // Get reference to const correspondence graph.
+        inline std::shared_ptr<const class CorrespondenceGraph> CorrespondenceGraph()
+            const;
 
-  // Find specific image by name. Note that this uses linear search.
-  const class Image* FindImageWithName(const std::string& name) const;
+        // Find specific image by name. Note that this uses linear search.
+        const class Image* FindImageWithName(const std::string& name) const;
 
-  // Setup PosePriors for PosePriorBundleAdjustment
-  bool SetupPosePriors();
+        // Setup PosePriors for PosePriorBundleAdjustment
+        bool SetupPosePriors();
 
- private:
-  std::shared_ptr<class CorrespondenceGraph> correspondence_graph_;
+    private:
+        std::shared_ptr<class CorrespondenceGraph> correspondence_graph_;
 
-  std::unordered_map<camera_t, struct Camera> cameras_;
-  std::unordered_map<image_t, class Image> images_;
-  std::unordered_map<image_t, struct PosePrior> pose_priors_;
-};
+        std::unordered_map<camera_t, struct Camera> cameras_;
+        std::unordered_map<image_t, class Image> images_;
+        std::unordered_map<image_t, struct PosePrior> pose_priors_;
+    };
 
-////////////////////////////////////////////////////////////////////////////////
-// Implementation
-////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////
+    // Implementation
+    ////////////////////////////////////////////////////////////////////////////////
 
-size_t DatabaseCache::NumCameras() const { return cameras_.size(); }
-size_t DatabaseCache::NumImages() const { return images_.size(); }
-size_t DatabaseCache::NumPosePriors() const { return pose_priors_.size(); }
+    size_t DatabaseCache::NumCameras() const { return cameras_.size(); }
+    size_t DatabaseCache::NumImages() const { return images_.size(); }
+    size_t DatabaseCache::NumPosePriors() const { return pose_priors_.size(); }
 
-struct Camera& DatabaseCache::Camera(const camera_t camera_id) {
-  return cameras_.at(camera_id);
-}
+    struct Camera& DatabaseCache::Camera(const camera_t camera_id) {
+        return cameras_.at(camera_id);
+    }
 
-const struct Camera& DatabaseCache::Camera(const camera_t camera_id) const {
-  return cameras_.at(camera_id);
-}
+    const struct Camera& DatabaseCache::Camera(const camera_t camera_id) const {
+        return cameras_.at(camera_id);
+    }
 
-class Image& DatabaseCache::Image(const image_t image_id) {
-  return images_.at(image_id);
-}
+    class Image& DatabaseCache::Image(const image_t image_id) {
+        return images_.at(image_id);
+    }
 
-const class Image& DatabaseCache::Image(const image_t image_id) const {
-  return images_.at(image_id);
-}
+    const class Image& DatabaseCache::Image(const image_t image_id) const {
+        return images_.at(image_id);
+    }
 
-struct PosePrior& DatabaseCache::PosePrior(image_t image_id) {
-  return pose_priors_.at(image_id);
-}
+    struct PosePrior& DatabaseCache::PosePrior(image_t image_id) {
+        return pose_priors_.at(image_id);
+    }
 
-const struct PosePrior& DatabaseCache::PosePrior(image_t image_id) const {
-  return pose_priors_.at(image_id);
-}
+    const struct PosePrior& DatabaseCache::PosePrior(image_t image_id) const {
+        return pose_priors_.at(image_id);
+    }
 
-const std::unordered_map<camera_t, struct Camera>& DatabaseCache::Cameras()
-    const {
-  return cameras_;
-}
+    const std::unordered_map<camera_t, struct Camera>& DatabaseCache::Cameras()
+        const {
+        return cameras_;
+    }
 
-const std::unordered_map<image_t, class Image>& DatabaseCache::Images() const {
-  return images_;
-}
+    const std::unordered_map<image_t, class Image>& DatabaseCache::Images() const {
+        return images_;
+    }
 
-const std::unordered_map<image_t, struct PosePrior>& DatabaseCache::PosePriors()
-    const {
-  return pose_priors_;
-}
+    const std::unordered_map<image_t, struct PosePrior>& DatabaseCache::PosePriors()
+        const {
+        return pose_priors_;
+    }
 
-bool DatabaseCache::ExistsCamera(const camera_t camera_id) const {
-  return cameras_.find(camera_id) != cameras_.end();
-}
+    bool DatabaseCache::ExistsCamera(const camera_t camera_id) const {
+        return cameras_.find(camera_id) != cameras_.end();
+    }
 
-bool DatabaseCache::ExistsImage(const image_t image_id) const {
-  return images_.find(image_id) != images_.end();
-}
+    bool DatabaseCache::ExistsImage(const image_t image_id) const {
+        return images_.find(image_id) != images_.end();
+    }
 
-bool DatabaseCache::ExistsPosePrior(const image_t image_id) const {
-  return pose_priors_.find(image_id) != pose_priors_.end();
-}
+    bool DatabaseCache::ExistsPosePrior(const image_t image_id) const {
+        return pose_priors_.find(image_id) != pose_priors_.end();
+    }
 
-std::shared_ptr<const class CorrespondenceGraph>
-DatabaseCache::CorrespondenceGraph() const {
-  return correspondence_graph_;
-}
+    std::shared_ptr<const class CorrespondenceGraph>
+    DatabaseCache::CorrespondenceGraph() const {
+        return correspondence_graph_;
+    }
 
-}  // namespace glomap
+} // namespace glomap

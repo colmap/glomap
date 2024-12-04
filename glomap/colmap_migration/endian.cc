@@ -34,26 +34,26 @@
 
 namespace glomap {
 
-bool IsLittleEndian() {
+    bool IsLittleEndian() {
 #if BOOST_ENDIAN_LITTLE_BYTE
-  return true;
+        return true;
 #elif BOOST_ENDIAN_LITTLE_WORD
-  // We do not support such exotic architectures.
-  LOG(FATAL) << "Unsupported byte ordering";
+        // We do not support such exotic architectures.
+        LOG(FATAL) << "Unsupported byte ordering";
 #else
-  return false;
+        return false;
 #endif
-}
+    }
 
-bool IsBigEndian() {
+    bool IsBigEndian() {
 #if BOOST_ENDIAN_BIG_BYTE
-  return true;
+        return true;
 #elif BOOST_ENDIAN_BIG_WORD
-  // We do not support such exotic architectures.
-  LOG(FATAL) << "Unsupported byte ordering";
+        // We do not support such exotic architectures.
+        LOG(FATAL) << "Unsupported byte ordering";
 #else
-  return false;
+        return false;
 #endif
-}
+    }
 
-}  // namespace glomap
+} // namespace glomap

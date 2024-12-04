@@ -30,38 +30,39 @@
 #include "glomap/colmap_migration/testing.h"
 
 #include "glomap/colmap_migration/logging.h"
+#include <gtest/gtest.h>
+#include <set>
 
 #include <filesystem>
 #include <mutex>
-#include <set>
-
-#include <gtest/gtest.h>
 
 namespace glomap {
 
-std::string CreateTestDir() {
-  const testing::TestInfo* test_info = THROW_CHECK_NOTNULL(
-      testing::UnitTest::GetInstance()->current_test_info());
-  std::ostringstream test_name_stream;
-  test_name_stream << test_info->test_suite_name() << "." << test_info->name();
-  const std::string test_name = test_name_stream.str();
+    std::string CreateTestDir() {
+        const testing::TestInfo* test_info = THROW_CHECK_NOTNULL(
+            testing::UnitTest::GetInstance()->current_test_info());
+        std::ostringstream test_name_stream;
+        test_name_stream << test_info->test_suite_name() << "." << test_info->name();
+        const std::string test_name = test_name_stream.str();
 
-  const std::filesystem::path test_dir =
-      std::filesystem::path("colmap_test_tmp_test_data") / test_name;
+        const std::filesystem::path test_dir =
+            std::filesystem::path("colmap_test_tmp_test_data") / test_name;
 
-  // Create directory once. Cleanup artifacts from previous test runs.
-  static std::mutex mutex;
-  std::lock_guard<std::mutex> lock(mutex);
-  static std::set<std::string> existing_test_names;
-  if (existing_test_names.count(test_name) == 0) {
-    if (std::filesystem::is_directory(test_dir)) {
-      std::filesystem::remove_all(test_dir);
+        // Create directory once. Cleanup artifacts from previous test runs.
+        static std::mutex mutex;
+        std::lock_guard<std::mutex> lock(mutex);
+        static std::set<std::string> existing_test_names;
+        if (existing_test_names.count(test_name) == 0)
+        {
+            if (std::filesystem::is_directory(test_dir))
+            {
+                std::filesystem::remove_all(test_dir);
+            }
+            std::filesystem::create_directories(test_dir);
+        }
+        existing_test_names.insert(test_name);
+
+        return test_dir.string();
     }
-    std::filesystem::create_directories(test_dir);
-  }
-  existing_test_names.insert(test_name);
 
-  return test_dir.string();
-}
-
-}  // namespace glomap
+} // namespace glomap

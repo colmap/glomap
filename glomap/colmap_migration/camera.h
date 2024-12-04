@@ -29,128 +29,125 @@
 
 #pragma once
 
-#include "glomap/colmap_migration/models.h"
-#include "glomap/colmap_migration/eigen_alignment.h"
 #include "glomap/colmap_migration/camera.h"
+#include "glomap/colmap_migration/eigen_alignment.h"
 #include "glomap/colmap_migration/logging.h"
+#include "glomap/colmap_migration/models.h"
 #include "glomap/colmap_migration/types.h"
+#include <Eigen/Geometry>
 #include <PoseLib/misc/colmap_models.h>
 
-
-#include <vector>
 #include <span>
-
-#include <Eigen/Geometry>
+#include <vector>
 
 namespace glomap {
 
-// Camera class that holds the intrinsic parameters. Cameras may be shared
-// between multiple images, e.g., if the same "physical" camera took multiple
-// pictures with the exact same lens and intrinsics (focal length, etc.).
-// This class has a specific distortion model defined by a camera model class.
-struct Camera {
-  // The unique identifier of the camera.
-  camera_t camera_id = kInvalidCameraId;
+    // Camera class that holds the intrinsic parameters. Cameras may be shared
+    // between multiple images, e.g., if the same "physical" camera took multiple
+    // pictures with the exact same lens and intrinsics (focal length, etc.).
+    // This class has a specific distortion model defined by a camera model class.
+    struct Camera {
+        // The unique identifier of the camera.
+        camera_t camera_id = kInvalidCameraId;
 
-  // The identifier of the camera model.
-  CameraModelId model_id = CameraModelId::kInvalid;
+        // The identifier of the camera model.
+        CameraModelId model_id = CameraModelId::kInvalid;
 
-  // The dimensions of the image, 0 if not initialized.
-  size_t width = 0;
-  size_t height = 0;
+        // The dimensions of the image, 0 if not initialized.
+        size_t width = 0;
+        size_t height = 0;
 
-  // The focal length, principal point, and extra parameters. If the camera
-  // model is not specified, this vector is empty.
-  std::vector<double> params;
+        // The focal length, principal point, and extra parameters. If the camera
+        // model is not specified, this vector is empty.
+        std::vector<double> params;
 
-  // Whether there is a safe prior for the focal length,
-  // e.g. manually provided or extracted from EXIF
-  bool has_prior_focal_length = false;
+        // Whether there is a safe prior for the focal length,
+        // e.g. manually provided or extracted from EXIF
+        bool has_prior_focal_length = false;
 
-  // Initialize parameters for given camera model and focal length, and set
-  // the principal point to be the image center.
-  static Camera CreateFromModelId(camera_t camera_id,
-                                  CameraModelId model_id,
-                                  double focal_length,
-                                  size_t width,
-                                  size_t height);
-  static Camera CreateFromModelName(camera_t camera_id,
-                                    const std::string& model_name,
-                                    double focal_length,
-                                    size_t width,
-                                    size_t height);
+        // Initialize parameters for given camera model and focal length, and set
+        // the principal point to be the image center.
+        static Camera CreateFromModelId(camera_t camera_id,
+                                        CameraModelId model_id,
+                                        double focal_length,
+                                        size_t width,
+                                        size_t height);
+        static Camera CreateFromModelName(camera_t camera_id,
+                                          const std::string& model_name,
+                                          double focal_length,
+                                          size_t width,
+                                          size_t height);
 
-  inline const std::string& ModelName() const;
+        inline const std::string& ModelName() const;
 
-  // Access focal length parameters.
-  double MeanFocalLength() const;
-  inline double FocalLength() const;
-  inline double FocalLengthX() const;
-  inline double FocalLengthY() const;
-  inline void SetFocalLength(double f);
-  inline void SetFocalLengthX(double fx);
-  inline void SetFocalLengthY(double fy);
+        // Access focal length parameters.
+        double MeanFocalLength() const;
+        inline double FocalLength() const;
+        inline double FocalLengthX() const;
+        inline double FocalLengthY() const;
+        inline void SetFocalLength(double f);
+        inline void SetFocalLengthX(double fx);
+        inline void SetFocalLengthY(double fy);
 
-  // Access principal point parameters. Only works if there are two
-  // principal point parameters.
-  inline double PrincipalPointX() const;
-  inline double PrincipalPointY() const;
-  inline void SetPrincipalPointX(double cx);
-  inline void SetPrincipalPointY(double cy);
+        // Access principal point parameters. Only works if there are two
+        // principal point parameters.
+        inline double PrincipalPointX() const;
+        inline double PrincipalPointY() const;
+        inline void SetPrincipalPointX(double cx);
+        inline void SetPrincipalPointY(double cy);
 
-  // Get the indices of the parameter groups in the parameter vector.
-  inline std::span<const size_t> FocalLengthIdxs() const;
-  inline std::span<const size_t> PrincipalPointIdxs() const;
-  inline std::span<const size_t> ExtraParamsIdxs() const;
+        // Get the indices of the parameter groups in the parameter vector.
+        inline std::span<const size_t> FocalLengthIdxs() const;
+        inline std::span<const size_t> PrincipalPointIdxs() const;
+        inline std::span<const size_t> ExtraParamsIdxs() const;
 
-  // Get intrinsic calibration matrix composed from focal length and principal
-  // point parameters, excluding distortion parameters.
-  Eigen::Matrix3d CalibrationMatrix() const;
+        // Get intrinsic calibration matrix composed from focal length and principal
+        // point parameters, excluding distortion parameters.
+        Eigen::Matrix3d CalibrationMatrix() const;
 
-  // Get human-readable information about the parameter vector ordering.
-  inline const std::string& ParamsInfo() const;
+        // Get human-readable information about the parameter vector ordering.
+        inline const std::string& ParamsInfo() const;
 
-  // Concatenate parameters as comma-separated list.
-  std::string ParamsToString() const;
+        // Concatenate parameters as comma-separated list.
+        std::string ParamsToString() const;
 
-  // Set camera parameters from comma-separated list.
-  bool SetParamsFromString(const std::string& string);
+        // Set camera parameters from comma-separated list.
+        bool SetParamsFromString(const std::string& string);
 
-  // Check whether parameters are valid, i.e. the parameter vector has
-  // the correct dimensions that match the specified camera model.
-  inline bool VerifyParams() const;
+        // Check whether parameters are valid, i.e. the parameter vector has
+        // the correct dimensions that match the specified camera model.
+        inline bool VerifyParams() const;
 
-  // Check whether camera is already undistorted.
-  bool IsUndistorted() const;
+        // Check whether camera is already undistorted.
+        bool IsUndistorted() const;
 
-  // Check whether camera has bogus parameters.
-  inline bool HasBogusParams(double min_focal_length_ratio,
-                             double max_focal_length_ratio,
-                             double max_extra_param) const;
+        // Check whether camera has bogus parameters.
+        inline bool HasBogusParams(double min_focal_length_ratio,
+                                   double max_focal_length_ratio,
+                                   double max_extra_param) const;
 
-  // Project point in image plane to world / infinity.
-  inline Eigen::Vector2d CamFromImg(const Eigen::Vector2d& image_point) const;
+        // Project point in image plane to world / infinity.
+        inline Eigen::Vector2d CamFromImg(const Eigen::Vector2d& image_point) const;
 
-  // Convert pixel threshold in image plane to camera frame.
-  inline double CamFromImgThreshold(double threshold) const;
+        // Convert pixel threshold in image plane to camera frame.
+        inline double CamFromImgThreshold(double threshold) const;
 
-  // Project point from camera frame to image plane.
-  inline Eigen::Vector2d ImgFromCam(const Eigen::Vector2d& cam_point) const;
+        // Project point from camera frame to image plane.
+        inline Eigen::Vector2d ImgFromCam(const Eigen::Vector2d& cam_point) const;
 
-  // Rescale camera dimensions and accordingly the focal length and
-  // and the principal point.
-  void Rescale(double scale);
-  void Rescale(size_t new_width, size_t new_height);
+        // Rescale camera dimensions and accordingly the focal length and
+        // and the principal point.
+        void Rescale(double scale);
+        void Rescale(size_t new_width, size_t new_height);
 
-  inline bool operator==(const Camera& other) const;
-  inline bool operator!=(const Camera& other) const;
+        inline bool operator==(const Camera& other) const;
+        inline bool operator!=(const Camera& other) const;
 
-
-  // GLOMAP code
-    inline double Focal() const;
-    inline Eigen::Vector2d PrincipalPoint() const;
-    inline Eigen::Matrix3d GetK() const;
-};
+        // GLOMAP code
+        inline double Focal() const;
+        inline Eigen::Vector2d PrincipalPoint() const;
+        inline Eigen::Matrix3d GetK() const;
+    };
 
     double Camera::Focal() const { return (FocalLengthX() + FocalLengthY()) / 2.0; }
 
@@ -170,126 +167,127 @@ struct Camera {
             camera.ModelName(), camera.params, camera.width, camera.height);
         return pose_lib_camera;
     }
-std::ostream& operator<<(std::ostream& stream, const Camera& camera);
+    std::ostream& operator<<(std::ostream& stream, const Camera& camera);
 
-////////////////////////////////////////////////////////////////////////////////
-// Implementation
-////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////
+    // Implementation
+    ////////////////////////////////////////////////////////////////////////////////
 
-const std::string& Camera::ModelName() const {
-  return CameraModelIdToName(model_id);
-}
+    const std::string& Camera::ModelName() const {
+        return CameraModelIdToName(model_id);
+    }
 
-double Camera::FocalLength() const {
-  const std::span<const size_t> idxs = FocalLengthIdxs();
-  DCHECK_EQ(idxs.size(), 1);
-  return params[idxs[0]];
-}
+    double Camera::FocalLength() const {
+        const std::span<const size_t> idxs = FocalLengthIdxs();
+        DCHECK_EQ(idxs.size(), 1);
+        return params[idxs[0]];
+    }
 
-double Camera::FocalLengthX() const {
-  const std::span<const size_t> idxs = FocalLengthIdxs();
-  return params[idxs[0]];
-}
+    double Camera::FocalLengthX() const {
+        const std::span<const size_t> idxs = FocalLengthIdxs();
+        return params[idxs[0]];
+    }
 
-double Camera::FocalLengthY() const {
-  const std::span<const size_t> idxs = FocalLengthIdxs();
-  return params[idxs[(idxs.size() == 1) ? 0 : 1]];
-}
+    double Camera::FocalLengthY() const {
+        const std::span<const size_t> idxs = FocalLengthIdxs();
+        return params[idxs[(idxs.size() == 1) ? 0 : 1]];
+    }
 
-void Camera::SetFocalLength(const double f) {
-  const std::span<const size_t> idxs = FocalLengthIdxs();
-  for (const size_t idx : idxs) {
-    params[idx] = f;
-  }
-}
+    void Camera::SetFocalLength(const double f) {
+        const std::span<const size_t> idxs = FocalLengthIdxs();
+        for (const size_t idx : idxs)
+        {
+            params[idx] = f;
+        }
+    }
 
-void Camera::SetFocalLengthX(const double fx) {
-  const std::span<const size_t> idxs = FocalLengthIdxs();
-  DCHECK_EQ(idxs.size(), 2);
-  params[idxs[0]] = fx;
-}
+    void Camera::SetFocalLengthX(const double fx) {
+        const std::span<const size_t> idxs = FocalLengthIdxs();
+        DCHECK_EQ(idxs.size(), 2);
+        params[idxs[0]] = fx;
+    }
 
-void Camera::SetFocalLengthY(const double fy) {
-  const std::span<const size_t> idxs = FocalLengthIdxs();
-  DCHECK_EQ(idxs.size(), 2);
-  params[idxs[1]] = fy;
-}
+    void Camera::SetFocalLengthY(const double fy) {
+        const std::span<const size_t> idxs = FocalLengthIdxs();
+        DCHECK_EQ(idxs.size(), 2);
+        params[idxs[1]] = fy;
+    }
 
-double Camera::PrincipalPointX() const {
-  const std::span<const size_t> idxs = PrincipalPointIdxs();
-  DCHECK_EQ(idxs.size(), 2);
-  return params[idxs[0]];
-}
+    double Camera::PrincipalPointX() const {
+        const std::span<const size_t> idxs = PrincipalPointIdxs();
+        DCHECK_EQ(idxs.size(), 2);
+        return params[idxs[0]];
+    }
 
-double Camera::PrincipalPointY() const {
-  const std::span<const size_t> idxs = PrincipalPointIdxs();
-  DCHECK_EQ(idxs.size(), 2);
-  return params[idxs[1]];
-}
+    double Camera::PrincipalPointY() const {
+        const std::span<const size_t> idxs = PrincipalPointIdxs();
+        DCHECK_EQ(idxs.size(), 2);
+        return params[idxs[1]];
+    }
 
-void Camera::SetPrincipalPointX(const double cx) {
-  const std::span<const size_t> idxs = PrincipalPointIdxs();
-  DCHECK_EQ(idxs.size(), 2);
-  params[idxs[0]] = cx;
-}
+    void Camera::SetPrincipalPointX(const double cx) {
+        const std::span<const size_t> idxs = PrincipalPointIdxs();
+        DCHECK_EQ(idxs.size(), 2);
+        params[idxs[0]] = cx;
+    }
 
-void Camera::SetPrincipalPointY(const double cy) {
-  const std::span<const size_t> idxs = PrincipalPointIdxs();
-  DCHECK_EQ(idxs.size(), 2);
-  params[idxs[1]] = cy;
-}
+    void Camera::SetPrincipalPointY(const double cy) {
+        const std::span<const size_t> idxs = PrincipalPointIdxs();
+        DCHECK_EQ(idxs.size(), 2);
+        params[idxs[1]] = cy;
+    }
 
-const std::string& Camera::ParamsInfo() const {
-  return CameraModelParamsInfo(model_id);
-}
+    const std::string& Camera::ParamsInfo() const {
+        return CameraModelParamsInfo(model_id);
+    }
 
-std::span<const size_t> Camera::FocalLengthIdxs() const {
-  return CameraModelFocalLengthIdxs(model_id);
-}
+    std::span<const size_t> Camera::FocalLengthIdxs() const {
+        return CameraModelFocalLengthIdxs(model_id);
+    }
 
-std::span<const size_t> Camera::PrincipalPointIdxs() const {
-  return CameraModelPrincipalPointIdxs(model_id);
-}
+    std::span<const size_t> Camera::PrincipalPointIdxs() const {
+        return CameraModelPrincipalPointIdxs(model_id);
+    }
 
-std::span<const size_t> Camera::ExtraParamsIdxs() const {
-  return CameraModelExtraParamsIdxs(model_id);
-}
+    std::span<const size_t> Camera::ExtraParamsIdxs() const {
+        return CameraModelExtraParamsIdxs(model_id);
+    }
 
-bool Camera::VerifyParams() const {
-  return CameraModelVerifyParams(model_id, params);
-}
+    bool Camera::VerifyParams() const {
+        return CameraModelVerifyParams(model_id, params);
+    }
 
-bool Camera::HasBogusParams(const double min_focal_length_ratio,
-                            const double max_focal_length_ratio,
-                            const double max_extra_param) const {
-  return CameraModelHasBogusParams(model_id,
-                                   params,
-                                   width,
-                                   height,
-                                   min_focal_length_ratio,
-                                   max_focal_length_ratio,
-                                   max_extra_param);
-}
+    bool Camera::HasBogusParams(const double min_focal_length_ratio,
+                                const double max_focal_length_ratio,
+                                const double max_extra_param) const {
+        return CameraModelHasBogusParams(model_id,
+                                         params,
+                                         width,
+                                         height,
+                                         min_focal_length_ratio,
+                                         max_focal_length_ratio,
+                                         max_extra_param);
+    }
 
-Eigen::Vector2d Camera::CamFromImg(const Eigen::Vector2d& image_point) const {
-  return CameraModelCamFromImg(model_id, params, image_point).hnormalized();
-}
+    Eigen::Vector2d Camera::CamFromImg(const Eigen::Vector2d& image_point) const {
+        return CameraModelCamFromImg(model_id, params, image_point).hnormalized();
+    }
 
-double Camera::CamFromImgThreshold(const double threshold) const {
-  return CameraModelCamFromImgThreshold(model_id, params, threshold);
-}
+    double Camera::CamFromImgThreshold(const double threshold) const {
+        return CameraModelCamFromImgThreshold(model_id, params, threshold);
+    }
 
-Eigen::Vector2d Camera::ImgFromCam(const Eigen::Vector2d& cam_point) const {
-  return CameraModelImgFromCam(model_id, params, cam_point.homogeneous());
-}
+    Eigen::Vector2d Camera::ImgFromCam(const Eigen::Vector2d& cam_point) const {
+        return CameraModelImgFromCam(model_id, params, cam_point.homogeneous());
+    }
 
-bool Camera::operator==(const Camera& other) const {
-  return camera_id == other.camera_id && model_id == other.model_id &&
-         width == other.width && height == other.height &&
-         params == other.params &&
-         has_prior_focal_length == other.has_prior_focal_length;
-}
+    bool Camera::operator==(const Camera& other) const {
+        return camera_id == other.camera_id && model_id == other.model_id &&
+               width == other.width && height == other.height &&
+               params == other.params &&
+               has_prior_focal_length == other.has_prior_focal_length;
+    }
 
-bool Camera::operator!=(const Camera& other) const { return !(*this == other); }
+    bool Camera::operator!=(const Camera& other) const { return !(*this == other); }
 
-}  // namespace glomap
+} // namespace glomap

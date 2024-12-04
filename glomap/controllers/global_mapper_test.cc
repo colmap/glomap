@@ -21,9 +21,9 @@ namespace glomap {
 
             Sim3d gtFromComputed;
             AlignReconstructionsViaProjCenters(computed,
-                                                       gt,
-                                                       /*max_proj_center_error=*/0.1,
-                                                       &gtFromComputed);
+                                               gt,
+                                               /*max_proj_center_error=*/0.1,
+                                               &gtFromComputed);
 
             const std::vector<ImageAlignmentError> errors =
                 ComputeImageAlignmentError(computed, gt, gtFromComputed);

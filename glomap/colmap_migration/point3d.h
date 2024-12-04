@@ -29,52 +29,51 @@
 
 #pragma once
 
-#include "glomap/colmap_migration/track.h"
 #include "glomap/colmap_migration/eigen_alignment.h"
 #include "glomap/colmap_migration/logging.h"
+#include "glomap/colmap_migration/track.h"
 #include "glomap/colmap_migration/types.h"
+#include <Eigen/Core>
 
 #include <vector>
 
-#include <Eigen/Core>
-
 namespace glomap {
 
-// 3D point class that holds information about triangulated 2D points.
-struct Point3D {
-  // The 3D position of the point.
-  Eigen::Vector3d xyz = Eigen::Vector3d::Zero();
+    // 3D point class that holds information about triangulated 2D points.
+    struct Point3D {
+        // The 3D position of the point.
+        Eigen::Vector3d xyz = Eigen::Vector3d::Zero();
 
-  // The color of the point in the range [0, 255].
-  Eigen::Vector3ub color = Eigen::Vector3ub::Zero();
+        // The color of the point in the range [0, 255].
+        Eigen::Vector3ub color = Eigen::Vector3ub::Zero();
 
-  // The mean reprojection error in pixels.
-  double error = -1.;
+        // The mean reprojection error in pixels.
+        double error = -1.;
 
-  // The track of the point as a list of image observations.
-  Track track;
+        // The track of the point as a list of image observations.
+        Track track;
 
-  inline bool HasError() const;
+        inline bool HasError() const;
 
-  inline bool operator==(const Point3D& other) const;
-  inline bool operator!=(const Point3D& other) const;
-};
+        inline bool operator==(const Point3D& other) const;
+        inline bool operator!=(const Point3D& other) const;
+    };
 
-std::ostream& operator<<(std::ostream& stream, const Point3D& point3D);
+    std::ostream& operator<<(std::ostream& stream, const Point3D& point3D);
 
-////////////////////////////////////////////////////////////////////////////////
-// Implementation
-////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////
+    // Implementation
+    ////////////////////////////////////////////////////////////////////////////////
 
-bool Point3D::HasError() const { return error != -1; }
+    bool Point3D::HasError() const { return error != -1; }
 
-bool Point3D::operator==(const Point3D& other) const {
-  return xyz == other.xyz && color == other.color && error == other.error &&
-         track == other.track;
-}
+    bool Point3D::operator==(const Point3D& other) const {
+        return xyz == other.xyz && color == other.color && error == other.error &&
+               track == other.track;
+    }
 
-bool Point3D::operator!=(const Point3D& other) const {
-  return !(*this == other);
-}
+    bool Point3D::operator!=(const Point3D& other) const {
+        return !(*this == other);
+    }
 
-}  // namespace glomap
+} // namespace glomap

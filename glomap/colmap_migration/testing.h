@@ -33,6 +33,6 @@
 
 namespace glomap {
 
-std::string CreateTestDir();
+    std::string CreateTestDir();
 
-}  // namespace glomap
+} // namespace glomap

@@ -2,8 +2,8 @@
 
 #include "glomap/colmap_migration/two_view_geometry.h"
 #include "glomap/colmap_migration/two_view_geometry_estimator.h"
-#include "glomap/math/union_find.h"
 #include "glomap/math/two_view_geometry.h"
+#include "glomap/math/union_find.h"
 #include <glomap/colmap_migration/threading.h>
 
 namespace glomap {
@@ -307,10 +307,10 @@ namespace glomap {
                 two_view_geometry.config = image_pair.config;
 
                 EstimateTwoViewGeometryPose(cameras[camera_id1],
-                                                    images[image_id1].features,
-                                                    cameras[camera_id2],
-                                                    images[image_id2].features,
-                                                    &two_view_geometry);
+                                            images[image_id1].features,
+                                            cameras[camera_id2],
+                                            images[image_id2].features,
+                                            &two_view_geometry);
 
                 // if it planar, then use the estimated relative pose
                 if (image_pair.config == TwoViewGeometry::PLANAR &&

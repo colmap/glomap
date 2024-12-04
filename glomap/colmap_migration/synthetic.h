@@ -30,42 +30,42 @@
 #pragma once
 
 #include "glomap/colmap_migration/database.h"
-#include "glomap/colmap_migration/reconstruction.h"
 #include "glomap/colmap_migration/models.h"
+#include "glomap/colmap_migration/reconstruction.h"
 #include "glomap/colmap_migration/types.h"
 
 namespace glomap {
 
-struct SyntheticDatasetOptions {
-  int num_cameras = 2;
-  int num_images = 10;
-  int num_points3D = 100;
+    struct SyntheticDatasetOptions {
+        int num_cameras = 2;
+        int num_images = 10;
+        int num_points3D = 100;
 
-  int camera_width = 1024;
-  int camera_height = 768;
-  CameraModelId camera_model_id = SimpleRadialCameraModel::model_id;
-  std::vector<double> camera_params = {1280, 512, 384, 0.05};
+        int camera_width = 1024;
+        int camera_height = 768;
+        CameraModelId camera_model_id = SimpleRadialCameraModel::model_id;
+        std::vector<double> camera_params = {1280, 512, 384, 0.05};
 
-  int num_points2D_without_point3D = 10;
-  double point2D_stddev = 0.0;
+        int num_points2D_without_point3D = 10;
+        double point2D_stddev = 0.0;
 
-  double inlier_match_ratio = 1.0;
+        double inlier_match_ratio = 1.0;
 
-  enum class MatchConfig {
-    // Exhaustive matches between all pairs of observations of a 3D point.
-    EXHAUSTIVE = 1,
-    // Chain of matches with random start/end observations.
-    CHAINED = 2,
-  };
-  MatchConfig match_config = MatchConfig::EXHAUSTIVE;
+        enum class MatchConfig {
+            // Exhaustive matches between all pairs of observations of a 3D point.
+            EXHAUSTIVE = 1,
+            // Chain of matches with random start/end observations.
+            CHAINED = 2,
+        };
+        MatchConfig match_config = MatchConfig::EXHAUSTIVE;
 
-  bool use_prior_position = false;
-  bool use_geographic_coords_prior = false;
-  double prior_position_stddev = 1.5;
-};
+        bool use_prior_position = false;
+        bool use_geographic_coords_prior = false;
+        double prior_position_stddev = 1.5;
+    };
 
-void SynthesizeDataset(const SyntheticDatasetOptions& options,
-                       Reconstruction* reconstruction,
-                       Database* database = nullptr);
+    void SynthesizeDataset(const SyntheticDatasetOptions& options,
+                           Reconstruction* reconstruction,
+                           Database* database = nullptr);
 
-}  // namespace glomap
+} // namespace glomap

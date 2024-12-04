@@ -14,9 +14,9 @@ namespace glomap {
         // Following code adapted from COLMAP
         auto database_cache =
             DatabaseCache::Create(database,
-                                          options.min_num_matches,
-                                          false, // ignore_watermarks
-                                          {}     // reconstruct all possible images
+                                  options.min_num_matches,
+                                  false, // ignore_watermarks
+                                  {}     // reconstruct all possible images
             );
 
         // Check whether the image is in the database cache. If not, set the image

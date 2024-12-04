@@ -1,12 +1,12 @@
 #pragma once
 
-#include <string>
-#include "glomap/colmap_migration/types.h"
-#include "glomap/scene/types.h"
-#include "glomap/scene/track.h"
-#include "glomap/scene/image.h"
 #include "glomap/colmap_migration/camera.h"
+#include "glomap/colmap_migration/types.h"
+#include "glomap/scene/image.h"
+#include "glomap/scene/track.h"
+#include "glomap/scene/types.h"
 
+#include <string>
 
 namespace glomap {
     struct Reconstruction;

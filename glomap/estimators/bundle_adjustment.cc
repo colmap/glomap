@@ -187,9 +187,9 @@ namespace glomap {
                         principal_point_idxs.push_back(idx);
                     }
                     SetSubsetManifold(camera.params.size(),
-                                              principal_point_idxs,
-                                              problem_.get(),
-                                              camera.params.data());
+                                      principal_point_idxs,
+                                      problem_.get(),
+                                      camera.params.data());
                 }
             }
 

@@ -32,106 +32,107 @@
 #include "glomap/colmap_migration/eigen_alignment.h"
 #include "glomap/colmap_migration/enum_to_string.h"
 #include "glomap/colmap_migration/types.h"
-
-#include <ostream>
-#include <vector>
-
 #include <Eigen/Core>
+#include <ostream>
+
+#include <vector>
 
 namespace glomap {
 
-// Transform ellipsoidal GPS coordinates to Cartesian GPS coordinate
-// representation and vice versa.
-class GPSTransform {
- public:
-  MAKE_ENUM_GLOMAP(ELLPSOID, 0, GRS80, WGS84);
+    // Transform ellipsoidal GPS coordinates to Cartesian GPS coordinate
+    // representation and vice versa.
+    class GPSTransform {
+    public:
+        MAKE_ENUM_GLOMAP(ELLPSOID, 0, GRS80, WGS84);
 
-  explicit GPSTransform(int ellipsoid = GRS80);
+        explicit GPSTransform(int ellipsoid = GRS80);
 
-  std::vector<Eigen::Vector3d> EllToXYZ(
-      const std::vector<Eigen::Vector3d>& ell) const;
+        std::vector<Eigen::Vector3d> EllToXYZ(
+            const std::vector<Eigen::Vector3d>& ell) const;
 
-  std::vector<Eigen::Vector3d> XYZToEll(
-      const std::vector<Eigen::Vector3d>& xyz) const;
+        std::vector<Eigen::Vector3d> XYZToEll(
+            const std::vector<Eigen::Vector3d>& xyz) const;
 
-  // Convert GPS (lat / lon / alt) to ENU coords. with lat0 and lon0
-  // defining the origin of the ENU frame
-  std::vector<Eigen::Vector3d> EllToENU(const std::vector<Eigen::Vector3d>& ell,
-                                        double lat0,
-                                        double lon0) const;
+        // Convert GPS (lat / lon / alt) to ENU coords. with lat0 and lon0
+        // defining the origin of the ENU frame
+        std::vector<Eigen::Vector3d> EllToENU(const std::vector<Eigen::Vector3d>& ell,
+                                              double lat0,
+                                              double lon0) const;
 
-  std::vector<Eigen::Vector3d> XYZToENU(const std::vector<Eigen::Vector3d>& xyz,
-                                        double lat0,
-                                        double lon0) const;
+        std::vector<Eigen::Vector3d> XYZToENU(const std::vector<Eigen::Vector3d>& xyz,
+                                              double lat0,
+                                              double lon0) const;
 
-  std::vector<Eigen::Vector3d> ENUToEll(const std::vector<Eigen::Vector3d>& enu,
-                                        double lat0,
-                                        double lon0,
-                                        double alt0) const;
+        std::vector<Eigen::Vector3d> ENUToEll(const std::vector<Eigen::Vector3d>& enu,
+                                              double lat0,
+                                              double lon0,
+                                              double alt0) const;
 
-  std::vector<Eigen::Vector3d> ENUToXYZ(const std::vector<Eigen::Vector3d>& enu,
-                                        double lat0,
-                                        double lon0,
-                                        double alt0) const;
+        std::vector<Eigen::Vector3d> ENUToXYZ(const std::vector<Eigen::Vector3d>& enu,
+                                              double lat0,
+                                              double lon0,
+                                              double alt0) const;
 
- private:
-  // Semimajor axis.
-  double a_;
-  // Semiminor axis.
-  double b_;
-  // Flattening.
-  double f_;
-  // Numerical eccentricity.
-  double e2_;
-};
+    private:
+        // Semimajor axis.
+        double a_;
+        // Semiminor axis.
+        double b_;
+        // Flattening.
+        double f_;
+        // Numerical eccentricity.
+        double e2_;
+    };
 
-struct PosePrior {
- public:
-  MAKE_ENUM_CLASS_GLOMAP(CoordinateSystem,
-                  -1,
-                  UNDEFINED,  // = -1
-                  WGS84,      // = 0
-                  CARTESIAN   // = 1
-  );
+    struct PosePrior {
+    public:
+        MAKE_ENUM_CLASS_GLOMAP(CoordinateSystem,
+                               -1,
+                               UNDEFINED, // = -1
+                               WGS84,     // = 0
+                               CARTESIAN  // = 1
+        );
 
-  Eigen::Vector3d position =
-      Eigen::Vector3d::Constant(std::numeric_limits<double>::quiet_NaN());
-  Eigen::Matrix3d position_covariance =
-      Eigen::Matrix3d::Constant(std::numeric_limits<double>::quiet_NaN());
-  CoordinateSystem coordinate_system = CoordinateSystem::UNDEFINED;
+        Eigen::Vector3d position =
+            Eigen::Vector3d::Constant(std::numeric_limits<double>::quiet_NaN());
+        Eigen::Matrix3d position_covariance =
+            Eigen::Matrix3d::Constant(std::numeric_limits<double>::quiet_NaN());
+        CoordinateSystem coordinate_system = CoordinateSystem::UNDEFINED;
 
-  PosePrior() = default;
-  explicit PosePrior(const Eigen::Vector3d& position) : position(position) {}
-  PosePrior(const Eigen::Vector3d& position, const CoordinateSystem system)
-      : position(position), coordinate_system(system) {}
-  PosePrior(const Eigen::Vector3d& position, const Eigen::Matrix3d& covariance)
-      : position(position), position_covariance(covariance) {}
-  PosePrior(const Eigen::Vector3d& position,
-            const Eigen::Matrix3d& covariance,
-            const CoordinateSystem system)
-      : position(position),
-        position_covariance(covariance),
-        coordinate_system(system) {}
+        PosePrior() = default;
+        explicit PosePrior(const Eigen::Vector3d& position) : position(position) {}
+        PosePrior(const Eigen::Vector3d& position, const CoordinateSystem system)
+            : position(position),
+              coordinate_system(system) {}
+        PosePrior(const Eigen::Vector3d& position, const Eigen::Matrix3d& covariance)
+            : position(position),
+              position_covariance(covariance) {}
+        PosePrior(const Eigen::Vector3d& position,
+                  const Eigen::Matrix3d& covariance,
+                  const CoordinateSystem system)
+            : position(position),
+              position_covariance(covariance),
+              coordinate_system(system) {}
 
-  inline bool IsValid() const { return position.allFinite(); }
-  inline bool IsCovarianceValid() const {
-    return position_covariance.allFinite();
-  }
+        inline bool IsValid() const { return position.allFinite(); }
+        inline bool IsCovarianceValid() const {
+            return position_covariance.allFinite();
+        }
 
-  inline bool operator==(const PosePrior& other) const;
-  inline bool operator!=(const PosePrior& other) const;
-};
+        inline bool operator==(const PosePrior& other) const;
+        inline bool operator!=(const PosePrior& other) const;
+    };
 
-std::ostream& operator<<(std::ostream& stream, const PosePrior& prior);
+    std::ostream& operator<<(std::ostream& stream, const PosePrior& prior);
 
-bool PosePrior::operator==(const PosePrior& other) const {
-  return coordinate_system == other.coordinate_system &&
-         position == other.position &&
-         position_covariance == other.position_covariance;
-}
+    bool PosePrior::operator==(const PosePrior& other) const {
+        return coordinate_system == other.coordinate_system &&
+               position == other.position &&
+               position_covariance == other.position_covariance;
+    }
 
-bool PosePrior::operator!=(const PosePrior& other) const {
-  return !(*this == other);
-}
+    bool PosePrior::operator!=(const PosePrior& other) const {
+        return !(*this == other);
+    }
 
-}  // namespace glomap
+} // namespace glomap

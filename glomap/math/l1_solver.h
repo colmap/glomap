@@ -4,10 +4,10 @@
 
 #pragma once
 
-#include <glomap/colmap_migration/logging.h>
 #include <Eigen/Cholesky>
 #include <Eigen/CholmodSupport>
 #include <Eigen/Core>
+#include <glomap/colmap_migration/logging.h>
 
 // An L1 norm (|| A * x - b ||_1) approximation solver based on ADMM
 // (alternating direction method of multipliers,

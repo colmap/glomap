@@ -33,30 +33,30 @@
 
 namespace glomap {
 
-class Timer {
- public:
-  Timer();
+    class Timer {
+    public:
+        Timer();
 
-  void Start();
-  void Restart();
-  void Pause();
-  void Resume();
-  void Reset();
+        void Start();
+        void Restart();
+        void Pause();
+        void Resume();
+        void Reset();
 
-  double ElapsedMicroSeconds() const;
-  double ElapsedSeconds() const;
-  double ElapsedMinutes() const;
-  double ElapsedHours() const;
+        double ElapsedMicroSeconds() const;
+        double ElapsedSeconds() const;
+        double ElapsedMinutes() const;
+        double ElapsedHours() const;
 
-  void PrintSeconds() const;
-  void PrintMinutes() const;
-  void PrintHours() const;
+        void PrintSeconds() const;
+        void PrintMinutes() const;
+        void PrintHours() const;
 
- private:
-  bool started_;
-  bool paused_;
-  std::chrono::high_resolution_clock::time_point start_time_;
-  std::chrono::high_resolution_clock::time_point pause_time_;
-};
+    private:
+        bool started_;
+        bool paused_;
+        std::chrono::high_resolution_clock::time_point start_time_;
+        std::chrono::high_resolution_clock::time_point pause_time_;
+    };
 
-}  // namespace glomap
+} // namespace glomap

@@ -1,8 +1,8 @@
 #pragma once
 
+#include "glomap/colmap_migration/two_view_geometry_estimator.h"
 #include "glomap/scene/types.h"
 #include "glomap/types.h"
-#include "glomap/colmap_migration/two_view_geometry_estimator.h"
 #include <Eigen/Core>
 
 namespace glomap {

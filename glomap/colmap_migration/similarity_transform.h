@@ -29,145 +29,149 @@
 
 #pragma once
 
-#include "glomap/colmap_migration/sim3.h"
-#include "glomap/colmap_migration/loransac.h"
-#include "glomap/colmap_migration/ransac.h"
 #include "glomap/colmap_migration/eigen_alignment.h"
 #include "glomap/colmap_migration/logging.h"
+#include "glomap/colmap_migration/loransac.h"
+#include "glomap/colmap_migration/ransac.h"
+#include "glomap/colmap_migration/sim3.h"
 #include "glomap/colmap_migration/types.h"
-
-#include <vector>
-
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 
+#include <vector>
+
 namespace glomap {
 
-// N-D similarity transform estimator from corresponding point pairs in the
-// source and destination coordinate systems.
-//
-// This algorithm is based on the following paper:
-//
-//      S. Umeyama. Least-Squares Estimation of Transformation Parameters
-//      Between Two Point Patterns. IEEE Transactions on Pattern Analysis and
-//      Machine Intelligence, Volume 13 Issue 4, Page 376-380, 1991.
-//      http://www.stanford.edu/class/cs273/refs/umeyama.pdf
-//
-// and uses the Eigen implementation.
-template <int kDim, bool kEstimateScale = true>
-class SimilarityTransformEstimator {
- public:
-  typedef Eigen::Matrix<double, kDim, 1> X_t;
-  typedef Eigen::Matrix<double, kDim, 1> Y_t;
-  typedef Eigen::Matrix<double, kDim, kDim + 1> M_t;
+    // N-D similarity transform estimator from corresponding point pairs in the
+    // source and destination coordinate systems.
+    //
+    // This algorithm is based on the following paper:
+    //
+    //      S. Umeyama. Least-Squares Estimation of Transformation Parameters
+    //      Between Two Point Patterns. IEEE Transactions on Pattern Analysis and
+    //      Machine Intelligence, Volume 13 Issue 4, Page 376-380, 1991.
+    //      http://www.stanford.edu/class/cs273/refs/umeyama.pdf
+    //
+    // and uses the Eigen implementation.
+    template <int kDim, bool kEstimateScale = true>
+    class SimilarityTransformEstimator {
+    public:
+        typedef Eigen::Matrix<double, kDim, 1> X_t;
+        typedef Eigen::Matrix<double, kDim, 1> Y_t;
+        typedef Eigen::Matrix<double, kDim, kDim + 1> M_t;
 
-  // The minimum number of samples needed to estimate a model. Note that
-  // this only returns the true minimal sample in the two-dimensional case.
-  // For higher dimensions, the system will alway be over-determined.
-  static const int kMinNumSamples = kDim;
+        // The minimum number of samples needed to estimate a model. Note that
+        // this only returns the true minimal sample in the two-dimensional case.
+        // For higher dimensions, the system will alway be over-determined.
+        static const int kMinNumSamples = kDim;
 
-  // Estimate the similarity transform.
-  //
-  // @param src      Set of corresponding source points.
-  // @param dst      Set of corresponding destination points.
-  //
-  // @return         4x4 homogeneous transformation matrix.
-  static void Estimate(const std::vector<X_t>& src,
-                       const std::vector<Y_t>& dst,
-                       std::vector<M_t>* models);
+        // Estimate the similarity transform.
+        //
+        // @param src      Set of corresponding source points.
+        // @param dst      Set of corresponding destination points.
+        //
+        // @return         4x4 homogeneous transformation matrix.
+        static void Estimate(const std::vector<X_t>& src,
+                             const std::vector<Y_t>& dst,
+                             std::vector<M_t>* models);
 
-  // Calculate the transformation error for each corresponding point pair.
-  //
-  // Residuals are defined as the squared transformation error when
-  // transforming the source to the destination coordinates.
-  //
-  // @param src        Set of corresponding points in the source coordinate
-  //                   system as a Nx3 matrix.
-  // @param dst        Set of corresponding points in the destination
-  //                   coordinate system as a Nx3 matrix.
-  // @param matrix     4x4 homogeneous transformation matrix.
-  // @param residuals  Output vector of residuals for each point pair.
-  static void Residuals(const std::vector<X_t>& src,
-                        const std::vector<Y_t>& dst,
-                        const M_t& matrix,
-                        std::vector<double>* residuals);
-};
+        // Calculate the transformation error for each corresponding point pair.
+        //
+        // Residuals are defined as the squared transformation error when
+        // transforming the source to the destination coordinates.
+        //
+        // @param src        Set of corresponding points in the source coordinate
+        //                   system as a Nx3 matrix.
+        // @param dst        Set of corresponding points in the destination
+        //                   coordinate system as a Nx3 matrix.
+        // @param matrix     4x4 homogeneous transformation matrix.
+        // @param residuals  Output vector of residuals for each point pair.
+        static void Residuals(const std::vector<X_t>& src,
+                              const std::vector<Y_t>& dst,
+                              const M_t& matrix,
+                              std::vector<double>* residuals);
+    };
 
-inline bool EstimateSim3d(const std::vector<Eigen::Vector3d>& src,
-                          const std::vector<Eigen::Vector3d>& tgt,
-                          Sim3d& tgt_from_src) {
-  std::vector<Eigen::Matrix3x4d> models;
-  SimilarityTransformEstimator<3, true>().Estimate(src, tgt, &models);
-  if (models.empty()) {
-    return false;
-  }
-  THROW_CHECK_EQ(models.size(), 1);
-  tgt_from_src = Sim3d::FromMatrix(models[0]);
-  return true;
-}
+    inline bool EstimateSim3d(const std::vector<Eigen::Vector3d>& src,
+                              const std::vector<Eigen::Vector3d>& tgt,
+                              Sim3d& tgt_from_src) {
+        std::vector<Eigen::Matrix3x4d> models;
+        SimilarityTransformEstimator<3, true>().Estimate(src, tgt, &models);
+        if (models.empty())
+        {
+            return false;
+        }
+        THROW_CHECK_EQ(models.size(), 1);
+        tgt_from_src = Sim3d::FromMatrix(models[0]);
+        return true;
+    }
 
-template <bool kEstimateScale = true>
-inline typename RANSAC<SimilarityTransformEstimator<3, kEstimateScale>>::Report
-EstimateSim3dRobust(const std::vector<Eigen::Vector3d>& src,
-                    const std::vector<Eigen::Vector3d>& tgt,
-                    const RANSACOptions& options,
-                    Sim3d& tgt_from_src) {
-  LORANSAC<SimilarityTransformEstimator<3, kEstimateScale>,
-           SimilarityTransformEstimator<3, kEstimateScale>>
-      ransac(options);
-  auto report = ransac.Estimate(src, tgt);
-  if (report.success) {
-    tgt_from_src = Sim3d::FromMatrix(report.model);
-  }
-  return report;
-}
+    template <bool kEstimateScale = true>
+    inline typename RANSAC<SimilarityTransformEstimator<3, kEstimateScale>>::Report
+    EstimateSim3dRobust(const std::vector<Eigen::Vector3d>& src,
+                        const std::vector<Eigen::Vector3d>& tgt,
+                        const RANSACOptions& options,
+                        Sim3d& tgt_from_src) {
+        LORANSAC<SimilarityTransformEstimator<3, kEstimateScale>,
+                 SimilarityTransformEstimator<3, kEstimateScale>>
+            ransac(options);
+        auto report = ransac.Estimate(src, tgt);
+        if (report.success)
+        {
+            tgt_from_src = Sim3d::FromMatrix(report.model);
+        }
+        return report;
+    }
 
-////////////////////////////////////////////////////////////////////////////////
-// Implementation
-////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////
+    // Implementation
+    ////////////////////////////////////////////////////////////////////////////////
 
-template <int kDim, bool kEstimateScale>
-void SimilarityTransformEstimator<kDim, kEstimateScale>::Estimate(
-    const std::vector<X_t>& src,
-    const std::vector<Y_t>& dst,
-    std::vector<M_t>* models) {
-  THROW_CHECK_EQ(src.size(), dst.size());
-  THROW_CHECK(models != nullptr);
+    template <int kDim, bool kEstimateScale>
+    void SimilarityTransformEstimator<kDim, kEstimateScale>::Estimate(
+        const std::vector<X_t>& src,
+        const std::vector<Y_t>& dst,
+        std::vector<M_t>* models) {
+        THROW_CHECK_EQ(src.size(), dst.size());
+        THROW_CHECK(models != nullptr);
 
-  models->clear();
+        models->clear();
 
-  Eigen::Matrix<double, kDim, Eigen::Dynamic> src_mat(kDim, src.size());
-  Eigen::Matrix<double, kDim, Eigen::Dynamic> dst_mat(kDim, dst.size());
-  for (size_t i = 0; i < src.size(); ++i) {
-    src_mat.col(i) = src[i];
-    dst_mat.col(i) = dst[i];
-  }
+        Eigen::Matrix<double, kDim, Eigen::Dynamic> src_mat(kDim, src.size());
+        Eigen::Matrix<double, kDim, Eigen::Dynamic> dst_mat(kDim, dst.size());
+        for (size_t i = 0; i < src.size(); ++i)
+        {
+            src_mat.col(i) = src[i];
+            dst_mat.col(i) = dst[i];
+        }
 
-  const M_t model = Eigen::umeyama(src_mat, dst_mat, kEstimateScale)
-                        .template topLeftCorner<kDim, kDim + 1>();
+        const M_t model = Eigen::umeyama(src_mat, dst_mat, kEstimateScale)
+                              .template topLeftCorner<kDim, kDim + 1>();
 
-  if (model.array().isNaN().any()) {
-    return;
-  }
+        if (model.array().isNaN().any())
+        {
+            return;
+        }
 
-  models->resize(1);
-  (*models)[0] = model;
-}
+        models->resize(1);
+        (*models)[0] = model;
+    }
 
-template <int kDim, bool kEstimateScale>
-void SimilarityTransformEstimator<kDim, kEstimateScale>::Residuals(
-    const std::vector<X_t>& src,
-    const std::vector<Y_t>& dst,
-    const M_t& matrix,
-    std::vector<double>* residuals) {
-  THROW_CHECK_EQ(src.size(), dst.size());
+    template <int kDim, bool kEstimateScale>
+    void SimilarityTransformEstimator<kDim, kEstimateScale>::Residuals(
+        const std::vector<X_t>& src,
+        const std::vector<Y_t>& dst,
+        const M_t& matrix,
+        std::vector<double>* residuals) {
+        THROW_CHECK_EQ(src.size(), dst.size());
 
-  residuals->resize(src.size());
+        residuals->resize(src.size());
 
-  for (size_t i = 0; i < src.size(); ++i) {
-    const Y_t dst_transformed = matrix * src[i].homogeneous();
-    (*residuals)[i] = (dst[i] - dst_transformed).squaredNorm();
-  }
-}
+        for (size_t i = 0; i < src.size(); ++i)
+        {
+            const Y_t dst_transformed = matrix * src[i].homogeneous();
+            (*residuals)[i] = (dst[i] - dst_transformed).squaredNorm();
+        }
+    }
 
-}  // namespace glomap
+} // namespace glomap

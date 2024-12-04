@@ -29,76 +29,76 @@
 
 #pragma once
 
-#include "glomap/colmap_migration/sim3.h"
 #include "glomap/colmap_migration/ransac.h"
 #include "glomap/colmap_migration/reconstruction.h"
+#include "glomap/colmap_migration/sim3.h"
 
 namespace glomap {
 
-// Robustly align reconstruction to given image locations (projection centers).
-bool AlignReconstructionToLocations(
-    const Reconstruction& src_reconstruction,
-    const std::vector<std::string>& tgt_image_names,
-    const std::vector<Eigen::Vector3d>& tgt_image_locations,
-    int min_common_images,
-    const RANSACOptions& ransac_options,
-    Sim3d* tgt_from_src);
+    // Robustly align reconstruction to given image locations (projection centers).
+    bool AlignReconstructionToLocations(
+        const Reconstruction& src_reconstruction,
+        const std::vector<std::string>& tgt_image_names,
+        const std::vector<Eigen::Vector3d>& tgt_image_locations,
+        int min_common_images,
+        const RANSACOptions& ransac_options,
+        Sim3d* tgt_from_src);
 
-// Robustly align reconstruction to given pose priors.
-bool AlignReconstructionToPosePriors(
-    const Reconstruction& src_reconstruction,
-    const std::unordered_map<image_t, PosePrior>& tgt_pose_priors,
-    const RANSACOptions& ransac_options,
-    Sim3d* tgt_from_src);
+    // Robustly align reconstruction to given pose priors.
+    bool AlignReconstructionToPosePriors(
+        const Reconstruction& src_reconstruction,
+        const std::unordered_map<image_t, PosePrior>& tgt_pose_priors,
+        const RANSACOptions& ransac_options,
+        Sim3d* tgt_from_src);
 
-// Robustly compute alignment between reconstructions by finding images that
-// are registered in both reconstructions. The alignment is then estimated
-// robustly inside RANSAC from corresponding projection centers. An alignment
-// is verified by reprojecting common 3D point observations.
-// The min_inlier_observations threshold determines how many observations
-// in a common image must reproject within the given threshold.
-bool AlignReconstructionsViaReprojections(
-    const Reconstruction& src_reconstruction,
-    const Reconstruction& tgt_reconstruction,
-    double min_inlier_observations,
-    double max_reproj_error,
-    Sim3d* tgt_from_src);
+    // Robustly compute alignment between reconstructions by finding images that
+    // are registered in both reconstructions. The alignment is then estimated
+    // robustly inside RANSAC from corresponding projection centers. An alignment
+    // is verified by reprojecting common 3D point observations.
+    // The min_inlier_observations threshold determines how many observations
+    // in a common image must reproject within the given threshold.
+    bool AlignReconstructionsViaReprojections(
+        const Reconstruction& src_reconstruction,
+        const Reconstruction& tgt_reconstruction,
+        double min_inlier_observations,
+        double max_reproj_error,
+        Sim3d* tgt_from_src);
 
-// Robustly compute alignment between reconstructions by finding images that
-// are registered in both reconstructions. The alignment is then estimated
-// robustly inside RANSAC from corresponding projection centers and by
-// minimizing the Euclidean distance between them in world space.
-bool AlignReconstructionsViaProjCenters(
-    const Reconstruction& src_reconstruction,
-    const Reconstruction& tgt_reconstruction,
-    double max_proj_center_error,
-    Sim3d* tgt_from_src);
+    // Robustly compute alignment between reconstructions by finding images that
+    // are registered in both reconstructions. The alignment is then estimated
+    // robustly inside RANSAC from corresponding projection centers and by
+    // minimizing the Euclidean distance between them in world space.
+    bool AlignReconstructionsViaProjCenters(
+        const Reconstruction& src_reconstruction,
+        const Reconstruction& tgt_reconstruction,
+        double max_proj_center_error,
+        Sim3d* tgt_from_src);
 
-// Robustly compute the alignment between reconstructions that share the
-// same 2D points. It is estimated by minimizing the 3D distance between
-// corresponding 3D points.
-bool AlignReconstructionsViaPoints(const Reconstruction& src_reconstruction,
-                                   const Reconstruction& tgt_reconstruction,
-                                   size_t min_common_observations,
-                                   double max_error,
-                                   double min_inlier_ratio,
-                                   Sim3d* tgt_from_src);
+    // Robustly compute the alignment between reconstructions that share the
+    // same 2D points. It is estimated by minimizing the 3D distance between
+    // corresponding 3D points.
+    bool AlignReconstructionsViaPoints(const Reconstruction& src_reconstruction,
+                                       const Reconstruction& tgt_reconstruction,
+                                       size_t min_common_observations,
+                                       double max_error,
+                                       double min_inlier_ratio,
+                                       Sim3d* tgt_from_src);
 
-// Compute image alignment errors in the target coordinate frame.
-struct ImageAlignmentError {
-  std::string image_name;
-  double rotation_error_deg = -1;
-  double proj_center_error = -1;
-};
-std::vector<ImageAlignmentError> ComputeImageAlignmentError(
-    const Reconstruction& src_reconstruction,
-    const Reconstruction& tgt_reconstruction,
-    const Sim3d& tgt_from_src);
+    // Compute image alignment errors in the target coordinate frame.
+    struct ImageAlignmentError {
+        std::string image_name;
+        double rotation_error_deg = -1;
+        double proj_center_error = -1;
+    };
+    std::vector<ImageAlignmentError> ComputeImageAlignmentError(
+        const Reconstruction& src_reconstruction,
+        const Reconstruction& tgt_reconstruction,
+        const Sim3d& tgt_from_src);
 
-// Aligns the source to the target reconstruction and merges cameras, images,
-// points3D into the target using the alignment. Returns false on failure.
-bool MergeReconstructions(double max_reproj_error,
-                          const Reconstruction& src_reconstruction,
-                          Reconstruction& tgt_reconstruction);
+    // Aligns the source to the target reconstruction and merges cameras, images,
+    // points3D into the target using the alignment. Returns false on failure.
+    bool MergeReconstructions(double max_reproj_error,
+                              const Reconstruction& src_reconstruction,
+                              Reconstruction& tgt_reconstruction);
 
-}  // namespace glomap
+} // namespace glomap

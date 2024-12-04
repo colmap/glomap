@@ -2,7 +2,6 @@
 
 #include "glomap/io/colmap_converter.h"
 #include "glomap/scene/types_sfm.h"
-
 #include <glomap/colmap_migration/file.h>
 #include <glomap/colmap_migration/misc.h>
 

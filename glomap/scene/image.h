@@ -1,8 +1,8 @@
 #pragma once
 
+#include "glomap/colmap_migration/rigid3.h"
 #include "glomap/math/gravity.h"
 #include "glomap/scene/types.h"
-#include "glomap/colmap_migration/rigid3.h"
 #include "glomap/types.h"
 
 namespace glomap {

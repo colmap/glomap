@@ -31,39 +31,41 @@
 
 namespace glomap {
 
-void InitializeGlog(char** argv) {
-//#ifndef _MSC_VER  // Broken in MSVC
-//  google::InstallFailureSignalHandler();
-//#endif
-//  google::InitGoogleLogging(argv[0]);
-    throw std::runtime_error("Not implemented");
-}
+    void InitializeGlog(char** argv) {
+        //#ifndef _MSC_VER  // Broken in MSVC
+        //  google::InstallFailureSignalHandler();
+        //#endif
+        //  google::InitGoogleLogging(argv[0]);
+        throw std::runtime_error("Not implemented");
+    }
 
-const char* __GetConstFileBaseName(const char* file) {
-  //const char* base = strrchr(file, '/');
-  //if (!base) {
-  //  base = strrchr(file, '\\');
-  //}
-  //return base ? (base + 1) : file;
-    throw std::runtime_error("Not implemented");
-    return file;
-}
+    const char* __GetConstFileBaseName(const char* file) {
+        // const char* base = strrchr(file, '/');
+        // if (!base) {
+        //   base = strrchr(file, '\\');
+        // }
+        // return base ? (base + 1) : file;
+        throw std::runtime_error("Not implemented");
+        return file;
+    }
 
-bool __CheckOptionImpl(const char* file,
-                       const int line,
-                       const bool result,
-                       const char* expr_str) {
-  if (result) {
-    return true;
-  } else {
-    //;LOG(ERROR) << StringPrintf("[%s:%d] Check failed: %s",
-    //;                           __GetConstFileBaseName(file),
-    //;                           line,
-    //;                           expr_str);
+    bool __CheckOptionImpl(const char* file,
+                           const int line,
+                           const bool result,
+                           const char* expr_str) {
+        if (result)
+        {
+            return true;
+        } else
+        {
+            //;LOG(ERROR) << StringPrintf("[%s:%d] Check failed: %s",
+            //;                           __GetConstFileBaseName(file),
+            //;                           line,
+            //;                           expr_str);
 
-    throw std::runtime_error("Not implemented");
-    return false;
-  }
-}
+            throw std::runtime_error("Not implemented");
+            return false;
+        }
+    }
 
-}  // namespace glomap
+} // namespace glomap

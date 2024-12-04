@@ -29,129 +29,129 @@
 
 #pragma once
 
-#include "glomap/colmap_migration/rigid3.h"
-#include "glomap/colmap_migration/math.h"
-#include "glomap/colmap_migration/ransac.h"
 #include "glomap/colmap_migration/camera.h"
 #include "glomap/colmap_migration/eigen_alignment.h"
+#include "glomap/colmap_migration/math.h"
+#include "glomap/colmap_migration/ransac.h"
+#include "glomap/colmap_migration/rigid3.h"
 #include "glomap/colmap_migration/types.h"
+#include <Eigen/Core>
 
 #include <vector>
 
-#include <Eigen/Core>
-
 namespace glomap {
 
-// Triangulation estimator to estimate 3D point from multiple observations.
-// The triangulation must satisfy the following constraints:
-//    - Sufficient triangulation angle between observation pairs.
-//    - All observations must satisfy cheirality constraint.
-//
-// An observation is composed of an image measurement and the corresponding
-// camera pose and calibration.
-class TriangulationEstimator {
- public:
-  enum class ResidualType {
-    ANGULAR_ERROR,
-    REPROJECTION_ERROR,
-  };
+    // Triangulation estimator to estimate 3D point from multiple observations.
+    // The triangulation must satisfy the following constraints:
+    //    - Sufficient triangulation angle between observation pairs.
+    //    - All observations must satisfy cheirality constraint.
+    //
+    // An observation is composed of an image measurement and the corresponding
+    // camera pose and calibration.
+    class TriangulationEstimator {
+    public:
+        enum class ResidualType {
+            ANGULAR_ERROR,
+            REPROJECTION_ERROR,
+        };
 
-  struct PointData {
-    PointData() {}
-    PointData(const Eigen::Vector2d& point, const Eigen::Vector2d& point_N)
-        : point(point), point_normalized(point_N) {}
-    // Image observation in pixels. Only needs to be set for REPROJECTION_ERROR.
-    Eigen::Vector2d point;
-    // Normalized image observation. Must always be set.
-    Eigen::Vector2d point_normalized;
-  };
+        struct PointData {
+            PointData() {}
+            PointData(const Eigen::Vector2d& point, const Eigen::Vector2d& point_N)
+                : point(point),
+                  point_normalized(point_N) {}
+            // Image observation in pixels. Only needs to be set for REPROJECTION_ERROR.
+            Eigen::Vector2d point;
+            // Normalized image observation. Must always be set.
+            Eigen::Vector2d point_normalized;
+        };
 
-  struct PoseData {
-    PoseData() : camera(nullptr) {}
-    PoseData(const Eigen::Matrix3x4d& cam_from_world,
-             const Eigen::Vector3d& proj_center,
-             const Camera* camera)
-        : cam_from_world(cam_from_world),
-          proj_center(proj_center),
-          camera(camera) {}
-    // The projection matrix for the image of the observation.
-    Eigen::Matrix3x4d cam_from_world;
-    // The projection center for the image of the observation.
-    Eigen::Vector3d proj_center;
-    // The camera for the image of the observation.
-    const Camera* camera;
-  };
+        struct PoseData {
+            PoseData() : camera(nullptr) {}
+            PoseData(const Eigen::Matrix3x4d& cam_from_world,
+                     const Eigen::Vector3d& proj_center,
+                     const Camera* camera)
+                : cam_from_world(cam_from_world),
+                  proj_center(proj_center),
+                  camera(camera) {}
+            // The projection matrix for the image of the observation.
+            Eigen::Matrix3x4d cam_from_world;
+            // The projection center for the image of the observation.
+            Eigen::Vector3d proj_center;
+            // The camera for the image of the observation.
+            const Camera* camera;
+        };
 
-  typedef PointData X_t;
-  typedef PoseData Y_t;
-  typedef Eigen::Vector3d M_t;
+        typedef PointData X_t;
+        typedef PoseData Y_t;
+        typedef Eigen::Vector3d M_t;
 
-  // Specify settings for triangulation estimator.
-  void SetMinTriAngle(double min_tri_angle);
-  void SetResidualType(ResidualType residual_type);
+        // Specify settings for triangulation estimator.
+        void SetMinTriAngle(double min_tri_angle);
+        void SetResidualType(ResidualType residual_type);
 
-  // The minimum number of samples needed to estimate a model.
-  static const int kMinNumSamples = 2;
+        // The minimum number of samples needed to estimate a model.
+        static const int kMinNumSamples = 2;
 
-  // Estimate a 3D point from a two-view observation.
-  //
-  // @param point_data        Image measurement.
-  // @param point_data        Camera poses.
-  //
-  // @return                  Triangulated point if successful, otherwise none.
-  void Estimate(const std::vector<X_t>& point_data,
-                const std::vector<Y_t>& pose_data,
-                std::vector<M_t>* models) const;
+        // Estimate a 3D point from a two-view observation.
+        //
+        // @param point_data        Image measurement.
+        // @param point_data        Camera poses.
+        //
+        // @return                  Triangulated point if successful, otherwise none.
+        void Estimate(const std::vector<X_t>& point_data,
+                      const std::vector<Y_t>& pose_data,
+                      std::vector<M_t>* models) const;
 
-  // Calculate residuals in terms of squared reprojection or angular error.
-  //
-  // @param point_data        Image measurements.
-  // @param point_data        Camera poses.
-  // @param xyz               3D point.
-  //
-  // @return                  Residual for each observation.
-  void Residuals(const std::vector<X_t>& point_data,
-                 const std::vector<Y_t>& pose_data,
-                 const M_t& xyz,
-                 std::vector<double>* residuals) const;
+        // Calculate residuals in terms of squared reprojection or angular error.
+        //
+        // @param point_data        Image measurements.
+        // @param point_data        Camera poses.
+        // @param xyz               3D point.
+        //
+        // @return                  Residual for each observation.
+        void Residuals(const std::vector<X_t>& point_data,
+                       const std::vector<Y_t>& pose_data,
+                       const M_t& xyz,
+                       std::vector<double>* residuals) const;
 
- private:
-  ResidualType residual_type_ = ResidualType::REPROJECTION_ERROR;
-  double min_tri_angle_ = 0.0;
-};
+    private:
+        ResidualType residual_type_ = ResidualType::REPROJECTION_ERROR;
+        double min_tri_angle_ = 0.0;
+    };
 
-struct EstimateTriangulationOptions {
-  // Minimum triangulation angle in radians.
-  double min_tri_angle = 0.0;
+    struct EstimateTriangulationOptions {
+        // Minimum triangulation angle in radians.
+        double min_tri_angle = 0.0;
 
-  // The employed residual type.
-  TriangulationEstimator::ResidualType residual_type =
-      TriangulationEstimator::ResidualType::ANGULAR_ERROR;
+        // The employed residual type.
+        TriangulationEstimator::ResidualType residual_type =
+            TriangulationEstimator::ResidualType::ANGULAR_ERROR;
 
-  // RANSAC options for TriangulationEstimator.
-  RANSACOptions ransac_options;
+        // RANSAC options for TriangulationEstimator.
+        RANSACOptions ransac_options;
 
-  EstimateTriangulationOptions() {
-    ransac_options.max_error = DegToRad(2.0);
-    ransac_options.confidence = 0.9999;
-    ransac_options.min_inlier_ratio = 0.02;
-    ransac_options.max_num_trials = 10000;
-  }
+        EstimateTriangulationOptions() {
+            ransac_options.max_error = DegToRad(2.0);
+            ransac_options.confidence = 0.9999;
+            ransac_options.min_inlier_ratio = 0.02;
+            ransac_options.max_num_trials = 10000;
+        }
 
-  void Check() const {
-    THROW_CHECK_GE(min_tri_angle, 0.0);
-    ransac_options.Check();
-  }
-};
+        void Check() const {
+            THROW_CHECK_GE(min_tri_angle, 0.0);
+            ransac_options.Check();
+        }
+    };
 
-// Robustly estimate 3D point from observations in multiple views using RANSAC
-// and a subsequent non-linear refinement using all inliers. Returns true
-// if the estimated number of inliers has more than two views.
-bool EstimateTriangulation(const EstimateTriangulationOptions& options,
-                           const std::vector<Eigen::Vector2d>& points,
-                           const std::vector<Rigid3d const*>& cams_from_world,
-                           const std::vector<Camera const*>& cameras,
-                           std::vector<char>* inlier_mask,
-                           Eigen::Vector3d* xyz);
+    // Robustly estimate 3D point from observations in multiple views using RANSAC
+    // and a subsequent non-linear refinement using all inliers. Returns true
+    // if the estimated number of inliers has more than two views.
+    bool EstimateTriangulation(const EstimateTriangulationOptions& options,
+                               const std::vector<Eigen::Vector2d>& points,
+                               const std::vector<Rigid3d const*>& cams_from_world,
+                               const std::vector<Camera const*>& cameras,
+                               std::vector<char>* inlier_mask,
+                               Eigen::Vector3d* xyz);
 
-}  // namespace glomap
+} // namespace glomap
