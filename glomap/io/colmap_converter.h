@@ -12,7 +12,7 @@ namespace glomap {
 
     void ConvertGlomapToColmap(const std::unordered_map<camera_t, Camera>& cameras,
                                const std::unordered_map<image_t, migration::Image>& images,
-                               const std::unordered_map<track_t, Track>& tracks,
+                               const std::unordered_map<track_t, migration::Track>& tracks,
                                Reconstruction& reconstruction,
                                int cluster_id = -1,
                                bool include_image_points = false);

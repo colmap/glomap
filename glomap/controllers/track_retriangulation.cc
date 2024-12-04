@@ -37,7 +37,7 @@ namespace glomap {
             std::make_shared<Reconstruction>();
         ConvertGlomapToColmap(cameras,
                               images,
-                              std::unordered_map<track_t, Track>(),
+                              std::unordered_map<track_t, migration::Track>(),
                               *reconstruction_ptr);
 
         IncrementalPipelineOptions options_colmap;
