@@ -125,7 +125,7 @@ namespace glomap {
 
                 // If the number of inliers < 0.75 of the threshold, skip
                 // #TODO: Check shadowing status variable here
-                //bool status = false;
+                // bool status = false;
                 status = status || (criteria == INLIER_NUM &&
                                     image_pair.inliers.size() < 0.75 * min_thres);
                 status = status ||

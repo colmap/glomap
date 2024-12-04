@@ -29,9 +29,9 @@
 
 #pragma once
 
+#include "glomap/colmap_migration/string.h"
 #include <exception>
 #include <glog/logging.h>
-#include "glomap/colmap_migration/string.h"
 
 #include <iostream>
 

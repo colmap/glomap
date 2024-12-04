@@ -29,170 +29,169 @@
 
 #pragma once
 
-#include "glomap/colmap_migration/rigid3.h"
-#include "glomap/colmap_migration/loransac.h"
 #include "glomap/colmap_migration/camera.h"
-#include "glomap/colmap_migration/models.h"
 #include "glomap/colmap_migration/eigen_alignment.h"
 #include "glomap/colmap_migration/logging.h"
+#include "glomap/colmap_migration/loransac.h"
+#include "glomap/colmap_migration/models.h"
+#include "glomap/colmap_migration/rigid3.h"
 #include "glomap/colmap_migration/threading.h"
 #include "glomap/colmap_migration/types.h"
+#include <ceres/ceres.h>
+#include <Eigen/Core>
 
 #include <vector>
 
-#include <Eigen/Core>
-#include <ceres/ceres.h>
-
 namespace glomap {
 
-struct AbsolutePoseEstimationOptions {
-  // Whether to estimate the focal length.
-  bool estimate_focal_length = false;
+    struct AbsolutePoseEstimationOptions {
+        // Whether to estimate the focal length.
+        bool estimate_focal_length = false;
 
-  // Options used for P3P RANSAC.
-  RANSACOptions ransac_options;
+        // Options used for P3P RANSAC.
+        RANSACOptions ransac_options;
 
-  AbsolutePoseEstimationOptions() {
-    ransac_options.max_error = 12.0;
-    // Use high confidence to avoid preemptive termination of P3P RANSAC
-    // - too early termination may lead to bad registration.
-    ransac_options.min_num_trials = 100;
-    ransac_options.max_num_trials = 10000;
-    ransac_options.confidence = 0.99999;
-  }
+        AbsolutePoseEstimationOptions() {
+            ransac_options.max_error = 12.0;
+            // Use high confidence to avoid preemptive termination of P3P RANSAC
+            // - too early termination may lead to bad registration.
+            ransac_options.min_num_trials = 100;
+            ransac_options.max_num_trials = 10000;
+            ransac_options.confidence = 0.99999;
+        }
 
-  void Check() const { ransac_options.Check(); }
-};
+        void Check() const { ransac_options.Check(); }
+    };
 
-struct AbsolutePoseRefinementOptions {
-  // Convergence criterion.
-  double gradient_tolerance = 1.0;
+    struct AbsolutePoseRefinementOptions {
+        // Convergence criterion.
+        double gradient_tolerance = 1.0;
 
-  // Maximum number of solver iterations.
-  int max_num_iterations = 100;
+        // Maximum number of solver iterations.
+        int max_num_iterations = 100;
 
-  // Scaling factor determines at which residual robustification takes place.
-  double loss_function_scale = 1.0;
+        // Scaling factor determines at which residual robustification takes place.
+        double loss_function_scale = 1.0;
 
-  // Whether to refine the focal length parameter group.
-  bool refine_focal_length = false;
+        // Whether to refine the focal length parameter group.
+        bool refine_focal_length = false;
 
-  // Whether to refine the extra parameter group.
-  bool refine_extra_params = false;
+        // Whether to refine the extra parameter group.
+        bool refine_extra_params = false;
 
-  // Whether to print final summary.
-  bool print_summary = false;
+        // Whether to print final summary.
+        bool print_summary = false;
 
-  void Check() const {
-    THROW_CHECK_GE(gradient_tolerance, 0.0);
-    THROW_CHECK_GE(max_num_iterations, 0);
-    THROW_CHECK_GE(loss_function_scale, 0.0);
-  }
-};
+        void Check() const {
+            THROW_CHECK_GE(gradient_tolerance, 0.0);
+            THROW_CHECK_GE(max_num_iterations, 0);
+            THROW_CHECK_GE(loss_function_scale, 0.0);
+        }
+    };
 
-// Estimate absolute pose (optionally focal length) from 2D-3D correspondences.
-//
-// Focal length estimation is performed using discrete sampling around the
-// focal length of the given camera. The focal length that results in the
-// maximal number of inliers is assigned to the given camera.
-//
-// @param options              Absolute pose estimation options.
-// @param points2D             Corresponding 2D points.
-// @param points3D             Corresponding 3D points.
-// @param cam_from_world       Estimated absolute camera pose.
-// @param camera               Camera for which to estimate pose. Modified
-//                             in-place to store the estimated focal length.
-// @param num_inliers          Number of inliers in RANSAC.
-// @param inlier_mask          Inlier mask for 2D-3D correspondences.
-//
-// @return                     Whether pose is estimated successfully.
-bool EstimateAbsolutePose(const AbsolutePoseEstimationOptions& options,
-                          const std::vector<Eigen::Vector2d>& points2D,
-                          const std::vector<Eigen::Vector3d>& points3D,
-                          Rigid3d* cam_from_world,
-                          Camera* camera,
-                          size_t* num_inliers,
-                          std::vector<char>* inlier_mask);
+    // Estimate absolute pose (optionally focal length) from 2D-3D correspondences.
+    //
+    // Focal length estimation is performed using discrete sampling around the
+    // focal length of the given camera. The focal length that results in the
+    // maximal number of inliers is assigned to the given camera.
+    //
+    // @param options              Absolute pose estimation options.
+    // @param points2D             Corresponding 2D points.
+    // @param points3D             Corresponding 3D points.
+    // @param cam_from_world       Estimated absolute camera pose.
+    // @param camera               Camera for which to estimate pose. Modified
+    //                             in-place to store the estimated focal length.
+    // @param num_inliers          Number of inliers in RANSAC.
+    // @param inlier_mask          Inlier mask for 2D-3D correspondences.
+    //
+    // @return                     Whether pose is estimated successfully.
+    bool EstimateAbsolutePose(const AbsolutePoseEstimationOptions& options,
+                              const std::vector<Eigen::Vector2d>& points2D,
+                              const std::vector<Eigen::Vector3d>& points3D,
+                              Rigid3d* cam_from_world,
+                              Camera* camera,
+                              size_t* num_inliers,
+                              std::vector<char>* inlier_mask);
 
-// Estimate relative from 2D-2D correspondences.
-//
-// Pose of first camera is assumed to be at the origin without rotation. Pose
-// of second camera is given as world-to-image transformation,
-// i.e. `x2 = [R | t] * X2`.
-//
-// @param ransac_options       RANSAC options.
-// @param points1              Corresponding 2D points.
-// @param points2              Corresponding 2D points.
-// @param cam2_from_cam1       Estimated pose between cameras.
-//
-// @return                     Number of RANSAC inliers.
-size_t EstimateRelativePose(const RANSACOptions& ransac_options,
+    // Estimate relative from 2D-2D correspondences.
+    //
+    // Pose of first camera is assumed to be at the origin without rotation. Pose
+    // of second camera is given as world-to-image transformation,
+    // i.e. `x2 = [R | t] * X2`.
+    //
+    // @param ransac_options       RANSAC options.
+    // @param points1              Corresponding 2D points.
+    // @param points2              Corresponding 2D points.
+    // @param cam2_from_cam1       Estimated pose between cameras.
+    //
+    // @return                     Number of RANSAC inliers.
+    size_t EstimateRelativePose(const RANSACOptions& ransac_options,
+                                const std::vector<Eigen::Vector2d>& points1,
+                                const std::vector<Eigen::Vector2d>& points2,
+                                Rigid3d* cam2_from_cam1);
+
+    // Refine absolute pose (optionally focal length) from 2D-3D correspondences.
+    //
+    // @param options              Refinement options.
+    // @param inlier_mask          Inlier mask for 2D-3D correspondences.
+    // @param points2D             Corresponding 2D points.
+    // @param points3D             Corresponding 3D points.
+    // @param cam_from_world       Refined absolute camera pose.
+    // @param camera               Camera for which to estimate pose. Modified
+    //                             in-place to store the estimated focal length.
+    // @param cam_from_world_cov   Estimated 6x6 covariance matrix of
+    //                             the rotation (as axis-angle, in tangent space)
+    //                             and translation terms (optional).
+    //
+    // @return                     Whether the solution is usable.
+    bool RefineAbsolutePose(const AbsolutePoseRefinementOptions& options,
+                            const std::vector<char>& inlier_mask,
+                            const std::vector<Eigen::Vector2d>& points2D,
+                            const std::vector<Eigen::Vector3d>& points3D,
+                            Rigid3d* cam_from_world,
+                            Camera* camera,
+                            Eigen::Matrix6d* cam_from_world_cov = nullptr);
+
+    // Refine relative pose of two cameras.
+    //
+    // Minimizes the Sampson error between corresponding normalized points using
+    // a robust cost function, i.e. the corresponding points need not necessarily
+    // be inliers given a sufficient initial guess for the relative pose.
+    //
+    // Assumes that first camera pose has projection matrix P = [I | 0], and
+    // pose of second camera is given as transformation from world to camera system.
+    //
+    // Assumes that the given translation vector is normalized, and refines
+    // the translation up to an unknown scale (i.e. refined translation vector
+    // is a unit vector again).
+    //
+    // @param options          Solver options.
+    // @param points1          First set of corresponding points.
+    // @param points2          Second set of corresponding points.
+    // @param cam_from_world   Refined pose between cameras.
+    //
+    // @return                 Flag indicating if solution is usable.
+    bool RefineRelativePose(const ceres::Solver::Options& options,
                             const std::vector<Eigen::Vector2d>& points1,
                             const std::vector<Eigen::Vector2d>& points2,
-                            Rigid3d* cam2_from_cam1);
+                            Rigid3d* cam_from_world);
 
-// Refine absolute pose (optionally focal length) from 2D-3D correspondences.
-//
-// @param options              Refinement options.
-// @param inlier_mask          Inlier mask for 2D-3D correspondences.
-// @param points2D             Corresponding 2D points.
-// @param points3D             Corresponding 3D points.
-// @param cam_from_world       Refined absolute camera pose.
-// @param camera               Camera for which to estimate pose. Modified
-//                             in-place to store the estimated focal length.
-// @param cam_from_world_cov   Estimated 6x6 covariance matrix of
-//                             the rotation (as axis-angle, in tangent space)
-//                             and translation terms (optional).
-//
-// @return                     Whether the solution is usable.
-bool RefineAbsolutePose(const AbsolutePoseRefinementOptions& options,
-                        const std::vector<char>& inlier_mask,
-                        const std::vector<Eigen::Vector2d>& points2D,
-                        const std::vector<Eigen::Vector3d>& points3D,
-                        Rigid3d* cam_from_world,
-                        Camera* camera,
-                        Eigen::Matrix6d* cam_from_world_cov = nullptr);
+    // Refine essential matrix.
+    //
+    // Decomposes the essential matrix into rotation and translation components
+    // and refines the relative pose using the function `RefineRelativePose`.
+    //
+    // @param E                3x3 essential matrix.
+    // @param points1          First set of corresponding points.
+    // @param points2          Second set of corresponding points.
+    // @param inlier_mask      Inlier mask for corresponding points.
+    // @param options          Solver options.
+    //
+    // @return                 Flag indicating if solution is usable.
+    bool RefineEssentialMatrix(const ceres::Solver::Options& options,
+                               const std::vector<Eigen::Vector2d>& points1,
+                               const std::vector<Eigen::Vector2d>& points2,
+                               const std::vector<char>& inlier_mask,
+                               Eigen::Matrix3d* E);
 
-// Refine relative pose of two cameras.
-//
-// Minimizes the Sampson error between corresponding normalized points using
-// a robust cost function, i.e. the corresponding points need not necessarily
-// be inliers given a sufficient initial guess for the relative pose.
-//
-// Assumes that first camera pose has projection matrix P = [I | 0], and
-// pose of second camera is given as transformation from world to camera system.
-//
-// Assumes that the given translation vector is normalized, and refines
-// the translation up to an unknown scale (i.e. refined translation vector
-// is a unit vector again).
-//
-// @param options          Solver options.
-// @param points1          First set of corresponding points.
-// @param points2          Second set of corresponding points.
-// @param cam_from_world   Refined pose between cameras.
-//
-// @return                 Flag indicating if solution is usable.
-bool RefineRelativePose(const ceres::Solver::Options& options,
-                        const std::vector<Eigen::Vector2d>& points1,
-                        const std::vector<Eigen::Vector2d>& points2,
-                        Rigid3d* cam_from_world);
-
-// Refine essential matrix.
-//
-// Decomposes the essential matrix into rotation and translation components
-// and refines the relative pose using the function `RefineRelativePose`.
-//
-// @param E                3x3 essential matrix.
-// @param points1          First set of corresponding points.
-// @param points2          Second set of corresponding points.
-// @param inlier_mask      Inlier mask for corresponding points.
-// @param options          Solver options.
-//
-// @return                 Flag indicating if solution is usable.
-bool RefineEssentialMatrix(const ceres::Solver::Options& options,
-                           const std::vector<Eigen::Vector2d>& points1,
-                           const std::vector<Eigen::Vector2d>& points2,
-                           const std::vector<char>& inlier_mask,
-                           Eigen::Matrix3d* E);
-
-}  // namespace glomap
+} // namespace glomap

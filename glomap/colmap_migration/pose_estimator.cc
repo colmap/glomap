@@ -32,311 +32,341 @@
 #include "glomap/colmap_migration/absolute_pose.h"
 #include "glomap/colmap_migration/bundle_adjustment.h"
 #include "glomap/colmap_migration/cost_functions.h"
-#include "glomap/colmap_migration/utils.h"
-#include "glomap/colmap_migration/manifold.h"
 #include "glomap/colmap_migration/essential_matrix.h"
 #include "glomap/colmap_migration/essential_matrix_estimator.h"
-#include "glomap/colmap_migration/pose.h"
-#include "glomap/colmap_migration/models.h"
 #include "glomap/colmap_migration/logging.h"
+#include "glomap/colmap_migration/manifold.h"
+#include "glomap/colmap_migration/models.h"
+#include "glomap/colmap_migration/pose.h"
+#include "glomap/colmap_migration/utils.h"
 
 #include <span>
 
 namespace glomap {
 
-bool EstimateAbsolutePose(const AbsolutePoseEstimationOptions& options,
-                          const std::vector<Eigen::Vector2d>& points2D,
-                          const std::vector<Eigen::Vector3d>& points3D,
-                          Rigid3d* cam_from_world,
-                          Camera* camera,
-                          size_t* num_inliers,
-                          std::vector<char>* inlier_mask) {
-  THROW_CHECK_EQ(points2D.size(), points3D.size());
-  options.Check();
+    bool EstimateAbsolutePose(const AbsolutePoseEstimationOptions& options,
+                              const std::vector<Eigen::Vector2d>& points2D,
+                              const std::vector<Eigen::Vector3d>& points3D,
+                              Rigid3d* cam_from_world,
+                              Camera* camera,
+                              size_t* num_inliers,
+                              std::vector<char>* inlier_mask) {
+        THROW_CHECK_EQ(points2D.size(), points3D.size());
+        options.Check();
 
-  *num_inliers = 0;
-  inlier_mask->clear();
+        *num_inliers = 0;
+        inlier_mask->clear();
 
-  std::vector<Eigen::Vector2d> points2D_normalized(points2D.size());
-  for (size_t i = 0; i < points2D.size(); ++i) {
-    points2D_normalized[i] = camera->CamFromImg(points2D[i]);
-  }
+        std::vector<Eigen::Vector2d> points2D_normalized(points2D.size());
+        for (size_t i = 0; i < points2D.size(); ++i)
+        {
+            points2D_normalized[i] = camera->CamFromImg(points2D[i]);
+        }
 
-  auto custom_ransac_options = options.ransac_options;
-  custom_ransac_options.max_error =
-      camera->CamFromImgThreshold(options.ransac_options.max_error);
+        auto custom_ransac_options = options.ransac_options;
+        custom_ransac_options.max_error =
+            camera->CamFromImgThreshold(options.ransac_options.max_error);
 
-  if (options.estimate_focal_length) {
-    // TODO(jsch): Implement non-minimal solver for LORANSAC refinement.
-    // Experiments showed marginal difference between RANSAC/LORANSAC for PNPF
-    // after refining the estimates of this function using RefineAbsolutePose.
-    RANSAC<P4PFEstimator> ransac(custom_ransac_options);
-    auto report = ransac.Estimate(points2D_normalized, points3D);
-    if (report.success) {
-      *cam_from_world =
-          Rigid3d(Eigen::Quaterniond(report.model.cam_from_world.leftCols<3>()),
-                  report.model.cam_from_world.col(3));
-      for (const size_t idx : camera->FocalLengthIdxs()) {
-        camera->params[idx] *= report.model.focal_length;
-      }
-      *num_inliers = report.support.num_inliers;
-      *inlier_mask = std::move(report.inlier_mask);
-      return true;
+        if (options.estimate_focal_length)
+        {
+            // TODO(jsch): Implement non-minimal solver for LORANSAC refinement.
+            // Experiments showed marginal difference between RANSAC/LORANSAC for PNPF
+            // after refining the estimates of this function using RefineAbsolutePose.
+            RANSAC<P4PFEstimator> ransac(custom_ransac_options);
+            auto report = ransac.Estimate(points2D_normalized, points3D);
+            if (report.success)
+            {
+                *cam_from_world =
+                    Rigid3d(Eigen::Quaterniond(report.model.cam_from_world.leftCols<3>()),
+                            report.model.cam_from_world.col(3));
+                for (const size_t idx : camera->FocalLengthIdxs())
+                {
+                    camera->params[idx] *= report.model.focal_length;
+                }
+                *num_inliers = report.support.num_inliers;
+                *inlier_mask = std::move(report.inlier_mask);
+                return true;
+            }
+        } else
+        {
+            LORANSAC<P3PEstimator, EPNPEstimator> ransac(custom_ransac_options);
+            auto report = ransac.Estimate(points2D_normalized, points3D);
+            if (report.success)
+            {
+                *cam_from_world = Rigid3d(Eigen::Quaterniond(report.model.leftCols<3>()),
+                                          report.model.col(3));
+                *num_inliers = report.support.num_inliers;
+                *inlier_mask = std::move(report.inlier_mask);
+                return true;
+            }
+        }
+
+        return false;
     }
-  } else {
-    LORANSAC<P3PEstimator, EPNPEstimator> ransac(custom_ransac_options);
-    auto report = ransac.Estimate(points2D_normalized, points3D);
-    if (report.success) {
-      *cam_from_world = Rigid3d(Eigen::Quaterniond(report.model.leftCols<3>()),
-                                report.model.col(3));
-      *num_inliers = report.support.num_inliers;
-      *inlier_mask = std::move(report.inlier_mask);
-      return true;
+
+    size_t EstimateRelativePose(const RANSACOptions& ransac_options,
+                                const std::vector<Eigen::Vector2d>& points1,
+                                const std::vector<Eigen::Vector2d>& points2,
+                                Rigid3d* cam2_from_cam1) {
+        RANSAC<EssentialMatrixFivePointEstimator> ransac(ransac_options);
+        const auto report = ransac.Estimate(points1, points2);
+
+        if (!report.success)
+        {
+            return 0;
+        }
+
+        std::vector<Eigen::Vector2d> inliers1(report.support.num_inliers);
+        std::vector<Eigen::Vector2d> inliers2(report.support.num_inliers);
+
+        size_t j = 0;
+        for (size_t i = 0; i < points1.size(); ++i)
+        {
+            if (report.inlier_mask[i])
+            {
+                inliers1[j] = points1[i];
+                inliers2[j] = points2[i];
+                j += 1;
+            }
+        }
+
+        std::vector<Eigen::Vector3d> points3D;
+        PoseFromEssentialMatrix(
+            report.model, inliers1, inliers2, cam2_from_cam1, &points3D);
+
+        if (cam2_from_cam1->rotation.coeffs().array().isNaN().any() ||
+            cam2_from_cam1->translation.array().isNaN().any())
+        {
+            return 0;
+        }
+
+        return points3D.size();
     }
-  }
 
-  return false;
-}
+    bool RefineAbsolutePose(const AbsolutePoseRefinementOptions& options,
+                            const std::vector<char>& inlier_mask,
+                            const std::vector<Eigen::Vector2d>& points2D,
+                            const std::vector<Eigen::Vector3d>& points3D,
+                            Rigid3d* cam_from_world,
+                            Camera* camera,
+                            Eigen::Matrix6d* cam_from_world_cov) {
+        THROW_CHECK_EQ(inlier_mask.size(), points2D.size());
+        THROW_CHECK_EQ(points2D.size(), points3D.size());
+        options.Check();
 
-size_t EstimateRelativePose(const RANSACOptions& ransac_options,
+        const auto loss_function =
+            std::make_unique<ceres::CauchyLoss>(options.loss_function_scale);
+
+        double* camera_params = camera->params.data();
+        double* cam_from_world_rotation = cam_from_world->rotation.coeffs().data();
+        double* cam_from_world_translation = cam_from_world->translation.data();
+
+        ceres::Problem::Options problem_options;
+        problem_options.loss_function_ownership = ceres::DO_NOT_TAKE_OWNERSHIP;
+        ceres::Problem problem(problem_options);
+
+        for (size_t i = 0; i < points2D.size(); ++i)
+        {
+            // Skip outlier observations
+            if (!inlier_mask[i])
+            {
+                continue;
+            }
+            problem.AddResidualBlock(
+                CreateCameraCostFunction<ReprojErrorConstantPoint3DCostFunctor>(
+                    camera->model_id, points2D[i], points3D[i]),
+                loss_function.get(),
+                cam_from_world_rotation,
+                cam_from_world_translation,
+                camera_params);
+        }
+
+        if (problem.NumResiduals() > 0)
+        {
+            SetQuaternionManifold(&problem, cam_from_world_rotation);
+
+            // Camera parameterization.
+            if (!options.refine_focal_length && !options.refine_extra_params)
+            {
+                problem.SetParameterBlockConstant(camera->params.data());
+            } else
+            {
+                // Always set the principal point as fixed.
+                std::vector<int> camera_params_const;
+                const std::span<const size_t> principal_point_idxs =
+                    camera->PrincipalPointIdxs();
+                camera_params_const.insert(camera_params_const.end(),
+                                           principal_point_idxs.begin(),
+                                           principal_point_idxs.end());
+
+                if (!options.refine_focal_length)
+                {
+                    const std::span<const size_t> focal_length_idxs = camera->FocalLengthIdxs();
+                    camera_params_const.insert(camera_params_const.end(),
+                                               focal_length_idxs.begin(),
+                                               focal_length_idxs.end());
+                }
+
+                if (!options.refine_extra_params)
+                {
+                    const std::span<const size_t> extra_params_idxs = camera->ExtraParamsIdxs();
+                    camera_params_const.insert(camera_params_const.end(),
+                                               extra_params_idxs.begin(),
+                                               extra_params_idxs.end());
+                }
+
+                if (camera_params_const.size() == camera->params.size())
+                {
+                    problem.SetParameterBlockConstant(camera->params.data());
+                } else
+                {
+                    SetSubsetManifold(static_cast<int>(camera->params.size()),
+                                      camera_params_const,
+                                      &problem,
+                                      camera->params.data());
+                }
+            }
+        }
+
+        ceres::Solver::Options solver_options;
+        solver_options.gradient_tolerance = options.gradient_tolerance;
+        solver_options.max_num_iterations = options.max_num_iterations;
+        solver_options.linear_solver_type = ceres::DENSE_QR;
+        solver_options.logging_type = ceres::LoggingType::SILENT;
+
+        // The overhead of creating threads is too large.
+        solver_options.num_threads = 1;
+#if CERES_VERSION_MAJOR < 2
+        solver_options.num_linear_solver_threads = 1;
+#endif // CERES_VERSION_MAJOR
+
+        ceres::Solver::Summary summary;
+        ceres::Solve(solver_options, &problem, &summary);
+
+        if (options.print_summary || VLOG_IS_ON(1))
+        {
+            PrintSolverSummary(summary, "Pose refinement report");
+        }
+
+        if (!summary.IsSolutionUsable())
+        {
+            return false;
+        }
+
+        if (problem.NumResiduals() > 0 && cam_from_world_cov != nullptr)
+        {
+            ceres::Covariance::Options ceres_options;
+            ceres::Covariance covariance(ceres_options);
+            std::vector<const double*> parameter_blocks = {cam_from_world_rotation,
+                                                           cam_from_world_translation};
+            if (!covariance.Compute(parameter_blocks, &problem))
+            {
+                return false;
+            }
+            // The rotation covariance is estimated in the tangent space of the
+            // quaternion, which corresponds to the 3-DoF axis-angle local
+            // parameterization.
+            covariance.GetCovarianceMatrixInTangentSpace(parameter_blocks,
+                                                         cam_from_world_cov->data());
+        }
+
+        return true;
+    }
+
+    bool RefineRelativePose(const ceres::Solver::Options& options,
                             const std::vector<Eigen::Vector2d>& points1,
                             const std::vector<Eigen::Vector2d>& points2,
                             Rigid3d* cam2_from_cam1) {
-  RANSAC<EssentialMatrixFivePointEstimator> ransac(ransac_options);
-  const auto report = ransac.Estimate(points1, points2);
+        THROW_CHECK_EQ(points1.size(), points2.size());
 
-  if (!report.success) {
-    return 0;
-  }
+        // CostFunction assumes unit quaternions.
+        cam2_from_cam1->rotation.normalize();
 
-  std::vector<Eigen::Vector2d> inliers1(report.support.num_inliers);
-  std::vector<Eigen::Vector2d> inliers2(report.support.num_inliers);
+        double* cam2_from_cam1_rotation = cam2_from_cam1->rotation.coeffs().data();
+        double* cam2_from_cam1_translation = cam2_from_cam1->translation.data();
 
-  size_t j = 0;
-  for (size_t i = 0; i < points1.size(); ++i) {
-    if (report.inlier_mask[i]) {
-      inliers1[j] = points1[i];
-      inliers2[j] = points2[i];
-      j += 1;
+        const double kMaxL2Error = 1.0;
+        ceres::LossFunction* loss_function = new ceres::CauchyLoss(kMaxL2Error);
+
+        ceres::Problem problem;
+
+        for (size_t i = 0; i < points1.size(); ++i)
+        {
+            ceres::CostFunction* cost_function =
+                SampsonErrorCostFunctor::Create(points1[i], points2[i]);
+            problem.AddResidualBlock(cost_function,
+                                     loss_function,
+                                     cam2_from_cam1_rotation,
+                                     cam2_from_cam1_translation);
+        }
+
+        SetQuaternionManifold(&problem, cam2_from_cam1_rotation);
+        SetSphereManifold<3>(&problem, cam2_from_cam1_translation);
+
+        ceres::Solver::Summary summary;
+        ceres::Solve(options, &problem, &summary);
+
+        return summary.IsSolutionUsable();
     }
-  }
 
-  std::vector<Eigen::Vector3d> points3D;
-  PoseFromEssentialMatrix(
-      report.model, inliers1, inliers2, cam2_from_cam1, &points3D);
+    bool RefineEssentialMatrix(const ceres::Solver::Options& options,
+                               const std::vector<Eigen::Vector2d>& points1,
+                               const std::vector<Eigen::Vector2d>& points2,
+                               const std::vector<char>& inlier_mask,
+                               Eigen::Matrix3d* E) {
+        THROW_CHECK_EQ(points1.size(), points2.size());
+        THROW_CHECK_EQ(points1.size(), inlier_mask.size());
 
-  if (cam2_from_cam1->rotation.coeffs().array().isNaN().any() ||
-      cam2_from_cam1->translation.array().isNaN().any()) {
-    return 0;
-  }
+        // Extract inlier points for decomposing the essential matrix into
+        // rotation and translation components.
 
-  return points3D.size();
-}
+        size_t num_inliers = 0;
+        for (const auto inlier : inlier_mask)
+        {
+            if (inlier)
+            {
+                num_inliers += 1;
+            }
+        }
 
-bool RefineAbsolutePose(const AbsolutePoseRefinementOptions& options,
-                        const std::vector<char>& inlier_mask,
-                        const std::vector<Eigen::Vector2d>& points2D,
-                        const std::vector<Eigen::Vector3d>& points3D,
-                        Rigid3d* cam_from_world,
-                        Camera* camera,
-                        Eigen::Matrix6d* cam_from_world_cov) {
-  THROW_CHECK_EQ(inlier_mask.size(), points2D.size());
-  THROW_CHECK_EQ(points2D.size(), points3D.size());
-  options.Check();
+        std::vector<Eigen::Vector2d> inlier_points1(num_inliers);
+        std::vector<Eigen::Vector2d> inlier_points2(num_inliers);
+        size_t j = 0;
+        for (size_t i = 0; i < inlier_mask.size(); ++i)
+        {
+            if (inlier_mask[i])
+            {
+                inlier_points1[j] = points1[i];
+                inlier_points2[j] = points2[i];
+                j += 1;
+            }
+        }
 
-  const auto loss_function =
-      std::make_unique<ceres::CauchyLoss>(options.loss_function_scale);
+        // Extract relative pose from essential matrix.
+        Rigid3d cam2_from_cam1;
+        std::vector<Eigen::Vector3d> points3D;
+        PoseFromEssentialMatrix(
+            *E, inlier_points1, inlier_points2, &cam2_from_cam1, &points3D);
 
-  double* camera_params = camera->params.data();
-  double* cam_from_world_rotation = cam_from_world->rotation.coeffs().data();
-  double* cam_from_world_translation = cam_from_world->translation.data();
+        if (points3D.size() == 0)
+        {
+            return false;
+        }
 
-  ceres::Problem::Options problem_options;
-  problem_options.loss_function_ownership = ceres::DO_NOT_TAKE_OWNERSHIP;
-  ceres::Problem problem(problem_options);
+        // Refine essential matrix, use all points so that refinement is able to
+        // consider points as inliers that were originally outliers.
 
-  for (size_t i = 0; i < points2D.size(); ++i) {
-    // Skip outlier observations
-    if (!inlier_mask[i]) {
-      continue;
+        const bool refinement_success = RefineRelativePose(
+            options, inlier_points1, inlier_points2, &cam2_from_cam1);
+
+        if (!refinement_success)
+        {
+            return false;
+        }
+
+        *E = EssentialMatrixFromPose(cam2_from_cam1);
+
+        return true;
     }
-    problem.AddResidualBlock(
-        CreateCameraCostFunction<ReprojErrorConstantPoint3DCostFunctor>(
-            camera->model_id, points2D[i], points3D[i]),
-        loss_function.get(),
-        cam_from_world_rotation,
-        cam_from_world_translation,
-        camera_params);
-  }
 
-  if (problem.NumResiduals() > 0) {
-    SetQuaternionManifold(&problem, cam_from_world_rotation);
-
-    // Camera parameterization.
-    if (!options.refine_focal_length && !options.refine_extra_params) {
-      problem.SetParameterBlockConstant(camera->params.data());
-    } else {
-      // Always set the principal point as fixed.
-      std::vector<int> camera_params_const;
-      const std::span<const size_t> principal_point_idxs =
-          camera->PrincipalPointIdxs();
-      camera_params_const.insert(camera_params_const.end(),
-                                 principal_point_idxs.begin(),
-                                 principal_point_idxs.end());
-
-      if (!options.refine_focal_length) {
-        const std::span<const size_t> focal_length_idxs = camera->FocalLengthIdxs();
-        camera_params_const.insert(camera_params_const.end(),
-                                   focal_length_idxs.begin(),
-                                   focal_length_idxs.end());
-      }
-
-      if (!options.refine_extra_params) {
-        const std::span<const size_t> extra_params_idxs = camera->ExtraParamsIdxs();
-        camera_params_const.insert(camera_params_const.end(),
-                                   extra_params_idxs.begin(),
-                                   extra_params_idxs.end());
-      }
-
-      if (camera_params_const.size() == camera->params.size()) {
-        problem.SetParameterBlockConstant(camera->params.data());
-      } else {
-        SetSubsetManifold(static_cast<int>(camera->params.size()),
-                          camera_params_const,
-                          &problem,
-                          camera->params.data());
-      }
-    }
-  }
-
-  ceres::Solver::Options solver_options;
-  solver_options.gradient_tolerance = options.gradient_tolerance;
-  solver_options.max_num_iterations = options.max_num_iterations;
-  solver_options.linear_solver_type = ceres::DENSE_QR;
-  solver_options.logging_type = ceres::LoggingType::SILENT;
-
-  // The overhead of creating threads is too large.
-  solver_options.num_threads = 1;
-#if CERES_VERSION_MAJOR < 2
-  solver_options.num_linear_solver_threads = 1;
-#endif  // CERES_VERSION_MAJOR
-
-  ceres::Solver::Summary summary;
-  ceres::Solve(solver_options, &problem, &summary);
-
-  if (options.print_summary || VLOG_IS_ON(1)) {
-    PrintSolverSummary(summary, "Pose refinement report");
-  }
-
-  if (!summary.IsSolutionUsable()) {
-    return false;
-  }
-
-  if (problem.NumResiduals() > 0 && cam_from_world_cov != nullptr) {
-    ceres::Covariance::Options ceres_options;
-    ceres::Covariance covariance(ceres_options);
-    std::vector<const double*> parameter_blocks = {cam_from_world_rotation,
-                                                   cam_from_world_translation};
-    if (!covariance.Compute(parameter_blocks, &problem)) {
-      return false;
-    }
-    // The rotation covariance is estimated in the tangent space of the
-    // quaternion, which corresponds to the 3-DoF axis-angle local
-    // parameterization.
-    covariance.GetCovarianceMatrixInTangentSpace(parameter_blocks,
-                                                 cam_from_world_cov->data());
-  }
-
-  return true;
-}
-
-bool RefineRelativePose(const ceres::Solver::Options& options,
-                        const std::vector<Eigen::Vector2d>& points1,
-                        const std::vector<Eigen::Vector2d>& points2,
-                        Rigid3d* cam2_from_cam1) {
-  THROW_CHECK_EQ(points1.size(), points2.size());
-
-  // CostFunction assumes unit quaternions.
-  cam2_from_cam1->rotation.normalize();
-
-  double* cam2_from_cam1_rotation = cam2_from_cam1->rotation.coeffs().data();
-  double* cam2_from_cam1_translation = cam2_from_cam1->translation.data();
-
-  const double kMaxL2Error = 1.0;
-  ceres::LossFunction* loss_function = new ceres::CauchyLoss(kMaxL2Error);
-
-  ceres::Problem problem;
-
-  for (size_t i = 0; i < points1.size(); ++i) {
-    ceres::CostFunction* cost_function =
-        SampsonErrorCostFunctor::Create(points1[i], points2[i]);
-    problem.AddResidualBlock(cost_function,
-                             loss_function,
-                             cam2_from_cam1_rotation,
-                             cam2_from_cam1_translation);
-  }
-
-  SetQuaternionManifold(&problem, cam2_from_cam1_rotation);
-  SetSphereManifold<3>(&problem, cam2_from_cam1_translation);
-
-  ceres::Solver::Summary summary;
-  ceres::Solve(options, &problem, &summary);
-
-  return summary.IsSolutionUsable();
-}
-
-bool RefineEssentialMatrix(const ceres::Solver::Options& options,
-                           const std::vector<Eigen::Vector2d>& points1,
-                           const std::vector<Eigen::Vector2d>& points2,
-                           const std::vector<char>& inlier_mask,
-                           Eigen::Matrix3d* E) {
-  THROW_CHECK_EQ(points1.size(), points2.size());
-  THROW_CHECK_EQ(points1.size(), inlier_mask.size());
-
-  // Extract inlier points for decomposing the essential matrix into
-  // rotation and translation components.
-
-  size_t num_inliers = 0;
-  for (const auto inlier : inlier_mask) {
-    if (inlier) {
-      num_inliers += 1;
-    }
-  }
-
-  std::vector<Eigen::Vector2d> inlier_points1(num_inliers);
-  std::vector<Eigen::Vector2d> inlier_points2(num_inliers);
-  size_t j = 0;
-  for (size_t i = 0; i < inlier_mask.size(); ++i) {
-    if (inlier_mask[i]) {
-      inlier_points1[j] = points1[i];
-      inlier_points2[j] = points2[i];
-      j += 1;
-    }
-  }
-
-  // Extract relative pose from essential matrix.
-  Rigid3d cam2_from_cam1;
-  std::vector<Eigen::Vector3d> points3D;
-  PoseFromEssentialMatrix(
-      *E, inlier_points1, inlier_points2, &cam2_from_cam1, &points3D);
-
-  if (points3D.size() == 0) {
-    return false;
-  }
-
-  // Refine essential matrix, use all points so that refinement is able to
-  // consider points as inliers that were originally outliers.
-
-  const bool refinement_success = RefineRelativePose(
-      options, inlier_points1, inlier_points2, &cam2_from_cam1);
-
-  if (!refinement_success) {
-    return false;
-  }
-
-  *E = EssentialMatrixFromPose(cam2_from_cam1);
-
-  return true;
-}
-
-}  // namespace glomap
+} // namespace glomap

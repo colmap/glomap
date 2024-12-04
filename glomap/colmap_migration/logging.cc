@@ -27,23 +27,25 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include <stdexcept>
-#include <glog/logging.h>
 #include "glomap/colmap_migration/string.h"
+#include <glog/logging.h>
+
+#include <stdexcept>
 
 namespace glomap {
 
     void InitializeGlog(char** argv) {
-        #ifndef _MSC_VER  // Broken in MSVC
-          google::InstallFailureSignalHandler();
-        #endif
+#ifndef _MSC_VER // Broken in MSVC
+        google::InstallFailureSignalHandler();
+#endif
         google::InitGoogleLogging(argv[0]);
     }
 
     const char* __GetConstFileBaseName(const char* file) {
         const char* base = strrchr(file, '/');
-        if (!base) {
-          base = strrchr(file, '\\');
+        if (!base)
+        {
+            base = strrchr(file, '\\');
         }
         return base ? (base + 1) : file;
     }

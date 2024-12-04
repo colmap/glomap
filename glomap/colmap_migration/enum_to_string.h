@@ -61,34 +61,43 @@ namespace glomap {
 #define ENUM_STRING_3(start_idx, x1, x2, x3) ENUM_STRING_2(start_idx, x1, x2) case ((start_idx) + 2) : return #x3;
 #define ENUM_STRING_4(start_idx, x1, x2, x3, x4) \
     ENUM_STRING_3(start_idx, x1, x2, x3)         \
-    case ((start_idx) + 3) : return #x4;
+    case ((start_idx) + 3):                      \
+        return #x4;
 #define ENUM_STRING_5(start_idx, x1, x2, x3, x4, x5) \
     ENUM_STRING_4(start_idx, x1, x2, x3, x4)         \
-    case ((start_idx) + 4) : return #x5;
+    case ((start_idx) + 4):                          \
+        return #x5;
 #define ENUM_STRING_6(start_idx, x1, x2, x3, x4, x5, x6) \
     ENUM_STRING_5(start_idx, x1, x2, x3, x4, x5)         \
-    case ((start_idx) + 5) : return #x6;
+    case ((start_idx) + 5):                              \
+        return #x6;
 #define ENUM_STRING_7(start_idx, x1, x2, x3, x4, x5, x6, x7) \
     ENUM_STRING_6(start_idx, x1, x2, x3, x4, x5, x6)         \
-    case ((start_idx) + 6) : return #x7;
+    case ((start_idx) + 6):                                  \
+        return #x7;
 #define ENUM_STRING_8(start_idx, x1, x2, x3, x4, x5, x6, x7, x8) \
     ENUM_STRING_7(start_idx, x1, x2, x3, x4, x5, x6, x7)         \
-    case ((start_idx) + 7) : return #x8;
+    case ((start_idx) + 7):                                      \
+        return #x8;
 #define ENUM_STRING_9(start_idx, x1, x2, x3, x4, x5, x6, x7, x8, x9) \
     ENUM_STRING_8(start_idx, x1, x2, x3, x4, x5, x6, x7, x8)         \
-    case ((start_idx) + 8) : return #x9;
+    case ((start_idx) + 8):                                          \
+        return #x9;
 #define ENUM_STRING_10(start_idx, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10) \
     ENUM_STRING_9(start_idx, x1, x2, x3, x4, x5, x6, x7, x8, x9)           \
-    case ((start_idx) + 9) : return #x10;
+    case ((start_idx) + 9):                                                \
+        return #x10;
 #define ENUM_STRING_11(start_idx, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11) \
     ENUM_STRING_10(start_idx, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10)          \
-    case ((start_idx) + 10) : return #x11;
+    case ((start_idx) + 10):                                                    \
+        return #x11;
 #define ENUM_STRING_12(start_idx, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12) \
     ENUM_STRING_11(start_idx, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11)          \
-    case ((start_idx) + 11) : return #x12;
+    case ((start_idx) + 11):                                                         \
+        return #x12;
 #define ENUM_STRING_13(start_idx, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13) \
     ENUM_STRING_12(start_idx, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12)          \
-    case ((start_idx) + 12) : return #x13;
+    case ((start_idx) + 12): return #x13;
 
 // Helper macros for macro selection
 #define _ENUM_VALUES_(N, start_idx, ...)   ENUM_VALUE_##N(start_idx, __VA_ARGS__)

@@ -30,17 +30,16 @@
 #include "glomap/colmap_migration/two_view_geometry_estimator.h"
 
 #include "glomap/colmap_migration/camera.h"
-#include "glomap/colmap_migration/pose_estimator.h"
-#include "glomap/colmap_migration/essential_matrix_estimator.h"
 #include "glomap/colmap_migration/essential_matrix.h"
+#include "glomap/colmap_migration/essential_matrix_estimator.h"
 #include "glomap/colmap_migration/fundamental_matrix.h"
 #include "glomap/colmap_migration/homography_matrix_estimator.h"
 #include "glomap/colmap_migration/loransac.h"
+#include "glomap/colmap_migration/pose_estimator.h"
 #include "glomap/colmap_migration/ransac.h"
 #include "glomap/colmap_migration/string.h"
 #include "glomap/colmap_migration/translation_transform.h"
 #include "glomap/colmap_migration/triangulation.h"
-
 #include <set>
 
 namespace glomap {
@@ -67,16 +66,19 @@ namespace glomap {
             THROW_CHECK_GE(matches.size(), inlier_matches.size());
 
             std::set<std::pair<point2D_t, point2D_t>> inlier_matches_set;
-            for (const auto& match : inlier_matches) {
+            for (const auto& match : inlier_matches)
+            {
                 inlier_matches_set.emplace(match.point2D_idx1, match.point2D_idx2);
             }
 
             FeatureMatches outlier_matches;
             outlier_matches.reserve(matches.size() - inlier_matches.size());
 
-            for (const auto& match : matches) {
+            for (const auto& match : matches)
+            {
                 if (inlier_matches_set.count(
-                        std::make_pair(match.point2D_idx1, match.point2D_idx2)) == 0) {
+                        std::make_pair(match.point2D_idx1, match.point2D_idx2)) == 0)
+                {
                     outlier_matches.push_back(match);
                 }
             }

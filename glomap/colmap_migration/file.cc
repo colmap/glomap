@@ -28,6 +28,7 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 #include "glomap/colmap_migration/file.h"
+
 #include "glomap/colmap_migration/string.h"
 
 namespace glomap {

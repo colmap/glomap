@@ -31,174 +31,173 @@
 
 #include "glomap/colmap_migration/eigen_alignment.h"
 #include "glomap/colmap_migration/types.h"
+#include <Eigen/Core>
 
 #include <array>
 #include <vector>
 
-#include <Eigen/Core>
-
 namespace glomap {
 
-class P3PEstimator {
- public:
-  // The 2D image feature observations.
-  // TODO(jsch): Possibly change to 3D ray directions and express residuals as
-  // angular errors. Needs some evaluation.
-  typedef Eigen::Vector2d X_t;
-  // The observed 3D features in the world frame.
-  typedef Eigen::Vector3d Y_t;
-  // The transformation from the world to the camera frame.
-  typedef Eigen::Matrix3x4d M_t;
+    class P3PEstimator {
+    public:
+        // The 2D image feature observations.
+        // TODO(jsch): Possibly change to 3D ray directions and express residuals as
+        // angular errors. Needs some evaluation.
+        typedef Eigen::Vector2d X_t;
+        // The observed 3D features in the world frame.
+        typedef Eigen::Vector3d Y_t;
+        // The transformation from the world to the camera frame.
+        typedef Eigen::Matrix3x4d M_t;
 
-  // The minimum number of samples needed to estimate a model.
-  static const int kMinNumSamples = 3;
+        // The minimum number of samples needed to estimate a model.
+        static const int kMinNumSamples = 3;
 
-  // Estimate the most probable solution of the P3P problem from a set of
-  // three 2D-3D point correspondences.
-  //
-  // @param points2D   Normalized 2D image points as 3x2 matrix.
-  // @param points3D   3D world points as 3x3 matrix.
-  //
-  // @return           Most probable pose as length-1 vector of a 3x4 matrix.
-  static void Estimate(const std::vector<X_t>& points2D,
-                       const std::vector<Y_t>& points3D,
-                       std::vector<M_t>* cams_from_world);
+        // Estimate the most probable solution of the P3P problem from a set of
+        // three 2D-3D point correspondences.
+        //
+        // @param points2D   Normalized 2D image points as 3x2 matrix.
+        // @param points3D   3D world points as 3x3 matrix.
+        //
+        // @return           Most probable pose as length-1 vector of a 3x4 matrix.
+        static void Estimate(const std::vector<X_t>& points2D,
+                             const std::vector<Y_t>& points3D,
+                             std::vector<M_t>* cams_from_world);
 
-  // Calculate the squared reprojection error given a set of 2D-3D point
-  // correspondences and a projection matrix.
-  //
-  // @param points2D        Normalized 2D image points as Nx2 matrix.
-  // @param points3D        3D world points as Nx3 matrix.
-  // @param cam_from_world  3x4 projection matrix.
-  // @param residuals       Output vector of residuals.
-  static void Residuals(const std::vector<X_t>& points2D,
-                        const std::vector<Y_t>& points3D,
-                        const M_t& cam_from_world,
-                        std::vector<double>* residuals);
-};
+        // Calculate the squared reprojection error given a set of 2D-3D point
+        // correspondences and a projection matrix.
+        //
+        // @param points2D        Normalized 2D image points as Nx2 matrix.
+        // @param points3D        3D world points as Nx3 matrix.
+        // @param cam_from_world  3x4 projection matrix.
+        // @param residuals       Output vector of residuals.
+        static void Residuals(const std::vector<X_t>& points2D,
+                              const std::vector<Y_t>& points3D,
+                              const M_t& cam_from_world,
+                              std::vector<double>* residuals);
+    };
 
-// Minimal solver for 6-DOF pose and focal length.
-class P4PFEstimator {
- public:
-  // The 2D image feature observations.
-  // Expected to be normalized by the principal point.
-  typedef Eigen::Vector2d X_t;
-  // The observed 3D features in the world frame.
-  typedef Eigen::Vector3d Y_t;
-  struct M_t {
-    // The transformation from the world to the camera frame.
-    Eigen::Matrix3x4d cam_from_world;
-    // The focal length of the camera.
-    double focal_length = 0.;
-  };
+    // Minimal solver for 6-DOF pose and focal length.
+    class P4PFEstimator {
+    public:
+        // The 2D image feature observations.
+        // Expected to be normalized by the principal point.
+        typedef Eigen::Vector2d X_t;
+        // The observed 3D features in the world frame.
+        typedef Eigen::Vector3d Y_t;
+        struct M_t {
+            // The transformation from the world to the camera frame.
+            Eigen::Matrix3x4d cam_from_world;
+            // The focal length of the camera.
+            double focal_length = 0.;
+        };
 
-  static const int kMinNumSamples = 4;
+        static const int kMinNumSamples = 4;
 
-  static void Estimate(const std::vector<X_t>& points2D,
-                       const std::vector<Y_t>& points3D,
-                       std::vector<M_t>* models);
+        static void Estimate(const std::vector<X_t>& points2D,
+                             const std::vector<Y_t>& points3D,
+                             std::vector<M_t>* models);
 
-  static void Residuals(const std::vector<X_t>& points2D,
-                        const std::vector<Y_t>& points3D,
-                        const M_t& model,
-                        std::vector<double>* residuals);
-};
+        static void Residuals(const std::vector<X_t>& points2D,
+                              const std::vector<Y_t>& points3D,
+                              const M_t& model,
+                              std::vector<double>* residuals);
+    };
 
-// EPNP solver for the PNP (Perspective-N-Point) problem. The solver needs a
-// minimum of 4 2D-3D correspondences.
-//
-// The algorithm is based on the following paper:
-//
-//    Lepetit, Vincent, Francesc Moreno-Noguer, and Pascal Fua.
-//    "Epnp: An accurate o (n) solution to the pnp problem."
-//    International journal of computer vision 81.2 (2009): 155-166.
-//
-// The implementation is based on their original open-source release, but is
-// ported to Eigen and contains several improvements over the original code.
-class EPNPEstimator {
- public:
-  // The 2D image feature observations.
-  typedef Eigen::Vector2d X_t;
-  // The observed 3D features in the world frame.
-  typedef Eigen::Vector3d Y_t;
-  // The transformation from the world to the camera frame.
-  typedef Eigen::Matrix3x4d M_t;
+    // EPNP solver for the PNP (Perspective-N-Point) problem. The solver needs a
+    // minimum of 4 2D-3D correspondences.
+    //
+    // The algorithm is based on the following paper:
+    //
+    //    Lepetit, Vincent, Francesc Moreno-Noguer, and Pascal Fua.
+    //    "Epnp: An accurate o (n) solution to the pnp problem."
+    //    International journal of computer vision 81.2 (2009): 155-166.
+    //
+    // The implementation is based on their original open-source release, but is
+    // ported to Eigen and contains several improvements over the original code.
+    class EPNPEstimator {
+    public:
+        // The 2D image feature observations.
+        typedef Eigen::Vector2d X_t;
+        // The observed 3D features in the world frame.
+        typedef Eigen::Vector3d Y_t;
+        // The transformation from the world to the camera frame.
+        typedef Eigen::Matrix3x4d M_t;
 
-  // The minimum number of samples needed to estimate a model.
-  static const int kMinNumSamples = 4;
+        // The minimum number of samples needed to estimate a model.
+        static const int kMinNumSamples = 4;
 
-  // Estimate the most probable solution of the P3P problem from a set of
-  // three 2D-3D point correspondences.
-  //
-  // @param points2D   Normalized 2D image points as 3x2 matrix.
-  // @param points3D   3D world points as 3x3 matrix.
-  //
-  // @return           Most probable pose as length-1 vector of a 3x4 matrix.
-  static void Estimate(const std::vector<X_t>& points2D,
-                       const std::vector<Y_t>& points3D,
-                       std::vector<M_t>* cams_from_world);
+        // Estimate the most probable solution of the P3P problem from a set of
+        // three 2D-3D point correspondences.
+        //
+        // @param points2D   Normalized 2D image points as 3x2 matrix.
+        // @param points3D   3D world points as 3x3 matrix.
+        //
+        // @return           Most probable pose as length-1 vector of a 3x4 matrix.
+        static void Estimate(const std::vector<X_t>& points2D,
+                             const std::vector<Y_t>& points3D,
+                             std::vector<M_t>* cams_from_world);
 
-  // Calculate the squared reprojection error given a set of 2D-3D point
-  // correspondences and a projection matrix.
-  //
-  // @param points2D        Normalized 2D image points as Nx2 matrix.
-  // @param points3D        3D world points as Nx3 matrix.
-  // @param cam_from_world  3x4 projection matrix.
-  // @param residuals       Output vector of residuals.
-  static void Residuals(const std::vector<X_t>& points2D,
-                        const std::vector<Y_t>& points3D,
-                        const M_t& cam_from_world,
-                        std::vector<double>* residuals);
+        // Calculate the squared reprojection error given a set of 2D-3D point
+        // correspondences and a projection matrix.
+        //
+        // @param points2D        Normalized 2D image points as Nx2 matrix.
+        // @param points3D        3D world points as Nx3 matrix.
+        // @param cam_from_world  3x4 projection matrix.
+        // @param residuals       Output vector of residuals.
+        static void Residuals(const std::vector<X_t>& points2D,
+                              const std::vector<Y_t>& points3D,
+                              const M_t& cam_from_world,
+                              std::vector<double>* residuals);
 
- private:
-  bool ComputePose(const std::vector<Eigen::Vector2d>& points2D,
-                   const std::vector<Eigen::Vector3d>& points3D,
-                   Eigen::Matrix3x4d* cam_from_world);
+    private:
+        bool ComputePose(const std::vector<Eigen::Vector2d>& points2D,
+                         const std::vector<Eigen::Vector3d>& points3D,
+                         Eigen::Matrix3x4d* cam_from_world);
 
-  void ChooseControlPoints();
-  bool ComputeBarycentricCoordinates();
+        void ChooseControlPoints();
+        bool ComputeBarycentricCoordinates();
 
-  Eigen::Matrix<double, Eigen::Dynamic, 12> ComputeM();
-  Eigen::Matrix<double, 6, 10> ComputeL6x10(
-      const Eigen::Matrix<double, 12, 12>& Ut);
-  Eigen::Matrix<double, 6, 1> ComputeRho();
+        Eigen::Matrix<double, Eigen::Dynamic, 12> ComputeM();
+        Eigen::Matrix<double, 6, 10> ComputeL6x10(
+            const Eigen::Matrix<double, 12, 12>& Ut);
+        Eigen::Matrix<double, 6, 1> ComputeRho();
 
-  void FindBetasApprox1(const Eigen::Matrix<double, 6, 10>& L_6x10,
-                        const Eigen::Matrix<double, 6, 1>& rho,
-                        Eigen::Vector4d* betas);
-  void FindBetasApprox2(const Eigen::Matrix<double, 6, 10>& L_6x10,
-                        const Eigen::Matrix<double, 6, 1>& rho,
-                        Eigen::Vector4d* betas);
-  void FindBetasApprox3(const Eigen::Matrix<double, 6, 10>& L_6x10,
-                        const Eigen::Matrix<double, 6, 1>& rho,
-                        Eigen::Vector4d* betas);
+        void FindBetasApprox1(const Eigen::Matrix<double, 6, 10>& L_6x10,
+                              const Eigen::Matrix<double, 6, 1>& rho,
+                              Eigen::Vector4d* betas);
+        void FindBetasApprox2(const Eigen::Matrix<double, 6, 10>& L_6x10,
+                              const Eigen::Matrix<double, 6, 1>& rho,
+                              Eigen::Vector4d* betas);
+        void FindBetasApprox3(const Eigen::Matrix<double, 6, 10>& L_6x10,
+                              const Eigen::Matrix<double, 6, 1>& rho,
+                              Eigen::Vector4d* betas);
 
-  void RunGaussNewton(const Eigen::Matrix<double, 6, 10>& L_6x10,
-                      const Eigen::Matrix<double, 6, 1>& rho,
-                      Eigen::Vector4d* betas);
+        void RunGaussNewton(const Eigen::Matrix<double, 6, 10>& L_6x10,
+                            const Eigen::Matrix<double, 6, 1>& rho,
+                            Eigen::Vector4d* betas);
 
-  double ComputeRT(const Eigen::Matrix<double, 12, 12>& Ut,
-                   const Eigen::Vector4d& betas,
-                   Eigen::Matrix3d* R,
-                   Eigen::Vector3d* t);
+        double ComputeRT(const Eigen::Matrix<double, 12, 12>& Ut,
+                         const Eigen::Vector4d& betas,
+                         Eigen::Matrix3d* R,
+                         Eigen::Vector3d* t);
 
-  void ComputeCcs(const Eigen::Vector4d& betas,
-                  const Eigen::Matrix<double, 12, 12>& Ut);
-  void ComputePcs();
+        void ComputeCcs(const Eigen::Vector4d& betas,
+                        const Eigen::Matrix<double, 12, 12>& Ut);
+        void ComputePcs();
 
-  void SolveForSign();
+        void SolveForSign();
 
-  void EstimateRT(Eigen::Matrix3d* R, Eigen::Vector3d* t);
+        void EstimateRT(Eigen::Matrix3d* R, Eigen::Vector3d* t);
 
-  double ComputeTotalReprojectionError(const Eigen::Matrix3d& R,
-                                       const Eigen::Vector3d& t);
+        double ComputeTotalReprojectionError(const Eigen::Matrix3d& R,
+                                             const Eigen::Vector3d& t);
 
-  const std::vector<Eigen::Vector2d>* points2D_ = nullptr;
-  const std::vector<Eigen::Vector3d>* points3D_ = nullptr;
-  std::vector<Eigen::Vector3d> pcs_;
-  std::vector<Eigen::Vector4d> alphas_;
-  std::array<Eigen::Vector3d, 4> cws_;
-  std::array<Eigen::Vector3d, 4> ccs_;
-};
+        const std::vector<Eigen::Vector2d>* points2D_ = nullptr;
+        const std::vector<Eigen::Vector3d>* points3D_ = nullptr;
+        std::vector<Eigen::Vector3d> pcs_;
+        std::vector<Eigen::Vector4d> alphas_;
+        std::array<Eigen::Vector3d, 4> cws_;
+        std::array<Eigen::Vector3d, 4> ccs_;
+    };
 
-}  // namespace glomap
+} // namespace glomap

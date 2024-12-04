@@ -146,8 +146,8 @@ namespace glomap {
         {
             auto ite = images.insert(std::make_pair(image_colmap.ImageId(),
                                                     migration::Image(image_colmap.ImageId(),
-                                                          image_colmap.CameraId(),
-                                                          image_colmap.Name())));
+                                                                     image_colmap.CameraId(),
+                                                                     image_colmap.Name())));
 
             migration::Image& image = ite.first->second;
             image.is_registered = image_colmap.HasPose();
@@ -215,7 +215,7 @@ namespace glomap {
             if (image_id == kInvalidImageId)
                 continue;
             auto ite = images.insert(std::make_pair(
-                image_id,  migration::Image(image_id, image.CameraId(), image.Name())));
+                image_id, migration::Image(image_id, image.CameraId(), image.Name())));
             const PosePrior prior = database.ReadPosePrior(image_id);
             if (prior.IsValid())
             {
