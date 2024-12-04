@@ -27,13 +27,13 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "colmap/controllers/incremental_pipeline.h"
+#include "glomap/colmap_migration/incremental_pipeline.h"
 
-#include "colmap/util/file.h"
-#include "colmap/util/misc.h"
-#include "colmap/util/timer.h"
+#include "glomap/colmap_migration/file.h"
+#include "glomap/colmap_migration/misc.h"
+#include "glomap/colmap_migration/timer.h"
 
-namespace colmap {
+namespace glomap {
 namespace {
 
 void IterativeGlobalRefinement(const IncrementalPipelineOptions& options,
@@ -592,4 +592,4 @@ void IncrementalPipeline::TriangulateReconstruction(
   reconstruction->ExtractColorsForAllImages(image_path_);
 }
 
-}  // namespace colmap
+}  // namespace glomap

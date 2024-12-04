@@ -50,6 +50,9 @@ set(SOURCES
     colmap_migration/alignment.cc
     colmap_migration/triangulation_estimator.cc
     colmap_migration/combination_sampler.cc
+    colmap_migration/incremental_pipeline.cc
+    colmap_migration/base_controller.cc
+    colmap_migration/reconstruction_manager.cc
     controllers/global_mapper.cc
     controllers/option_manager.cc
     controllers/track_establishment.cc
@@ -141,6 +144,9 @@ set(HEADERS
     colmap_migration/cost_functions.h
     colmap_migration/manifold.h
     colmap_migration/similarity_transform.h
+    colmap_migration/incremental_pipeline.h
+    colmap_migration/base_controller.h
+    colmap_migration/reconstruction_manager.h
     controllers/global_mapper.h
     controllers/option_manager.h
     controllers/track_establishment.h

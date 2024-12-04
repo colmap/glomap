@@ -29,11 +29,11 @@
 
 #pragma once
 
-#include "colmap/scene/reconstruction_manager.h"
-#include "colmap/sfm/incremental_mapper.h"
-#include "colmap/util/base_controller.h"
+#include "glomap/colmap_migration/reconstruction_manager.h"
+#include "glomap/colmap_migration/incremental_mapper.h"
+#include "glomap/colmap_migration/base_controller.h"
 
-namespace colmap {
+namespace glomap {
 
 // NOLINTNEXTLINE(clang-analyzer-optin.performance.Padding)
 struct IncrementalPipelineOptions {
@@ -220,4 +220,4 @@ class IncrementalPipeline : public BaseController {
   std::shared_ptr<class DatabaseCache> database_cache_;
 };
 
-}  // namespace colmap
+}  // namespace glomap
