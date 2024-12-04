@@ -28,25 +28,24 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 #include <stdexcept>
+#include <glog/logging.h>
+#include "glomap/colmap_migration/string.h"
 
 namespace glomap {
 
     void InitializeGlog(char** argv) {
-        //#ifndef _MSC_VER  // Broken in MSVC
-        //  google::InstallFailureSignalHandler();
-        //#endif
-        //  google::InitGoogleLogging(argv[0]);
-        throw std::runtime_error("Not implemented");
+        #ifndef _MSC_VER  // Broken in MSVC
+          google::InstallFailureSignalHandler();
+        #endif
+        google::InitGoogleLogging(argv[0]);
     }
 
     const char* __GetConstFileBaseName(const char* file) {
-        // const char* base = strrchr(file, '/');
-        // if (!base) {
-        //   base = strrchr(file, '\\');
-        // }
-        // return base ? (base + 1) : file;
-        throw std::runtime_error("Not implemented");
-        return file;
+        const char* base = strrchr(file, '/');
+        if (!base) {
+          base = strrchr(file, '\\');
+        }
+        return base ? (base + 1) : file;
     }
 
     bool __CheckOptionImpl(const char* file,
@@ -58,12 +57,11 @@ namespace glomap {
             return true;
         } else
         {
-            //;LOG(ERROR) << StringPrintf("[%s:%d] Check failed: %s",
-            //;                           __GetConstFileBaseName(file),
-            //;                           line,
-            //;                           expr_str);
+            LOG(ERROR) << StringPrintf("[%s:%d] Check failed: %s",
+                                       __GetConstFileBaseName(file),
+                                       line,
+                                       expr_str);
 
-            throw std::runtime_error("Not implemented");
             return false;
         }
     }
