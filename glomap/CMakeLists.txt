@@ -42,6 +42,14 @@ set(SOURCES
     colmap_migration/database_sensor.cc
     colmap_migration/timer.cc
     colmap_migration/threading.cc
+    colmap_migration/bundle_adjustment.cc
+    colmap_migration/camera_rig.cc
+    colmap_migration/incremental_mapper.cc
+    colmap_migration/incremental_triangulator.cc
+    colmap_migration/observation_manager.cc
+    colmap_migration/alignment.cc
+    colmap_migration/triangulation_estimator.cc
+    colmap_migration/combination_sampler.cc
     controllers/global_mapper.cc
     controllers/option_manager.cc
     controllers/track_establishment.cc
@@ -122,6 +130,17 @@ set(HEADERS
     colmap_migration/database_sensor.h
     colmap_migration/timer.h
     colmap_migration/threading.h
+    colmap_migration/bundle_adjustment.h
+    colmap_migration/camera_rig.h
+    colmap_migration/incremental_mapper.h
+    colmap_migration/incremental_triangulator.h
+    colmap_migration/observation_manager.h
+    colmap_migration/alignment.h
+    colmap_migration/triangulation_estimator.h
+    colmap_migration/combination_sampler.h
+    colmap_migration/cost_functions.h
+    colmap_migration/manifold.h
+    colmap_migration/similarity_transform.h
     controllers/global_mapper.h
     controllers/option_manager.h
     controllers/track_establishment.h

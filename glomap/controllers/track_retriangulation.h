@@ -2,7 +2,7 @@
 #pragma once
 
 #include "glomap/scene/types_sfm.h"
-#include <colmap/scene/database.h>
+#include <glomap/colmap_migration/database.h>
 
 namespace glomap {
 

@@ -1,8 +1,10 @@
 #include "view_graph_manipulation.h"
 
-#include "glomap/math/two_view_geometry.h"
+#include "glomap/colmap_migration/two_view_geometry.h"
+#include "glomap/colmap_migration/two_view_geometry_estimator.h"
 #include "glomap/math/union_find.h"
-#include <colmap/util/threading.h>
+#include "glomap/math/two_view_geometry.h"
+#include <glomap/colmap_migration/threading.h>
 
 namespace glomap {
 
@@ -122,6 +124,7 @@ namespace glomap {
                     continue;
 
                 // If the number of inliers < 0.75 of the threshold, skip
+                // #TODO: Check shadowing status variable here
                 bool status = false;
                 status = status || (criteria == INLIER_NUM &&
                                     image_pair.inliers.size() < 0.75 * min_thres);
@@ -211,13 +214,13 @@ namespace glomap {
             if (!camera1.has_prior_focal_length || !camera2.has_prior_focal_length)
                 continue;
 
-            if (image_pair.config == colmap::TwoViewGeometry::CALIBRATED)
+            if (image_pair.config == TwoViewGeometry::CALIBRATED)
             {
                 camera_counter[camera_id1].first++;
                 camera_counter[camera_id2].first++;
                 camera_counter[camera_id1].second++;
                 camera_counter[camera_id2].second++;
-            } else if (image_pair.config == colmap::TwoViewGeometry::UNCALIBRATED)
+            } else if (image_pair.config == TwoViewGeometry::UNCALIBRATED)
             {
                 camera_counter[camera_id1].first++;
                 camera_counter[camera_id2].first++;
@@ -245,7 +248,7 @@ namespace glomap {
         {
             if (image_pair.is_valid == false)
                 continue;
-            if (image_pair.config != colmap::TwoViewGeometry::UNCALIBRATED)
+            if (image_pair.config != TwoViewGeometry::UNCALIBRATED)
                 continue;
 
             camera_t camera_id1 = images.at(image_pair.image_id1).camera_id;
@@ -258,7 +261,7 @@ namespace glomap {
 
             if (camera_validity[camera_id1] && camera_validity[camera_id2])
             {
-                image_pair.config = colmap::TwoViewGeometry::CALIBRATED;
+                image_pair.config = TwoViewGeometry::CALIBRATED;
                 FundamentalFromMotionAndCameras(
                     camera1, camera2, image_pair.cam2_from_cam1, &image_pair.F);
             }
@@ -285,7 +288,7 @@ namespace glomap {
         const int64_t num_image_pairs = image_pair_ids.size();
         LOG(INFO) << "Decompose relative pose for " << num_image_pairs << " pairs";
 
-        colmap::ThreadPool thread_pool(colmap::ThreadPool::kMaxNumThreads);
+        ThreadPool thread_pool(ThreadPool::kMaxNumThreads);
         for (int64_t idx = 0; idx < num_image_pairs; idx++)
         {
             thread_pool.AddTask([&, idx]() {
@@ -297,24 +300,24 @@ namespace glomap {
                 camera_t camera_id2 = images.at(image_id2).camera_id;
 
                 // Use the two-view geometry to re-estimate the relative pose
-                colmap::TwoViewGeometry two_view_geometry;
+                TwoViewGeometry two_view_geometry;
                 two_view_geometry.E = image_pair.E;
                 two_view_geometry.F = image_pair.F;
                 two_view_geometry.H = image_pair.H;
                 two_view_geometry.config = image_pair.config;
 
-                colmap::EstimateTwoViewGeometryPose(cameras[camera_id1],
+                EstimateTwoViewGeometryPose(cameras[camera_id1],
                                                     images[image_id1].features,
                                                     cameras[camera_id2],
                                                     images[image_id2].features,
                                                     &two_view_geometry);
 
                 // if it planar, then use the estimated relative pose
-                if (image_pair.config == colmap::TwoViewGeometry::PLANAR &&
+                if (image_pair.config == TwoViewGeometry::PLANAR &&
                     cameras[camera_id1].has_prior_focal_length &&
                     cameras[camera_id2].has_prior_focal_length)
                 {
-                    image_pair.config = colmap::TwoViewGeometry::CALIBRATED;
+                    image_pair.config = TwoViewGeometry::CALIBRATED;
                     return;
                 } else if (!(cameras[camera_id1].has_prior_focal_length &&
                              cameras[camera_id2].has_prior_focal_length))
@@ -337,8 +340,8 @@ namespace glomap {
         for (size_t idx = 0; idx < image_pair_ids.size(); idx++)
         {
             ImagePair& image_pair = view_graph.image_pairs.at(image_pair_ids[idx]);
-            if (image_pair.config != colmap::TwoViewGeometry::CALIBRATED &&
-                image_pair.config != colmap::TwoViewGeometry::PLANAR_OR_PANORAMIC)
+            if (image_pair.config != TwoViewGeometry::CALIBRATED &&
+                image_pair.config != TwoViewGeometry::PLANAR_OR_PANORAMIC)
                 counter++;
         }
         LOG(INFO) << "Decompose relative pose done. " << counter

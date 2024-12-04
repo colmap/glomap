@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <colmap/util/logging.h>
+#include <glomap/colmap_migration/logging.h>
 #include <Eigen/Cholesky>
 #include <Eigen/CholmodSupport>
 #include <Eigen/Core>

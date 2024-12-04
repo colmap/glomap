@@ -2,7 +2,7 @@
 
 #include "glomap/estimators/cost_function.h"
 #include "glomap/math/two_view_geometry.h"
-#include <colmap/scene/two_view_geometry.h>
+#include <glomap/colmap_migration/two_view_geometry.h>
 
 #include <thread>
 
@@ -72,8 +72,8 @@ namespace glomap {
         const std::unordered_map<image_t, Image>& images) {
         for (auto& [image_pair_id, image_pair] : view_graph.image_pairs)
         {
-            if (image_pair.config != colmap::TwoViewGeometry::CALIBRATED &&
-                image_pair.config != colmap::TwoViewGeometry::UNCALIBRATED)
+            if (image_pair.config != TwoViewGeometry::CALIBRATED &&
+                image_pair.config != TwoViewGeometry::UNCALIBRATED)
                 continue;
             if (image_pair.is_valid == false)
                 continue;
@@ -176,8 +176,8 @@ namespace glomap {
 
         for (auto& [image_pair_id, image_pair] : view_graph.image_pairs)
         {
-            if (image_pair.config != colmap::TwoViewGeometry::CALIBRATED &&
-                image_pair.config != colmap::TwoViewGeometry::UNCALIBRATED)
+            if (image_pair.config != TwoViewGeometry::CALIBRATED &&
+                image_pair.config != TwoViewGeometry::UNCALIBRATED)
                 continue;
             if (image_pair.is_valid == false)
                 continue;

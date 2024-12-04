@@ -277,4 +277,4 @@ int GetEffectiveNumThreads(const int num_threads) {
   return num_effective_threads;
 }
 
-}  // namespace colmap
+}  // namespace glomap

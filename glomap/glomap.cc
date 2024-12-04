@@ -1,5 +1,5 @@
 #include "glomap/exe/global_mapper.h"
-#include <colmap/util/logging.h>
+#include <glomap/colmap_migration/logging.h>
 #include <torch/torch.h>
 
 #include <iostream>

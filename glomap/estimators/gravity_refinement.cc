@@ -1,8 +1,7 @@
 #include "gravity_refinement.h"
 
 #include "glomap/estimators/cost_function.h"
-#include "glomap/math/gravity.h"
-#include <colmap/estimators/manifold.h>
+#include <glomap/colmap_migration/manifold.h>
 
 namespace glomap {
     void GravityRefiner::RefineGravity(const ViewGraph& view_graph,
@@ -80,7 +79,7 @@ namespace glomap {
                 continue;
 
             // Then, run refinment
-            colmap::SetSphereManifold<3>(&problem, gravity.data());
+            SetSphereManifold<3>(&problem, gravity.data());
             ceres::Solver::Summary summary_solver;
             ceres::Solve(options_.solver_options, &problem, &summary_solver);
 

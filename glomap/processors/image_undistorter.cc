@@ -1,6 +1,6 @@
 #include "glomap/processors/image_undistorter.h"
 
-#include <colmap/util/threading.h>
+#include <glomap/colmap_migration/threading.h>
 
 namespace glomap {
 
@@ -16,7 +16,7 @@ namespace glomap {
             image_ids.push_back(image_id);
         }
 
-        colmap::ThreadPool thread_pool(colmap::ThreadPool::kMaxNumThreads);
+        ThreadPool thread_pool(ThreadPool::kMaxNumThreads);
 
         LOG(INFO) << "Undistorting images..";
         const int num_images = image_ids.size();

@@ -2,7 +2,7 @@
 
 #include "glomap/scene/types.h"
 #include "glomap/types.h"
-#include <colmap/estimators/two_view_geometry.h>
+#include "glomap/colmap_migration/two_view_geometry_estimator.h"
 #include <Eigen/Core>
 
 namespace glomap {
@@ -30,7 +30,7 @@ namespace glomap {
         double weight = 0;
 
         // one of `ConfigurationType`.
-        int config = colmap::TwoViewGeometry::UNDEFINED;
+        int config = TwoViewGeometry::UNDEFINED;
 
         // Essential matrix.
         Eigen::Matrix3d E = Eigen::Matrix3d::Zero();

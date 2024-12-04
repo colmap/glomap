@@ -2,8 +2,8 @@
 
 #include "glomap/io/colmap_converter.h"
 #include <colmap/controllers/incremental_pipeline.h>
-#include <colmap/estimators/bundle_adjustment.h>
-#include <colmap/scene/database_cache.h>
+#include <glomap/colmap_migration/bundle_adjustment.h>
+#include <glomap/colmap_migration/database_cache.h>
 #include <set>
 
 namespace glomap {

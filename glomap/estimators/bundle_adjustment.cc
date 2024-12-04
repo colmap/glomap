@@ -1,8 +1,7 @@
 #include "bundle_adjustment.h"
 
-#include <colmap/estimators/cost_functions.h>
-#include <colmap/estimators/manifold.h>
-#include <colmap/sensor/models.h>
+#include <glomap/colmap_migration/cost_functions.h>
+#include <glomap/colmap_migration/manifold.h>
 
 namespace glomap {
 
@@ -76,7 +75,7 @@ namespace glomap {
                 Image& image = images[observation.first];
 
                 ceres::CostFunction* cost_function =
-                    colmap::CreateCameraCostFunction<colmap::ReprojErrorCostFunctor>(
+                    CreateCameraCostFunction<ReprojErrorCostFunctor>(
                         cameras[image.camera_id].model_id,
                         image.features[observation.second]);
 
@@ -92,7 +91,7 @@ namespace glomap {
                 } else
                 {
                     LOG(ERROR) << "Camera model not supported: "
-                               << colmap::CameraModelIdToName(
+                               << CameraModelIdToName(
                                       cameras[image.camera_id].model_id);
                 }
             }
@@ -152,7 +151,7 @@ namespace glomap {
             if (problem_->HasParameterBlock(
                     image.cam_from_world.rotation.coeffs().data()))
             {
-                colmap::SetQuaternionManifold(
+                SetQuaternionManifold(
                     problem_.get(), image.cam_from_world.rotation.coeffs().data());
 
                 if (counter == 0)
@@ -187,7 +186,7 @@ namespace glomap {
                     {
                         principal_point_idxs.push_back(idx);
                     }
-                    colmap::SetSubsetManifold(camera.params.size(),
+                    SetSubsetManifold(camera.params.size(),
                                               principal_point_idxs,
                                               problem_.get(),
                                               camera.params.data());
