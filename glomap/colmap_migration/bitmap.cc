@@ -34,8 +34,8 @@
 #include "glomap/colmap_migration/logging.h"
 #include "glomap/colmap_migration/math.h"
 #include "glomap/colmap_migration/misc.h"
-#include "thirdparty/VLFeat/imopv.h"
 #include <regex>
+#include <exception>
 
 #include <unordered_map>
 
@@ -438,6 +438,7 @@ namespace glomap {
 
     bool Bitmap::ExifFocalLength(double* focal_length) const {
         const double max_size = std::max(width_, height_);
+        throw std::runtime_error("ExifFocalLength not implemented.");
 
         //////////////////////////////////////////////////////////////////////////////
         // Focal length in 35mm equivalent
@@ -482,13 +483,14 @@ namespace glomap {
                 if (ReadExifTag(handle_.ptr, FIMD_EXIF_MAIN, "Make", &make_str) &&
                     ReadExifTag(handle_.ptr, FIMD_EXIF_MAIN, "Model", &model_str))
                 {
-                    CameraDatabase database;
-                    double sensor_width;
-                    if (database.QuerySensorWidth(make_str, model_str, &sensor_width))
-                    {
-                        *focal_length = focal_length_mm / sensor_width * max_size;
-                        return true;
-                    }
+                    throw std::runtime_error("CameraDatabase not implemented.");
+                    //CameraDatabase database;
+                    //double sensor_width;
+                    //if (database.QuerySensorWidth(make_str, model_str, &sensor_width))
+                    //{
+                    //    *focal_length = focal_length_mm / sensor_width * max_size;
+                    //    return true;
+                    //}
                 }
 
                 // Extract sensor width from EXIF.
@@ -712,14 +714,15 @@ namespace glomap {
                 }
             }
 
-            vl_imsmooth_f(array_smoothed.data(),
-                          width_,
-                          array.data(),
-                          width_,
-                          height_,
-                          width_,
-                          sigma_x,
-                          sigma_y);
+            throw std::runtime_error("vl_imsmooth_f not implemented.");
+            //vl_imsmooth_f(array_smoothed.data(),
+            //              width_,
+            //              array.data(),
+            //              width_,
+            //              height_,
+            //              width_,
+            //              sigma_x,
+            //              sigma_y);
 
             i = 0;
             for (int y = 0; y < height_; ++y)

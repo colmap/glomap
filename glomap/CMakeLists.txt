@@ -201,6 +201,8 @@ add_library(glomap ${SOURCES} ${HEADERS})
 #    target_link_libraries(glomap PUBLIC colmap)
 #endif()
 
+#add_subdirectory(thirdparty)
+
 if(NOT FETCH_POSELIB)
     target_link_libraries(glomap PUBLIC PoseLib::PoseLib)
 else()
