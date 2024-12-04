@@ -55,6 +55,10 @@ set(SOURCES
     colmap_migration/reconstruction_manager.cc
     colmap_migration/testing.cc
     colmap_migration/synthetic.cc
+    colmap_migration/pose_estimator.cc
+    colmap_migration/absolute_pose.cc
+    colmap_migration/utils.cc
+    colmap_migration/essential_matrix_estimator.cc
     controllers/global_mapper.cc
     controllers/option_manager.cc
     controllers/track_establishment.cc
@@ -151,6 +155,10 @@ set(HEADERS
     colmap_migration/reconstruction_manager.h
     colmap_migration/testing.h
     colmap_migration/synthetic.h
+    colmap_migration/pose_estimator.h
+    colmap_migration/absolute_pose.h
+    colmap_migration/utils.h
+    colmap_migration/essential_matrix_estimator.h
     controllers/global_mapper.h
     controllers/option_manager.h
     controllers/track_establishment.h
@@ -187,11 +195,11 @@ set(HEADERS
 )
 
 add_library(glomap ${SOURCES} ${HEADERS})
-if(NOT FETCH_COLMAP)
-    target_link_libraries(glomap PUBLIC colmap::colmap)
-else()
-    target_link_libraries(glomap PUBLIC colmap)
-endif()
+#if(NOT FETCH_COLMAP)
+#    target_link_libraries(glomap PUBLIC colmap::colmap)
+#else()
+#    target_link_libraries(glomap PUBLIC colmap)
+#endif()
 
 if(NOT FETCH_POSELIB)
     target_link_libraries(glomap PUBLIC PoseLib::PoseLib)
