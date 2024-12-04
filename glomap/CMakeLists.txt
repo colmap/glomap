@@ -195,14 +195,6 @@ set(HEADERS
 )
 
 add_library(glomap ${SOURCES} ${HEADERS})
-#if(NOT FETCH_COLMAP)
-#    target_link_libraries(glomap PUBLIC colmap::colmap)
-#else()
-#    target_link_libraries(glomap PUBLIC colmap)
-#endif()
-
-#add_subdirectory(thirdparty)
-
 if(NOT FETCH_POSELIB)
     target_link_libraries(glomap PUBLIC PoseLib::PoseLib)
 else()
@@ -220,6 +212,8 @@ target_link_libraries(
         Eigen3::Eigen
         Ceres::ceres
         SuiteSparse::CHOLMOD
+        ${SQLite3_LIBRARIES}
+        ${FREEIMAGE_LIBRARIES}
         ${TORCH_LIBRARIES}
         ${BOOST_LIBRARIES}
 )

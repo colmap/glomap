@@ -3,6 +3,8 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 find_package(Eigen3 3.4 REQUIRED)
 find_package(SuiteSparse COMPONENTS CHOLMOD REQUIRED)
 find_package(Ceres REQUIRED COMPONENTS SuiteSparse)
+find_package(FreeImage REQUIRED)
+find_package(SQLite3 REQUIRED)
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     find_package(Glog REQUIRED)
@@ -33,17 +35,3 @@ else()
     find_package(PoseLib REQUIRED)
 endif()
 message(STATUS "Configuring PoseLib... done")
-
-FetchContent_Declare(COLMAP
-    GIT_REPOSITORY    https://github.com/colmap/colmap.git
-    GIT_TAG           78f1eefacae542d753c2e4f6a26771a0d976227d
-    EXCLUDE_FROM_ALL
-)
-message(STATUS "Configuring COLMAP...")
-set(UNINSTALL_ENABLED OFF CACHE INTERNAL "")
-if (FETCH_COLMAP) 
-    FetchContent_MakeAvailable(COLMAP)
-else()
-    find_package(COLMAP REQUIRED)
-endif()
-message(STATUS "Configuring COLMAP... done")
