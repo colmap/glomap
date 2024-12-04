@@ -9,7 +9,7 @@ namespace glomap {
         // Filter relative pose based on rotation angle
         // max_angle: in degree
         static void FilterRotations(ViewGraph& view_graph,
-                                    const std::unordered_map<image_t, Image>& images,
+                                    const std::unordered_map<image_t, migration::Image>& images,
                                     double max_angle = 5.0);
 
         // Filter relative pose based on number of inliers

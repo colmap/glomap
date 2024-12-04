@@ -5,7 +5,7 @@
 
 namespace glomap {
     void GravityRefiner::RefineGravity(const ViewGraph& view_graph,
-                                       std::unordered_map<image_t, Image>& images) {
+                                       std::unordered_map<image_t, migration::Image>& images) {
         const std::unordered_map<image_pair_t, ImagePair>& image_pairs =
             view_graph.image_pairs;
         const std::unordered_map<image_t, std::unordered_set<image_t>>&
@@ -107,7 +107,7 @@ namespace glomap {
 
     void GravityRefiner::IdentifyErrorProneGravity(
         const ViewGraph& view_graph,
-        const std::unordered_map<image_t, Image>& images,
+        const std::unordered_map<image_t, migration::Image>& images,
         std::unordered_set<image_t>& error_prone_images) {
         error_prone_images.clear();
 

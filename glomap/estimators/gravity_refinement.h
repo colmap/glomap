@@ -26,12 +26,12 @@ namespace glomap {
     public:
         GravityRefiner(const GravityRefinerOptions& options) : options_(options) {}
         void RefineGravity(const ViewGraph& view_graph,
-                           std::unordered_map<image_t, Image>& images);
+                           std::unordered_map<image_t, migration::Image>& images);
 
     private:
         void IdentifyErrorProneGravity(
             const ViewGraph& view_graph,
-            const std::unordered_map<image_t, Image>& images,
+            const std::unordered_map<image_t, migration::Image>& images,
             std::unordered_set<image_t>& error_prone_images);
         GravityRefinerOptions options_;
     };

@@ -56,6 +56,7 @@ namespace glomap {
         // The dimensions of the image, 0 if not initialized.
         size_t width = 0;
         size_t height = 0;
+        bool has_refined_focal_length = false;
 
         // The focal length, principal point, and extra parameters. If the camera
         // model is not specified, this vector is empty.

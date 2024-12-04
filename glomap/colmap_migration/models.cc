@@ -173,7 +173,7 @@ namespace glomap {
 #undef CAMERA_MODEL_CASE
         }
 
-        return {nullptr, 0};
+        return std::span<const size_t>{};
     }
 
     std::span<const size_t> CameraModelPrincipalPointIdxs(const CameraModelId model_id) {
@@ -190,7 +190,7 @@ namespace glomap {
 #undef CAMERA_MODEL_CASE
         }
 
-        return {nullptr, 0};
+        return std::span<const size_t>{};
     }
 
     std::span<const size_t> CameraModelExtraParamsIdxs(const CameraModelId model_id) {
@@ -207,7 +207,7 @@ namespace glomap {
 #undef CAMERA_MODEL_CASE
         }
 
-        return {nullptr, 0};
+        return std::span<const size_t>{};
     }
 
     size_t CameraModelNumParams(const CameraModelId model_id) {

@@ -10,7 +10,7 @@ namespace glomap {
     public:
         ImagePairInliers(
             ImagePair& image_pair,
-            const std::unordered_map<image_t, Image>& images,
+            const std::unordered_map<image_t, migration::Image>& images,
             const InlierThresholdOptions& options,
             const std::unordered_map<camera_t, Camera>* cameras = nullptr)
             : image_pair(image_pair),
@@ -32,14 +32,14 @@ namespace glomap {
         double ScoreErrorHomography();
 
         ImagePair& image_pair;
-        const std::unordered_map<image_t, Image>& images;
+        const std::unordered_map<image_t, migration::Image>& images;
         const std::unordered_map<camera_t, Camera>* cameras;
         const InlierThresholdOptions& options;
     };
 
     void ImagePairsInlierCount(ViewGraph& view_graph,
                                const std::unordered_map<camera_t, Camera>& cameras,
-                               const std::unordered_map<image_t, Image>& images,
+                               const std::unordered_map<image_t, migration::Image>& images,
                                const InlierThresholdOptions& options,
                                bool clean_inliers);
 

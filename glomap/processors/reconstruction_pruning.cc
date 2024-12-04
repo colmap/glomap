@@ -3,7 +3,7 @@
 #include "glomap/processors/view_graph_manipulation.h"
 
 namespace glomap {
-    image_t PruneWeaklyConnectedImages(std::unordered_map<image_t, Image>& images,
+    image_t PruneWeaklyConnectedImages(std::unordered_map<image_t, migration::Image>& images,
                                        std::unordered_map<track_t, Track>& tracks,
                                        int min_num_images,
                                        int min_num_observations) {

@@ -4,7 +4,7 @@
 
 namespace glomap {
     void ReadGravity(const std::string& gravity_path,
-                     std::unordered_map<image_t, Image>& images) {
+                     std::unordered_map<image_t, migration::Image>& images) {
         std::unordered_map<std::string, image_t> name_idx;
         for (const auto& [image_id, image] : images)
         {

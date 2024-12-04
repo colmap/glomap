@@ -7,7 +7,7 @@ namespace glomap {
 
     void EstimateRelativePoses(ViewGraph& view_graph,
                                std::unordered_map<camera_t, Camera>& cameras,
-                               std::unordered_map<image_t, Image>& images,
+                               std::unordered_map<image_t, migration::Image>& images,
                                const RelativePoseEstimationOptions& options) {
         std::vector<image_pair_t> valid_pair_ids;
         for (auto& [image_pair_id, image_pair] : view_graph.image_pairs)
@@ -43,8 +43,8 @@ namespace glomap {
 
                     ImagePair& image_pair =
                         view_graph.image_pairs[valid_pair_ids[pair_idx]];
-                    const Image& image1 = images[image_pair.image_id1];
-                    const Image& image2 = images[image_pair.image_id2];
+                    const migration::Image& image1 = images[image_pair.image_id1];
+                    const migration::Image& image2 = images[image_pair.image_id2];
                     const Eigen::MatrixXi& matches = image_pair.matches;
 
                     // Collect the original 2D points

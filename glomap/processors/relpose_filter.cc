@@ -6,7 +6,7 @@ namespace glomap {
 
     void RelPoseFilter::FilterRotations(
         ViewGraph& view_graph,
-        const std::unordered_map<image_t, Image>& images,
+        const std::unordered_map<image_t, migration::Image>& images,
         double max_angle) {
         int num_invalid = 0;
         for (auto& [pair_id, image_pair] : view_graph.image_pairs)
@@ -14,8 +14,8 @@ namespace glomap {
             if (image_pair.is_valid == false)
                 continue;
 
-            const Image& image1 = images.at(image_pair.image_id1);
-            const Image& image2 = images.at(image_pair.image_id2);
+            const migration::Image& image1 = images.at(image_pair.image_id1);
+            const migration::Image& image2 = images.at(image_pair.image_id2);
 
             if (image1.is_registered == false || image2.is_registered == false)
             {

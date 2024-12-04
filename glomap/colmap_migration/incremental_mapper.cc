@@ -32,6 +32,7 @@
 #include "glomap/colmap_migration/bitmap.h"
 #include "glomap/colmap_migration/misc.h"
 #include "glomap/colmap_migration/pose.h"
+#include "glomap/colmap_migration/pose_estimator.h"
 #include "glomap/colmap_migration/projection.h"
 #include "glomap/colmap_migration/triangulation.h"
 #include "glomap/colmap_migration/two_view_geometry_estimator.h"
@@ -651,9 +652,9 @@ namespace glomap {
             // Determine which cameras to fix, when not all the registered images
             // are within the current local bundle.
             std::unordered_map<camera_t, size_t> num_images_per_camera;
-            for (const image_t image_id : ba_config.Images())
+            for (const image_t image_id_ : ba_config.Images())
             {
-                const Image& image = reconstruction_->Image(image_id);
+                const Image& image = reconstruction_->Image(image_id_);
                 num_images_per_camera[image.CameraId()] += 1;
             }
 

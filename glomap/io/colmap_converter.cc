@@ -4,7 +4,7 @@
 
 namespace glomap {
 
-    void ConvertGlomapToColmapImage(const Image& image,
+    void ConvertGlomapToColmapImage(const migration::Image& image,
                                     Image& image_colmap,
                                     bool keep_points) {
         image_colmap.SetImageId(image.image_id);
@@ -22,7 +22,7 @@ namespace glomap {
     }
 
     void ConvertGlomapToColmap(const std::unordered_map<camera_t, Camera>& cameras,
-                               const std::unordered_map<image_t, Image>& images,
+                               const std::unordered_map<image_t, migration::Image>& images,
                                const std::unordered_map<track_t, Track>& tracks,
                                Reconstruction& reconstruction,
                                int cluster_id,
@@ -81,7 +81,7 @@ namespace glomap {
             // Add track element
             for (auto& observation : track.observations)
             {
-                const Image& image = images.at(observation.first);
+                const migration::Image& image = images.at(observation.first);
                 if (!image.is_registered ||
                     (cluster_id != -1 && image.cluster_id != cluster_id))
                     continue;
@@ -130,7 +130,7 @@ namespace glomap {
 
     void ConvertColmapToGlomap(const Reconstruction& reconstruction,
                                std::unordered_map<camera_t, Camera>& cameras,
-                               std::unordered_map<image_t, Image>& images,
+                               std::unordered_map<image_t, migration::Image>& images,
                                std::unordered_map<track_t, Track>& tracks) {
         // Clear the glomap reconstruction
         cameras.clear();
@@ -145,11 +145,11 @@ namespace glomap {
         for (auto& [image_id, image_colmap] : reconstruction.Images())
         {
             auto ite = images.insert(std::make_pair(image_colmap.ImageId(),
-                                                    Image(image_colmap.ImageId(),
+                                                    migration::Image(image_colmap.ImageId(),
                                                           image_colmap.CameraId(),
                                                           image_colmap.Name())));
 
-            Image& image = ite.first->second;
+            migration::Image& image = ite.first->second;
             image.is_registered = image_colmap.HasPose();
             if (image_colmap.HasPose())
             {
@@ -201,7 +201,7 @@ namespace glomap {
     void ConvertDatabaseToGlomap(const Database& database,
                                  ViewGraph& view_graph,
                                  std::unordered_map<camera_t, Camera>& cameras,
-                                 std::unordered_map<image_t, Image>& images) {
+                                 std::unordered_map<image_t, migration::Image>& images) {
         // Add the images
         std::vector<Image> images_colmap = database.ReadAllImages();
         image_t counter = 0;
@@ -215,7 +215,7 @@ namespace glomap {
             if (image_id == kInvalidImageId)
                 continue;
             auto ite = images.insert(std::make_pair(
-                image_id, Image(image_id, image.CameraId(), image.Name())));
+                image_id,  migration::Image(image_id, image.CameraId(), image.Name())));
             const PosePrior prior = database.ReadPosePrior(image_id);
             if (prior.IsValid())
             {

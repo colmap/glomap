@@ -16,11 +16,11 @@ namespace glomap {
         // Mark the image which is not connected to any other images as not registered
         // Return: the number of images in the largest connected component
         int KeepLargestConnectedComponents(
-            std::unordered_map<image_t, Image>& images);
+            std::unordered_map<image_t, migration::Image>& images);
 
         // Mark the cluster of the cameras (cluster_id sort by the the number of
         // images)
-        int MarkConnectedComponents(std::unordered_map<image_t, Image>& images,
+        int MarkConnectedComponents(std::unordered_map<image_t, migration::Image>& images,
                                     int min_num_img = -1);
 
         // Establish the adjacency list

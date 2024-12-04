@@ -75,7 +75,7 @@ namespace glomap {
     }
 
     image_t MaximumSpanningTree(const ViewGraph& view_graph,
-                                const std::unordered_map<image_t, Image>& images,
+                                const std::unordered_map<image_t, migration::Image>& images,
                                 std::unordered_map<image_t, image_t>& parents,
                                 WeightType type) {
         // Create mapping between image IDs and indices
@@ -110,8 +110,8 @@ namespace glomap {
             if (!image_pair.is_valid)
                 continue;
 
-            const Image& image1 = images.at(image_pair.image_id1);
-            const Image& image2 = images.at(image_pair.image_id2);
+            const migration::Image& image1 = images.at(image_pair.image_id1);
+            const migration::Image& image2 = images.at(image_pair.image_id2);
 
             if (!image1.is_registered || !image2.is_registered)
                 continue;

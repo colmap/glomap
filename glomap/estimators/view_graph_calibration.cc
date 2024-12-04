@@ -10,7 +10,7 @@ namespace glomap {
 
     bool ViewGraphCalibrator::Solve(ViewGraph& view_graph,
                                     std::unordered_map<camera_t, Camera>& cameras,
-                                    std::unordered_map<image_t, Image>& images) {
+                                    std::unordered_map<image_t, migration::Image>& images) {
         // Reset the problem
         LOG(INFO) << "Start ViewGraphCalibrator";
 
@@ -69,7 +69,7 @@ namespace glomap {
     void ViewGraphCalibrator::AddImagePairsToProblem(
         const ViewGraph& view_graph,
         const std::unordered_map<camera_t, Camera>& cameras,
-        const std::unordered_map<image_t, Image>& images) {
+        const std::unordered_map<image_t, migration::Image>& images) {
         for (auto& [image_pair_id, image_pair] : view_graph.image_pairs)
         {
             if (image_pair.config != TwoViewGeometry::CALIBRATED &&
@@ -85,7 +85,7 @@ namespace glomap {
     void ViewGraphCalibrator::AddImagePair(
         const ImagePair& image_pair,
         const std::unordered_map<camera_t, Camera>& cameras,
-        const std::unordered_map<image_t, Image>& images) {
+        const std::unordered_map<image_t, migration::Image>& images) {
         const camera_t camera_id1 = images.at(image_pair.image_id1).camera_id;
         const camera_t camera_id2 = images.at(image_pair.image_id2).camera_id;
 

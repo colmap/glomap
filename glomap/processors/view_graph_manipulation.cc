@@ -10,7 +10,7 @@ namespace glomap {
 
     image_pair_t ViewGraphManipulater::SparsifyGraph(
         ViewGraph& view_graph,
-        std::unordered_map<image_t, Image>& images,
+        std::unordered_map<image_t, migration::Image>& images,
         int expected_degree) {
         image_t num_img = view_graph.KeepLargestConnectedComponents(images);
 
@@ -76,7 +76,7 @@ namespace glomap {
 
     image_t ViewGraphManipulater::EstablishStrongClusters(
         ViewGraph& view_graph,
-        std::unordered_map<image_t, Image>& images,
+        std::unordered_map<image_t, migration::Image>& images,
         StrongClusterCriteria criteria,
         double min_thres,
         int min_num_images) {
@@ -125,7 +125,7 @@ namespace glomap {
 
                 // If the number of inliers < 0.75 of the threshold, skip
                 // #TODO: Check shadowing status variable here
-                bool status = false;
+                //bool status = false;
                 status = status || (criteria == INLIER_NUM &&
                                     image_pair.inliers.size() < 0.75 * min_thres);
                 status = status ||
@@ -196,7 +196,7 @@ namespace glomap {
     void ViewGraphManipulater::UpdateImagePairsConfig(
         ViewGraph& view_graph,
         const std::unordered_map<camera_t, Camera>& cameras,
-        const std::unordered_map<image_t, Image>& images) {
+        const std::unordered_map<image_t, migration::Image>& images) {
         // For each camera, check the number of times that the camera is involved in a
         // pair with configuration 2 First: the total occurence; second: the number of
         // pairs with configuration 2
@@ -272,7 +272,7 @@ namespace glomap {
     void ViewGraphManipulater::DecomposeRelPose(
         ViewGraph& view_graph,
         std::unordered_map<camera_t, Camera>& cameras,
-        std::unordered_map<image_t, Image>& images) {
+        std::unordered_map<image_t, migration::Image>& images) {
         std::vector<image_pair_t> image_pair_ids;
         for (auto& [pair_id, image_pair] : view_graph.image_pairs)
         {

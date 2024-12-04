@@ -8,7 +8,7 @@ namespace glomap {
         static int FilterTracksByReprojection(
             const ViewGraph& view_graph,
             const std::unordered_map<camera_t, Camera>& cameras,
-            const std::unordered_map<image_t, Image>& images,
+            const std::unordered_map<image_t, migration::Image>& images,
             std::unordered_map<track_t, Track>& tracks,
             double max_reprojection_error = 1e-2,
             bool in_normalized_image = true);
@@ -16,13 +16,13 @@ namespace glomap {
         static int FilterTracksByAngle(
             const ViewGraph& view_graph,
             const std::unordered_map<camera_t, Camera>& cameras,
-            const std::unordered_map<image_t, Image>& images,
+            const std::unordered_map<image_t, migration::Image>& images,
             std::unordered_map<track_t, Track>& tracks,
             double max_angle_error = 1.);
 
         static int FilterTrackTriangulationAngle(
             const ViewGraph& view_graph,
-            const std::unordered_map<image_t, Image>& images,
+            const std::unordered_map<image_t, migration::Image>& images,
             std::unordered_map<track_t, Track>& tracks,
             double min_angle = 1.);
     };

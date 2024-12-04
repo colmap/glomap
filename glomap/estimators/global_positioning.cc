@@ -23,7 +23,7 @@ namespace glomap {
 
     bool GlobalPositioner::Solve(const ViewGraph& view_graph,
                                  std::unordered_map<camera_t, Camera>& cameras,
-                                 std::unordered_map<image_t, Image>& images,
+                                 std::unordered_map<image_t, migration::Image>& images,
                                  std::unordered_map<track_t, Track>& tracks) {
         if (images.empty())
         {
@@ -110,7 +110,7 @@ namespace glomap {
 
     void GlobalPositioner::InitializeRandomPositions(
         const ViewGraph& view_graph,
-        std::unordered_map<image_t, Image>& images,
+        std::unordered_map<image_t, migration::Image>& images,
         std::unordered_map<track_t, Track>& tracks) {
         std::unordered_set<image_t> constrained_positions;
         constrained_positions.reserve(images.size());
@@ -133,7 +133,7 @@ namespace glomap {
                 {
                     if (images.find(observation.first) == images.end())
                         continue;
-                    Image& image = images[observation.first];
+                    migration::Image& image = images[observation.first];
                     if (!image.is_registered)
                         continue;
                     constrained_positions.insert(observation.first);
@@ -165,7 +165,7 @@ namespace glomap {
     }
 
     void GlobalPositioner::AddCameraToCameraConstraints(
-        const ViewGraph& view_graph, std::unordered_map<image_t, Image>& images) {
+        const ViewGraph& view_graph, std::unordered_map<image_t, migration::Image>& images) {
         for (const auto& [pair_id, image_pair] : view_graph.image_pairs)
         {
             if (image_pair.is_valid == false)
@@ -205,7 +205,7 @@ namespace glomap {
 
     void GlobalPositioner::AddPointToCameraConstraints(
         std::unordered_map<camera_t, Camera>& cameras,
-        std::unordered_map<image_t, Image>& images,
+        std::unordered_map<image_t, migration::Image>& images,
         std::unordered_map<track_t, Track>& tracks) {
         // The number of camera-to-camera constraints coming from the relative poses
 
@@ -272,7 +272,7 @@ namespace glomap {
     void GlobalPositioner::AddTrackToProblem(
         track_t track_id,
         std::unordered_map<camera_t, Camera>& cameras,
-        std::unordered_map<image_t, Image>& images,
+        std::unordered_map<image_t, migration::Image>& images,
         std::unordered_map<track_t, Track>& tracks) {
         // For each view in the track add the point to camera correspondences.
         for (const auto& observation : tracks[track_id].observations)
@@ -280,7 +280,7 @@ namespace glomap {
             if (images.find(observation.first) == images.end())
                 continue;
 
-            Image& image = images[observation.first];
+            migration::Image& image = images[observation.first];
             if (!image.is_registered)
                 continue;
 
@@ -335,7 +335,7 @@ namespace glomap {
     }
 
     void GlobalPositioner::AddCamerasAndPointsToParameterGroups(
-        std::unordered_map<image_t, Image>& images,
+        std::unordered_map<image_t, migration::Image>& images,
         std::unordered_map<track_t, Track>& tracks) {
         // Create a custom ordering for Schur-based problems.
         options_.solver_options.linear_solver_ordering.reset(
@@ -373,7 +373,7 @@ namespace glomap {
     }
 
     void GlobalPositioner::ParameterizeVariables(
-        std::unordered_map<image_t, Image>& images,
+        std::unordered_map<image_t, migration::Image>& images,
         std::unordered_map<track_t, Track>& tracks) {
         // For the global positioning, do not set any camera to be constant for easier
         // convergence
@@ -422,7 +422,7 @@ namespace glomap {
     }
 
     void GlobalPositioner::ConvertResults(
-        std::unordered_map<image_t, Image>& images) {
+        std::unordered_map<image_t, migration::Image>& images) {
         // translation now stores the camera position, needs to convert back to
         // translation
         for (auto& [image_id, image] : images)

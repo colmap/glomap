@@ -7,7 +7,7 @@
 namespace glomap {
 
     int ViewGraph::KeepLargestConnectedComponents(
-        std::unordered_map<image_t, Image>& images) {
+        std::unordered_map<image_t, migration::Image>& images) {
         EstablishAdjacencyList();
 
         int num_comp = FindConnectedComponent();
@@ -75,7 +75,7 @@ namespace glomap {
     }
 
     int ViewGraph::MarkConnectedComponents(
-        std::unordered_map<image_t, Image>& images, int min_num_img) {
+        std::unordered_map<image_t, migration::Image>& images, int min_num_img) {
         EstablishAdjacencyList();
 
         int num_comp = FindConnectedComponent();

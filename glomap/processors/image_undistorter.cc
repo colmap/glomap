@@ -5,7 +5,7 @@
 namespace glomap {
 
     void UndistortImages(std::unordered_map<camera_t, Camera>& cameras,
-                         std::unordered_map<image_t, Image>& images,
+                         std::unordered_map<image_t, migration::Image>& images,
                          bool clean_points) {
         std::vector<image_t> image_ids;
         for (auto& [image_id, image] : images)
@@ -22,7 +22,7 @@ namespace glomap {
         const int num_images = image_ids.size();
         for (int image_idx = 0; image_idx < num_images; image_idx++)
         {
-            Image& image = images[image_ids[image_idx]];
+            migration::Image& image = images[image_ids[image_idx]];
             const int num_points = image.features.size();
             if (image.features_undist.size() == num_points && !clean_points)
                 continue; // already undistorted

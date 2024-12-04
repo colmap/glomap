@@ -39,6 +39,8 @@
 #include "glomap/colmap_migration/timer.h"
 #include <iomanip>
 
+#include <span>
+
 namespace glomap {
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -415,19 +417,19 @@ namespace glomap {
 
                     if (!options.refine_focal_length)
                     {
-                        const span<const size_t> params_idxs = camera.FocalLengthIdxs();
+                        const std::span<const size_t> params_idxs = camera.FocalLengthIdxs();
                         const_camera_params.insert(
                             const_camera_params.end(), params_idxs.begin(), params_idxs.end());
                     }
                     if (!options.refine_principal_point)
                     {
-                        const span<const size_t> params_idxs = camera.PrincipalPointIdxs();
+                        const std::span<const size_t> params_idxs = camera.PrincipalPointIdxs();
                         const_camera_params.insert(
                             const_camera_params.end(), params_idxs.begin(), params_idxs.end());
                     }
                     if (!options.refine_extra_params)
                     {
-                        const span<const size_t> params_idxs = camera.ExtraParamsIdxs();
+                        const std::span<const size_t> params_idxs = camera.ExtraParamsIdxs();
                         const_camera_params.insert(
                             const_camera_params.end(), params_idxs.begin(), params_idxs.end());
                     }

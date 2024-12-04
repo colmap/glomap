@@ -23,8 +23,8 @@ namespace glomap {
     } // namespace
 
     bool RotationEstimator::EstimateRotations(
-        const ViewGraph& view_graph, std::unordered_map<image_t, Image>& images) {
-        // Initialize the rotation from maximum spanning tree
+        const ViewGraph& view_graph, std::unordered_map<image_t, migration::Image>& images) {
+        // Initialize the rotation from maximum spanning treek
         if (!options_.skip_initialization && !options_.use_gravity)
         {
             InitializeFromMaximumSpanningTree(view_graph, images);
@@ -73,7 +73,7 @@ namespace glomap {
     }
 
     void RotationEstimator::InitializeFromMaximumSpanningTree(
-        const ViewGraph& view_graph, std::unordered_map<image_t, Image>& images) {
+        const ViewGraph& view_graph, std::unordered_map<image_t, migration::Image>& images) {
         // Here, we assume that largest connected component is already retrieved, so
         // we do not need to do that again compute maximum spanning tree.
         std::unordered_map<image_t, image_t> parents;
@@ -131,7 +131,7 @@ namespace glomap {
     }
 
     void RotationEstimator::SetupLinearSystem(
-        const ViewGraph& view_graph, std::unordered_map<image_t, Image>& images) {
+        const ViewGraph& view_graph, std::unordered_map<image_t, migration::Image>& images) {
         // Clear all the structures
         sparse_matrix_.resize(0, 0);
         tangent_space_step_.resize(0);
@@ -321,7 +321,7 @@ namespace glomap {
     }
 
     bool RotationEstimator::SolveL1Regression(
-        const ViewGraph& view_graph, std::unordered_map<image_t, Image>& images) {
+        const ViewGraph& view_graph, std::unordered_map<image_t, migration::Image>& images) {
         L1SolverOptions opt_l1_solver;
         opt_l1_solver.max_num_iterations = 10;
 
@@ -381,7 +381,7 @@ namespace glomap {
     }
 
     bool RotationEstimator::SolveIRLS(const ViewGraph& view_graph,
-                                      std::unordered_map<image_t, Image>& images) {
+                                      std::unordered_map<image_t, migration::Image>& images) {
         // TODO: Determine what is the best solver for this part
         Eigen::CholmodSupernodalLLT<Eigen::SparseMatrix<double>> llt;
 
@@ -472,7 +472,7 @@ namespace glomap {
     }
 
     void RotationEstimator::UpdateGlobalRotations(
-        const ViewGraph& view_graph, std::unordered_map<image_t, Image>& images) {
+        const ViewGraph& view_graph, std::unordered_map<image_t, migration::Image>& images) {
         for (const auto& [image_id, image] : images)
         {
             if (!image.is_registered)
@@ -495,7 +495,7 @@ namespace glomap {
     }
 
     void RotationEstimator::ComputeResiduals(
-        const ViewGraph& view_graph, std::unordered_map<image_t, Image>& images) {
+        const ViewGraph& view_graph, std::unordered_map<image_t, migration::Image>& images) {
         int curr_pos = 0;
         for (auto& [pair_id, pair_info] : rel_temp_info_)
         {
@@ -550,7 +550,7 @@ namespace glomap {
     }
 
     double RotationEstimator::ComputeAverageStepSize(
-        const std::unordered_map<image_t, Image>& images) {
+        const std::unordered_map<image_t, migration::Image>& images) {
         double total_update = 0;
         for (const auto& [image_id, image] : images)
         {

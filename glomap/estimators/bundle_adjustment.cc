@@ -7,7 +7,7 @@ namespace glomap {
 
     bool BundleAdjuster::Solve(const ViewGraph& view_graph,
                                std::unordered_map<camera_t, Camera>& cameras,
-                               std::unordered_map<image_t, Image>& images,
+                               std::unordered_map<image_t, migration::Image>& images,
                                std::unordered_map<track_t, Track>& tracks) {
         // Check if the input data is valid
         if (images.empty())
@@ -60,7 +60,7 @@ namespace glomap {
     void BundleAdjuster::AddPointToCameraConstraints(
         const ViewGraph& view_graph,
         std::unordered_map<camera_t, Camera>& cameras,
-        std::unordered_map<image_t, Image>& images,
+        std::unordered_map<image_t, migration::Image>& images,
         std::unordered_map<track_t, Track>& tracks) {
         for (auto& [track_id, track] : tracks)
         {
@@ -72,7 +72,7 @@ namespace glomap {
                 if (images.find(observation.first) == images.end())
                     continue;
 
-                Image& image = images[observation.first];
+                migration::Image& image = images[observation.first];
 
                 ceres::CostFunction* cost_function =
                     CreateCameraCostFunction<ReprojErrorCostFunctor>(
@@ -100,7 +100,7 @@ namespace glomap {
 
     void BundleAdjuster::AddCamerasAndPointsToParameterGroups(
         std::unordered_map<camera_t, Camera>& cameras,
-        std::unordered_map<image_t, Image>& images,
+        std::unordered_map<image_t, migration::Image>& images,
         std::unordered_map<track_t, Track>& tracks) {
         if (tracks.size() == 0)
             return;
@@ -139,7 +139,7 @@ namespace glomap {
 
     void BundleAdjuster::ParameterizeVariables(
         std::unordered_map<camera_t, Camera>& cameras,
-        std::unordered_map<image_t, Image>& images,
+        std::unordered_map<image_t, migration::Image>& images,
         std::unordered_map<track_t, Track>& tracks) {
         image_t center;
 

@@ -31,7 +31,7 @@ namespace glomap {
         // Entry point for the calibration
         bool Solve(ViewGraph& view_graph,
                    std::unordered_map<camera_t, Camera>& cameras,
-                   std::unordered_map<image_t, Image>& images);
+                   std::unordered_map<image_t, migration::Image>& images);
 
     private:
         // Reset the problem
@@ -41,12 +41,12 @@ namespace glomap {
         void AddImagePairsToProblem(
             const ViewGraph& view_graph,
             const std::unordered_map<camera_t, Camera>& cameras,
-            const std::unordered_map<image_t, Image>& images);
+            const std::unordered_map<image_t, migration::Image>& images);
 
         // Add a single image pair to the problem
         void AddImagePair(const ImagePair& image_pair,
                           const std::unordered_map<camera_t, Camera>& cameras,
-                          const std::unordered_map<image_t, Image>& images);
+                          const std::unordered_map<image_t, migration::Image>& images);
 
         // Set the cameras to be constant if they have prior intrinsics
         size_t ParameterizeCameras(

@@ -9,6 +9,6 @@ namespace glomap {
     // Gravity should be the direction of [0,1,0] in the image frame
     // image.cam_from_world * [0,1,0]^T = g
     void ReadGravity(const std::string& gravity_path,
-                     std::unordered_map<image_t, Image>& images);
+                     std::unordered_map<image_t, migration::Image>& images);
 
 } // namespace glomap

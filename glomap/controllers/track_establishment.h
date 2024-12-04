@@ -26,7 +26,7 @@ namespace glomap {
     class TrackEngine {
     public:
         TrackEngine(const ViewGraph& view_graph,
-                    const std::unordered_map<image_t, Image>& images,
+                    const std::unordered_map<image_t, migration::Image>& images,
                     const TrackEstablishmentOptions& options)
             : options_(options),
               view_graph_(view_graph),
@@ -52,7 +52,7 @@ namespace glomap {
         const TrackEstablishmentOptions& options_;
 
         const ViewGraph& view_graph_;
-        const std::unordered_map<image_t, Image>& images_;
+        const std::unordered_map<image_t, migration::Image>& images_;
 
         // Internal structure used for concatenating tracks
         UnionFind<image_pair_t> uf_;

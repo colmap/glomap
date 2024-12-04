@@ -25,6 +25,15 @@ namespace glomap {
         Eigen::Matrix3d R_align;
     };
 
+    void GravityInfo::SetGravity(const Eigen::Vector3d& g) {
+        gravity = g;
+        R_align = GetAlignRot(g);
+        has_gravity = true;
+    }
+
+    Eigen::Vector3d GravityInfo::GetGravity() { return gravity; }
+
+    namespace migration {
     struct Image {
         Image() : image_id(-1),
                   file_name("") {}
@@ -60,15 +69,9 @@ namespace glomap {
         inline Eigen::Vector3d Center() const;
     };
 
-    Eigen::Vector3d Image::Center() const {
-        return cam_from_world.rotation.inverse() * -cam_from_world.translation;
+        Eigen::Vector3d Image::Center() const {
+            return cam_from_world.rotation.inverse() * -cam_from_world.translation;
+     }
     }
 
-    void GravityInfo::SetGravity(const Eigen::Vector3d& g) {
-        gravity = g;
-        R_align = GetAlignRot(g);
-        has_gravity = true;
-    }
-
-    Eigen::Vector3d GravityInfo::GetGravity() { return gravity; }
 } // namespace glomap

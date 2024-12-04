@@ -2,6 +2,7 @@
 
 #include "glomap/controllers/option_manager.h"
 #include "glomap/io/colmap_io.h"
+#include "glomap/io/colmap_converter.h"
 #include <glomap/colmap_migration/file.h>
 #include <glomap/colmap_migration/reconstruction.h>
 #include <glomap/colmap_migration/timer.h>
@@ -161,7 +162,7 @@ namespace glomap {
         Database database;    // dummy variable
 
         std::unordered_map<camera_t, Camera> cameras;
-        std::unordered_map<image_t, Image> images;
+        std::unordered_map<image_t, migration::Image> images;
         std::unordered_map<track_t, Track> tracks;
 
         Reconstruction reconstruction;

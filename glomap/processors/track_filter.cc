@@ -7,7 +7,7 @@ namespace glomap {
     int TrackFilter::FilterTracksByReprojection(
         const ViewGraph& view_graph,
         const std::unordered_map<camera_t, Camera>& cameras,
-        const std::unordered_map<image_t, Image>& images,
+        const std::unordered_map<image_t, migration::Image>& images,
         std::unordered_map<track_t, Track>& tracks,
         double max_reprojection_error,
         bool in_normalized_image) {
@@ -17,7 +17,7 @@ namespace glomap {
             std::vector<Observation> observation_new;
             for (auto& [image_id, feature_id] : track.observations)
             {
-                const Image& image = images.at(image_id);
+                const migration::Image& image = images.at(image_id);
                 Eigen::Vector3d pt_calc = image.cam_from_world * track.xyz;
                 if (pt_calc(2) < EPS)
                     continue;
@@ -60,7 +60,7 @@ namespace glomap {
     int TrackFilter::FilterTracksByAngle(
         const ViewGraph& view_graph,
         const std::unordered_map<camera_t, Camera>& cameras,
-        const std::unordered_map<image_t, Image>& images,
+        const std::unordered_map<image_t, migration::Image>& images,
         std::unordered_map<track_t, Track>& tracks,
         double max_angle_error) {
         int counter = 0;
@@ -71,7 +71,7 @@ namespace glomap {
             std::vector<Observation> observation_new;
             for (auto& [image_id, feature_id] : track.observations)
             {
-                const Image& image = images.at(image_id);
+                const migration::Image& image = images.at(image_id);
                 // const Camera& camera = image.camera;
                 const Eigen::Vector3d& feature_undist =
                     image.features_undist.at(feature_id);
@@ -102,7 +102,7 @@ namespace glomap {
 
     int TrackFilter::FilterTrackTriangulationAngle(
         const ViewGraph& view_graph,
-        const std::unordered_map<image_t, Image>& images,
+        const std::unordered_map<image_t, migration::Image>& images,
         std::unordered_map<track_t, Track>& tracks,
         double min_angle) {
         int counter = 0;
@@ -114,7 +114,7 @@ namespace glomap {
             pts_calc.reserve(track.observations.size());
             for (auto& [image_id, feature_id] : track.observations)
             {
-                const Image& image = images.at(image_id);
+                const migration::Image& image = images.at(image_id);
                 Eigen::Vector3d pt_calc = (track.xyz - image.Center()).normalized();
                 pts_calc.emplace_back(pt_calc);
             }

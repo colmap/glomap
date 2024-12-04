@@ -14,7 +14,7 @@ namespace glomap {
             std::vector<std::pair<int, int>> banned_edges = {});
 
     image_t MaximumSpanningTree(const ViewGraph& view_graph,
-                                const std::unordered_map<image_t, Image>& images,
+                                const std::unordered_map<image_t, migration::Image>& images,
                                 std::unordered_map<image_t, image_t>& parents,
                                 WeightType type);
 } // namespace glomap
