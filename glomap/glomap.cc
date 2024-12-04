@@ -1,5 +1,4 @@
 #include "glomap/exe/global_mapper.h"
-#include <glomap/colmap_migration/logging.h>
 #include <torch/torch.h>
 
 #include <iostream>
@@ -33,7 +32,7 @@ namespace {
 } // namespace
 
 int main(int argc, char** argv) {
-    colmap::InitializeGlog(argv);
+    glomap::InitializeGlog(argv);
     FLAGS_alsologtostderr = true;
 
     auto tensor_test = torch::randn({2, 3});

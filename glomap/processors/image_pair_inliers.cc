@@ -6,13 +6,13 @@ namespace glomap {
 
     double ImagePairInliers::ScoreError() {
         // Count inliers base on the type
-        if (image_pair.config == colmap::TwoViewGeometry::PLANAR ||
-            image_pair.config == colmap::TwoViewGeometry::PANORAMIC ||
-            image_pair.config == colmap::TwoViewGeometry::PLANAR_OR_PANORAMIC)
+        if (image_pair.config == TwoViewGeometry::PLANAR ||
+            image_pair.config == TwoViewGeometry::PANORAMIC ||
+            image_pair.config == TwoViewGeometry::PLANAR_OR_PANORAMIC)
             return ScoreErrorHomography();
-        else if (image_pair.config == colmap::TwoViewGeometry::UNCALIBRATED)
+        else if (image_pair.config == TwoViewGeometry::UNCALIBRATED)
             return ScoreErrorFundamental();
-        else if (image_pair.config == colmap::TwoViewGeometry::CALIBRATED)
+        else if (image_pair.config == TwoViewGeometry::CALIBRATED)
             return ScoreErrorEssential();
         return 0;
     }
