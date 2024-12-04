@@ -8,7 +8,7 @@ namespace glomap {
     bool BundleAdjuster::Solve(const ViewGraph& view_graph,
                                std::unordered_map<camera_t, Camera>& cameras,
                                std::unordered_map<image_t, migration::Image>& images,
-                               std::unordered_map<track_t, Track>& tracks) {
+                               std::unordered_map<track_t, migration::Track>& tracks) {
         // Check if the input data is valid
         if (images.empty())
         {
@@ -61,7 +61,7 @@ namespace glomap {
         const ViewGraph& view_graph,
         std::unordered_map<camera_t, Camera>& cameras,
         std::unordered_map<image_t, migration::Image>& images,
-        std::unordered_map<track_t, Track>& tracks) {
+        std::unordered_map<track_t, migration::Track>& tracks) {
         for (auto& [track_id, track] : tracks)
         {
             if (track.observations.size() < options_.min_num_view_per_track)
@@ -101,7 +101,7 @@ namespace glomap {
     void BundleAdjuster::AddCamerasAndPointsToParameterGroups(
         std::unordered_map<camera_t, Camera>& cameras,
         std::unordered_map<image_t, migration::Image>& images,
-        std::unordered_map<track_t, Track>& tracks) {
+        std::unordered_map<track_t, migration::Track>& tracks) {
         if (tracks.size() == 0)
             return;
 
@@ -140,7 +140,7 @@ namespace glomap {
     void BundleAdjuster::ParameterizeVariables(
         std::unordered_map<camera_t, Camera>& cameras,
         std::unordered_map<image_t, migration::Image>& images,
-        std::unordered_map<track_t, Track>& tracks) {
+        std::unordered_map<track_t, migration::Track>& tracks) {
         image_t center;
 
         // Parameterize rotations, and set rotations and translations to be constant

@@ -35,7 +35,7 @@ namespace glomap {
         bool Solve(const ViewGraph& view_graph,
                    std::unordered_map<camera_t, Camera>& cameras,
                    std::unordered_map<image_t, migration::Image>& images,
-                   std::unordered_map<track_t, Track>& tracks);
+                   std::unordered_map<track_t, migration::Track>& tracks);
 
         BundleAdjusterOptions& GetOptions() { return options_; }
 
@@ -48,18 +48,18 @@ namespace glomap {
             const ViewGraph& view_graph,
             std::unordered_map<camera_t, Camera>& cameras,
             std::unordered_map<image_t, migration::Image>& images,
-            std::unordered_map<track_t, Track>& tracks);
+            std::unordered_map<track_t, migration::Track>& tracks);
 
         // Set the parameter groups
         void AddCamerasAndPointsToParameterGroups(
             std::unordered_map<camera_t, Camera>& cameras,
             std::unordered_map<image_t, migration::Image>& images,
-            std::unordered_map<track_t, Track>& tracks);
+            std::unordered_map<track_t, migration::Track>& tracks);
 
         // Parameterize the variables, set some variables to be constant if desired
         void ParameterizeVariables(std::unordered_map<camera_t, Camera>& cameras,
                                    std::unordered_map<image_t, migration::Image>& images,
-                                   std::unordered_map<track_t, Track>& tracks);
+                                   std::unordered_map<track_t, migration::Track>& tracks);
 
         BundleAdjusterOptions options_;
 

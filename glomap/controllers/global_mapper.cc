@@ -18,7 +18,7 @@ namespace glomap {
                              ViewGraph& view_graph,
                              std::unordered_map<camera_t, Camera>& cameras,
                              std::unordered_map<image_t, migration::Image>& images,
-                             std::unordered_map<track_t, Track>& tracks) {
+                             std::unordered_map<track_t, migration::Track>& tracks) {
         // 0. Preprocessing
         if (!options_.skip_preprocessing)
         {
@@ -130,7 +130,7 @@ namespace glomap {
             std::cout << "Running track establishment ..." << std::endl;
             std::cout << "-------------------------------------" << std::endl;
             TrackEngine track_engine(view_graph, images, options_.opt_track);
-            std::unordered_map<track_t, Track> tracks_full;
+            std::unordered_map<track_t, migration::Track> tracks_full;
             track_engine.EstablishFullTracks(tracks_full);
 
             // Filter the tracks

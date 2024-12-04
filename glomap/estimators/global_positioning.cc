@@ -24,7 +24,7 @@ namespace glomap {
     bool GlobalPositioner::Solve(const ViewGraph& view_graph,
                                  std::unordered_map<camera_t, Camera>& cameras,
                                  std::unordered_map<image_t, migration::Image>& images,
-                                 std::unordered_map<track_t, Track>& tracks) {
+                                 std::unordered_map<track_t, migration::Track>& tracks) {
         if (images.empty())
         {
             LOG(ERROR) << "Number of images = " << images.size();
@@ -90,7 +90,7 @@ namespace glomap {
 
     void GlobalPositioner::SetupProblem(
         const ViewGraph& view_graph,
-        const std::unordered_map<track_t, Track>& tracks) {
+        const std::unordered_map<track_t, migration::Track>& tracks) {
         ceres::Problem::Options problem_options;
         problem_options.loss_function_ownership = ceres::DO_NOT_TAKE_OWNERSHIP;
         problem_ = std::make_unique<ceres::Problem>(problem_options);
@@ -103,7 +103,7 @@ namespace glomap {
             std::accumulate(tracks.begin(),
                             tracks.end(),
                             0,
-                            [](int sum, const std::pair<track_t, Track>& track) {
+                            [](int sum, const std::pair<track_t, migration::Track>& track) {
                                 return sum + track.second.observations.size();
                             }));
     }
@@ -111,7 +111,7 @@ namespace glomap {
     void GlobalPositioner::InitializeRandomPositions(
         const ViewGraph& view_graph,
         std::unordered_map<image_t, migration::Image>& images,
-        std::unordered_map<track_t, Track>& tracks) {
+        std::unordered_map<track_t, migration::Track>& tracks) {
         std::unordered_set<image_t> constrained_positions;
         constrained_positions.reserve(images.size());
         for (const auto& [pair_id, image_pair] : view_graph.image_pairs)
@@ -206,7 +206,7 @@ namespace glomap {
     void GlobalPositioner::AddPointToCameraConstraints(
         std::unordered_map<camera_t, Camera>& cameras,
         std::unordered_map<image_t, migration::Image>& images,
-        std::unordered_map<track_t, Track>& tracks) {
+        std::unordered_map<track_t, migration::Track>& tracks) {
         // The number of camera-to-camera constraints coming from the relative poses
 
         const size_t num_cam_to_cam = problem_->NumResidualBlocks();
@@ -273,7 +273,7 @@ namespace glomap {
         track_t track_id,
         std::unordered_map<camera_t, Camera>& cameras,
         std::unordered_map<image_t, migration::Image>& images,
-        std::unordered_map<track_t, Track>& tracks) {
+        std::unordered_map<track_t, migration::Track>& tracks) {
         // For each view in the track add the point to camera correspondences.
         for (const auto& observation : tracks[track_id].observations)
         {
@@ -336,7 +336,7 @@ namespace glomap {
 
     void GlobalPositioner::AddCamerasAndPointsToParameterGroups(
         std::unordered_map<image_t, migration::Image>& images,
-        std::unordered_map<track_t, Track>& tracks) {
+        std::unordered_map<track_t, migration::Track>& tracks) {
         // Create a custom ordering for Schur-based problems.
         options_.solver_options.linear_solver_ordering.reset(
             new ceres::ParameterBlockOrdering);
@@ -374,7 +374,7 @@ namespace glomap {
 
     void GlobalPositioner::ParameterizeVariables(
         std::unordered_map<image_t, migration::Image>& images,
-        std::unordered_map<track_t, Track>& tracks) {
+        std::unordered_map<track_t, migration::Track>& tracks) {
         // For the global positioning, do not set any camera to be constant for easier
         // convergence
 

@@ -8,13 +8,13 @@ namespace glomap {
         const ViewGraph& view_graph,
         const std::unordered_map<camera_t, Camera>& cameras,
         const std::unordered_map<image_t, migration::Image>& images,
-        std::unordered_map<track_t, Track>& tracks,
+        std::unordered_map<track_t, migration::Track>& tracks,
         double max_reprojection_error,
         bool in_normalized_image) {
         int counter = 0;
         for (auto& [track_id, track] : tracks)
         {
-            std::vector<Observation> observation_new;
+            std::vector<migration::Observation> observation_new;
             for (auto& [image_id, feature_id] : track.observations)
             {
                 const migration::Image& image = images.at(image_id);
@@ -61,14 +61,14 @@ namespace glomap {
         const ViewGraph& view_graph,
         const std::unordered_map<camera_t, Camera>& cameras,
         const std::unordered_map<image_t, migration::Image>& images,
-        std::unordered_map<track_t, Track>& tracks,
+        std::unordered_map<track_t, migration::Track>& tracks,
         double max_angle_error) {
         int counter = 0;
         double thres = std::cos(DegToRad(max_angle_error));
         double thres_uncalib = std::cos(DegToRad(max_angle_error * 2));
         for (auto& [track_id, track] : tracks)
         {
-            std::vector<Observation> observation_new;
+            std::vector<migration::Observation> observation_new;
             for (auto& [image_id, feature_id] : track.observations)
             {
                 const migration::Image& image = images.at(image_id);
@@ -103,13 +103,13 @@ namespace glomap {
     int TrackFilter::FilterTrackTriangulationAngle(
         const ViewGraph& view_graph,
         const std::unordered_map<image_t, migration::Image>& images,
-        std::unordered_map<track_t, Track>& tracks,
+        std::unordered_map<track_t, migration::Track>& tracks,
         double min_angle) {
         int counter = 0;
         double thres = std::cos(DegToRad(min_angle));
         for (auto& [track_id, track] : tracks)
         {
-            std::vector<Observation> observation_new;
+            std::vector<migration::Observation> observation_new;
             std::vector<Eigen::Vector3d> pts_calc;
             pts_calc.reserve(track.observations.size());
             for (auto& [image_id, feature_id] : track.observations)

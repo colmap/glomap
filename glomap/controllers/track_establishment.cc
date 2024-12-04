@@ -3,7 +3,7 @@
 namespace glomap {
 
     size_t TrackEngine::EstablishFullTracks(
-        std::unordered_map<track_t, Track>& tracks) {
+        std::unordered_map<track_t, migration::Track>& tracks) {
         tracks.clear();
         uf_.Clear();
 
@@ -67,7 +67,7 @@ namespace glomap {
         std::cout << std::endl;
     }
 
-    void TrackEngine::TrackCollection(std::unordered_map<track_t, Track>& tracks) {
+    void TrackEngine::TrackCollection(std::unordered_map<track_t, migration::Track>& tracks) {
         std::unordered_map<uint64_t, std::unordered_set<uint64_t>> track_map;
         std::unordered_map<uint64_t, int> track_counter;
 
@@ -167,8 +167,8 @@ namespace glomap {
     }
 
     size_t TrackEngine::FindTracksForProblem(
-        const std::unordered_map<track_t, Track>& tracks_full,
-        std::unordered_map<track_t, Track>& tracks_selected) {
+        const std::unordered_map<track_t, migration::Track>& tracks_full,
+        std::unordered_map<track_t, migration::Track>& tracks_selected) {
         // Sort the tracks by length
         std::vector<std::pair<size_t, track_t>> track_lengths;
 
@@ -190,7 +190,7 @@ namespace glomap {
 
         // If we only want to select a subset of images, then only add the tracks
         // corresponding to those images
-        std::unordered_map<track_t, Track> tracks;
+        std::unordered_map<track_t, migration::Track> tracks;
         for (const auto& [image_id, image] : images_)
         {
             if (!image.is_registered)
@@ -206,7 +206,7 @@ namespace glomap {
 
             // Collect the image ids. For each image, only increment the counter by 1
             std::unordered_set<image_t> image_ids;
-            Track track_temp;
+            migration::Track track_temp;
             for (const auto& [image_id, feature_id] : track.observations)
             {
                 if (tracks_per_camera.count(image_id) == 0)

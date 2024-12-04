@@ -23,7 +23,7 @@ namespace glomap {
 
     void ConvertGlomapToColmap(const std::unordered_map<camera_t, Camera>& cameras,
                                const std::unordered_map<image_t, migration::Image>& images,
-                               const std::unordered_map<track_t, Track>& tracks,
+                               const std::unordered_map<track_t, migration::Track>& tracks,
                                Reconstruction& reconstruction,
                                int cluster_id,
                                bool include_image_points) {
@@ -131,7 +131,7 @@ namespace glomap {
     void ConvertColmapToGlomap(const Reconstruction& reconstruction,
                                std::unordered_map<camera_t, Camera>& cameras,
                                std::unordered_map<image_t, migration::Image>& images,
-                               std::unordered_map<track_t, Track>& tracks) {
+                               std::unordered_map<track_t, migration::Track>& tracks) {
         // Clear the glomap reconstruction
         cameras.clear();
         images.clear();
@@ -169,7 +169,7 @@ namespace glomap {
 
     void ConvertColmapPoints3DToGlomapTracks(
         const Reconstruction& reconstruction,
-        std::unordered_map<track_t, Track>& tracks) {
+        std::unordered_map<track_t, migration::Track>& tracks) {
         // Read tracks
         tracks.clear();
         tracks.reserve(reconstruction.NumPoints3D());
@@ -177,7 +177,7 @@ namespace glomap {
         auto& points3D = reconstruction.Points3D();
         for (auto& [point3d_id, point3D] : points3D)
         {
-            Track track;
+            migration::Track track;
             const Track& track_colmap = point3D.track;
             track.xyz = point3D.xyz;
             track.color = point3D.color;
@@ -189,7 +189,7 @@ namespace glomap {
             for (auto& element : elements)
             {
                 track.observations.push_back(
-                    Observation(element.image_id, element.point2D_idx));
+                    migration::Observation(element.image_id, element.point2D_idx));
             }
 
             tracks.insert(std::make_pair(point3d_id, track));

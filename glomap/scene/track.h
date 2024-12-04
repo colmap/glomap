@@ -6,6 +6,7 @@
 #include <vector>
 
 namespace glomap {
+    namespace migration {
     typedef std::pair<image_t, feature_t> Observation;
 
     struct Track {
@@ -23,6 +24,7 @@ namespace glomap {
 
         // The list where the track is observed (image_id, feature_id)
         std::vector<Observation> observations;
-    };
 
+    };
+    }
 } // namespace glomap
