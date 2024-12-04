@@ -227,6 +227,7 @@ else()
         -Werror
         -Wno-sign-compare
         -Wno-unused-variable
+        -Wno-maybe-uninitialized
     )
 endif()
 
