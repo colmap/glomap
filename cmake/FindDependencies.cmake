@@ -7,11 +7,12 @@ find_package(Boost REQUIRED)
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     find_package(Glog REQUIRED)
-    if(DEFINED glog_VERSION_MAJOR)
-        # Older versions of glog don't export version variables.
-        add_definitions("-DGLOG_VERSION_MAJOR=${glog_VERSION_MAJOR}")
-        add_definitions("-DGLOG_VERSION_MINOR=${glog_VERSION_MINOR}")
-    endif()
+endif()
+
+if(DEFINED glog_VERSION_MAJOR)
+    # Older versions of glog don't export version variables.
+    add_definitions("-DGLOG_VERSION_MAJOR=${glog_VERSION_MAJOR}")
+    add_definitions("-DGLOG_VERSION_MINOR=${glog_VERSION_MINOR}")
 endif()
 
 if(TESTS_ENABLED)
@@ -36,7 +37,7 @@ message(STATUS "Configuring PoseLib... done")
 
 FetchContent_Declare(COLMAP
     GIT_REPOSITORY    https://github.com/colmap/colmap.git
-    GIT_TAG           3254263266949413d7c669e44abeb4a7c2670a8b
+    GIT_TAG           78f1eefacae542d753c2e4f6a26771a0d976227d
     EXCLUDE_FROM_ALL
 )
 message(STATUS "Configuring COLMAP...")
