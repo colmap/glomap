@@ -58,6 +58,20 @@ struct ImagePair {
                                        image_t& image_id2);
 };
 
+std::ostream& operator<<(std::ostream& stream, const ImagePair& tform) {
+  stream << "ImagePair(image_id1=" << tform.image_id1
+         << ", image_id2=" << tform.image_id2
+         << ", pair_id=" << tform.pair_id
+         << ", is_valid=" << tform.is_valid
+         << ", weight=" << tform.weight
+         << ", config=" << tform.config
+         << ", cam2_from_cam1=" << tform.cam2_from_cam1
+         << ", num_matches=" << tform.matches.rows()
+         << ", num_inliers=" << tform.inliers.size()
+         << ")";
+  return stream;
+}
+
 image_pair_t ImagePair::ImagePairToPairId(const image_t image_id1,
                                           const image_t image_id2) {
   if (image_id1 > image_id2) {
