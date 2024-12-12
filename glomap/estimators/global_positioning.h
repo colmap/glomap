@@ -40,9 +40,13 @@ struct GlobalPositionerOptions : public OptimizationBaseOptions {
   double constraint_reweight_scale =
       1.0;  // only relevant for POINTS_AND_CAMERAS_BALANCED
 
+  void UpdateThreshold() {
+    loss_function = std::make_shared<ceres::HuberLoss>(thres_loss_function);
+  }
+
   GlobalPositionerOptions() : OptimizationBaseOptions() {
     thres_loss_function = 1e-1;
-    loss_function = std::make_shared<ceres::HuberLoss>(thres_loss_function);
+    UpdateThreshold();
   }
 };
 

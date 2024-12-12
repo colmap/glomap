@@ -75,6 +75,8 @@ int RunMapper(int argc, char** argv) {
     return EXIT_FAILURE;
   }
 
+  options.mapper->opt_gp.UpdateThreshold();
+  options.mapper->opt_ba.UpdateThreshold();
   GlobalMapper global_mapper(*options.mapper);
 
   // Main solver
@@ -134,6 +136,8 @@ int RunMapperResume(int argc, char** argv) {
   reconstruction.Read(input_path);
   ConvertColmapToGlomap(reconstruction, cameras, images, tracks);
 
+  options.mapper->opt_gp.UpdateThreshold();
+  options.mapper->opt_ba.UpdateThreshold();
   GlobalMapper global_mapper(*options.mapper);
 
   // Main solver

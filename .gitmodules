@@ -1,0 +1,3 @@
+[submodule "pyglomap/pybind11"]
+	path = pyglomap/pybind11
+	url = https://github.com/pybind/pybind11.git
