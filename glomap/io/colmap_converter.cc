@@ -34,6 +34,7 @@ void ConvertGlomapToColmap(const std::unordered_map<camera_t, Camera>& cameras,
   }
 
   // Prepare the 2d-3d correspondences
+  size_t min_supports = 2;
   std::unordered_map<image_t, std::vector<track_t>> image_to_point3D;
   if (tracks.size() > 0 || include_image_points) {
     // Initialize every point to corresponds to invalid point
@@ -47,7 +48,7 @@ void ConvertGlomapToColmap(const std::unordered_map<camera_t, Camera>& cameras,
 
     if (tracks.size() > 0) {
       for (auto& [track_id, track] : tracks) {
-        if (track.observations.size() < 3) {
+        if (track.observations.size() < min_supports) {
           continue;
         }
         for (auto& observation : track.observations) {
@@ -80,7 +81,7 @@ void ConvertGlomapToColmap(const std::unordered_map<camera_t, Camera>& cameras,
       colmap_point.track.AddElement(colmap_track_el);
     }
 
-    if (colmap_point.track.Length() < 2) continue;
+    if (colmap_point.track.Length() < min_supports) continue;
 
     colmap_point.track.Compress();
     reconstruction.AddPoint3D(track_id, std::move(colmap_point));
