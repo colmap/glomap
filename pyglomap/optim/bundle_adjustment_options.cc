@@ -20,14 +20,8 @@ void BindBundleAdjusterOptions(py::module& m) {
   py::class_<BundleAdjusterOptions, std::shared_ptr<BundleAdjusterOptions>> PyBundleAdjusterOptions(m, "BundleAdjusterOptions");
 
   PyBundleAdjusterOptions.def(py::init<>())
-    .def_property("thres_loss_function",
-      [](const OptimizationBaseOptions& self) -> double {
-        return self.thres_loss_function;
-      },
-      [](BundleAdjusterOptions& self, const double value) {
-        self.thres_loss_function = value;
-        self.CreateLossFunction();
-      },
+    .def_readwrite("thres_loss_function",
+      &BundleAdjusterOptions::thres_loss_function,
       "The threshold for the loss function.")
     .def_readwrite("optimize_rotations",
       &BundleAdjusterOptions::optimize_rotations,
