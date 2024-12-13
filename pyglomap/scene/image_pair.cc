@@ -50,10 +50,8 @@ void BindImagePair(py::module& m) {
             return self.pair_id;
           },
           "The unique identifier of the image pair.")
-      .def_property_readonly("is_valid",
-          [](const ImagePair& self) -> bool {
-            return self.is_valid;
-          },
+      .def_readwrite("is_valid",
+          &ImagePair::is_valid,
           "Whether the image pair is valid.")
       .def_readwrite("weight",
           &ImagePair::weight,
