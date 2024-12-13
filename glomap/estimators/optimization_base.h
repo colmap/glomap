@@ -12,9 +12,6 @@ struct OptimizationBaseOptions {
   // The threshold for the loss function
   double thres_loss_function = 1e-1;
 
-  // The loss function for the calibration
-  std::shared_ptr<ceres::LossFunction> loss_function;
-
   // The options for the solver
   ceres::Solver::Options solver_options;
 

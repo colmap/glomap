@@ -23,6 +23,8 @@ void GravityRefiner::RefineGravity(const ViewGraph& view_graph,
     return;
   }
 
+  loss_function_ = options_.CreateLossFunction();
+
   int counter_progress = 0;
   // Iterate through the error prone images
   for (auto image_id : error_prone_images) {
@@ -66,8 +68,7 @@ void GravityRefiner::RefineGravity(const ViewGraph& view_graph,
 
       ceres::CostFunction* coor_cost =
           GravError::CreateCost(gravities[counter]);
-      problem.AddResidualBlock(
-          coor_cost, options_.loss_function.get(), gravity.data());
+      problem.AddResidualBlock(coor_cost, loss_function_.get(), gravity.data());
       counter++;
     }
 
