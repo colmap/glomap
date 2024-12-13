@@ -85,7 +85,6 @@ void ViewGraphCalibrator::AddImagePair(
   const camera_t camera_id1 = images.at(image_pair.image_id1).camera_id;
   const camera_t camera_id2 = images.at(image_pair.image_id2).camera_id;
 
-  loss_function_ = options_.CreateLossFunction();
   if (camera_id1 == camera_id2) {
     problem_->AddResidualBlock(
         FetzerFocalLengthSameCameraCost::Create(
