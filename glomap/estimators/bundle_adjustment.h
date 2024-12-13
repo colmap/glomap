@@ -24,8 +24,8 @@ struct BundleAdjusterOptions : public OptimizationBaseOptions {
     solver_options.max_num_iterations = 200;
   }
 
-  void CreateLossFunction() {
-    loss_function = std::make_shared<ceres::HuberLoss>(thres_loss_function);
+  std::shared_ptr<ceres::LossFunction> CreateLossFunction() {
+    return std::make_shared<ceres::HuberLoss>(thres_loss_function);
   }
 };
 
@@ -68,6 +68,7 @@ class BundleAdjuster {
   BundleAdjusterOptions options_;
 
   std::unique_ptr<ceres::Problem> problem_;
+  std::shared_ptr<ceres::LossFunction> loss_function_;
 };
 
 }  // namespace glomap

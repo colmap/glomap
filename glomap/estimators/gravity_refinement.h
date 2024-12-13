@@ -17,8 +17,10 @@ struct GravityRefinerOptions : public OptimizationBaseOptions {
   // Only refine the gravity of the images with more than min_neighbors
   int min_num_neighbors = 7;
 
-  GravityRefinerOptions() : OptimizationBaseOptions() {
-    loss_function = std::make_shared<ceres::ArctanLoss>(
+  GravityRefinerOptions() : OptimizationBaseOptions() {}
+
+  std::shared_ptr<ceres::LossFunction> CreateLossFunction() {
+    return std::make_shared<ceres::ArctanLoss>(
         1 - std::cos(DegToRad(max_gravity_error)));
   }
 };
@@ -35,6 +37,7 @@ class GravityRefiner {
       const std::unordered_map<image_t, Image>& images,
       std::unordered_set<image_t>& error_prone_images);
   GravityRefinerOptions options_;
+  std::shared_ptr<ceres::LossFunction> loss_function_;
 };
 
 }  // namespace glomap
