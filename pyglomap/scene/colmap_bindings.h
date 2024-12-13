@@ -130,8 +130,8 @@ template <> struct type_caster<glomap::Camera> {
         if (!py::isinstance(src, camera_class)) return false;
 
         try {
-            value.camera_id = src.attr("camera_id").cast<camera_t>();
-            value.model_id = src.attr("model_id").cast<colmap::CameraModelId>();
+            value.camera_id = src.attr("camera_id").cast<colmap::camera_t>();
+            value.model_id = src.attr("model").cast<colmap::CameraModelId>();
             value.width = src.attr("width").cast<size_t>();
             value.height = src.attr("height").cast<size_t>();
 
@@ -143,7 +143,7 @@ template <> struct type_caster<glomap::Camera> {
         return true;
     }
 
-    static handle cast(glomap::Camera v, return_value_policy /*policy*/, handle /*parent*/) {
+    static handle cast(const glomap::Camera& v, return_value_policy /*policy*/, handle /*parent*/) {
       try {
         py::module pycolmap = py::module::import("pycolmap");
         py::object camera_class = pycolmap.attr("Camera");
