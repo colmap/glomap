@@ -76,7 +76,12 @@ void BindImage(py::module& m) {
         "Normalized feature rays, can be obtained by calling UndistortImages."
       )
       .def_readonly(
-          "is_registered", &Image::is_registered, "Whether the image is registered.");
+          "is_registered", &Image::is_registered, "Whether the image is registered.")
+      .def("__repr__", [](const Image& self) {
+        std::ostringstream ss;
+        ss << "Image(image_id=" << self.image_id << ", file_name=" << self.file_name << ", camera_id=" << self.camera_id << ", num_features=" << self.features.size() << ")";
+        return ss.str();
+      });
   // TODO: improve the printing here
   MakeDataclass(PyImage);
 
@@ -84,4 +89,6 @@ void BindImage(py::module& m) {
 
   // TODO: Refactor this to a new place
   py::bind_map<CameraMap>(m, "MapCameraIdToCamera");
+
+
 }

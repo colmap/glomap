@@ -45,7 +45,12 @@ void BindTrack(py::module& m) {
         "Observations of the track."
       )
       .def_readonly(
-          "is_initialized", &Track::is_initialized, "Whether the point is initialized.");
+          "is_initialized", &Track::is_initialized, "Whether the point is initialized.")
+			.def("__repr__", [](const Track& self) {
+				std::ostringstream ss;
+				ss << "Track(" << self.track_id << ", num_observations=" << self.observations.size() << ")";
+				return ss.str();
+			});
   MakeDataclass(PyTrack);
 
   py::bind_map<TrackMap>(m, "MapTrackIdToTrack");
