@@ -21,22 +21,22 @@ namespace py = pybind11;
 void BindViewGraph(py::module& m) {
   py::class_<ViewGraph, std::shared_ptr<ViewGraph>> PyViewGraph(m, "ViewGraph");
   PyViewGraph.def(py::init<>())
-      .def_property_readonly("num_images",
-          [](const ViewGraph& self) -> image_t {
-            return self.num_images;
-          },
-          "Number of images.")
-      .def_property_readonly("num_pairs",
-          [](const ViewGraph& self) -> image_t {
-            return self.num_pairs;
-          },
-          "Number of image pairs.")
       .def_property_readonly("image_pairs",
           [](const ViewGraph& self) -> const std::unordered_map<image_pair_t, ImagePair>& {
             return self.image_pairs;
           },
           py::return_value_policy::reference_internal,
-          "The image pairs.");
-  MakeDataclass(PyViewGraph);
+          "The image pairs.")
+      .def("__repr__", [](const ViewGraph& self) {
+        std::ostringstream ss;
+        ss << "ViewGraph(" << self.num_images << ", " << self.num_pairs << ")";
+        return ss.str();
+      });
+      // .def("summary", [](const ViewGraph& self) {
+      //   std::ostringstream ss;
+      //   ss << "ImagePair(" << self.image_id1 << ", " << self.image_id2 << ")";
+
+      // });
+  // MakeDataclass(PyViewGraph);
 
 }

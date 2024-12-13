@@ -55,9 +55,33 @@ void BindImage(py::module& m) {
         },
         "The pose of the image, defined as the transformation from world to "
       )
+      .def_property(
+        "features",
+        [](const Image& self) -> std::vector<Eigen::Vector2d> {
+          return self.features;
+        },
+        [](Image& self, const std::vector<Eigen::Vector2d>& value) {
+          self.features = value;
+        },
+        "Distorted feature points in pixels."
+      )
+      .def_property(
+        "features_undist",
+        [](const Image& self) -> std::vector<Eigen::Vector3d> {
+          return self.features_undist;
+        },
+        [](Image& self, const std::vector<Eigen::Vector3d>& value) {
+          self.features_undist = value;
+        },
+        "Normalized feature rays, can be obtained by calling UndistortImages."
+      )
       .def_readonly(
           "is_registered", &Image::is_registered, "Whether the image is registered.");
+  // TODO: improve the printing here
   MakeDataclass(PyImage);
 
   py::bind_map<ImageMap>(m, "MapImageIdToImage");
+
+  // TODO: Refactor this to a new place
+  py::bind_map<CameraMap>(m, "MapCameraIdToCamera");
 }

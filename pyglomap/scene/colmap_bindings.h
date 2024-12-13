@@ -72,7 +72,7 @@ template <> struct type_caster<colmap::Rigid3d> {
         return true;
     }
 
-    static handle cast(colmap::Rigid3d v, return_value_policy /*policy*/, handle /*parent*/) {
+    static handle cast(const colmap::Rigid3d& v, return_value_policy /*policy*/, handle /*parent*/) {
       try {
         py::module pycolmap = py::module::import("pycolmap");
         py::object rigid3d_class = pycolmap.attr("Rigid3d");
@@ -118,9 +118,9 @@ template <> struct type_caster<colmap::CameraModelId> {
 
 
 // Casting between colmap::Camera and pycolmap.Camera
-template <> struct type_caster<colmap::Camera> {
-    // set things up and gives you a `colmap::Camera value;` member
-    PYBIND11_TYPE_CASTER(colmap::Camera, _("Camera"));
+template <> struct type_caster<glomap::Camera> {
+    // set things up and gives you a `Camera value;` member
+    PYBIND11_TYPE_CASTER(glomap::Camera, _("Camera"));
 
     bool load(handle src, bool) {
         if (!src) return false;
@@ -143,7 +143,7 @@ template <> struct type_caster<colmap::Camera> {
         return true;
     }
 
-    static handle cast(colmap::Camera v, return_value_policy /*policy*/, handle /*parent*/) {
+    static handle cast(glomap::Camera v, return_value_policy /*policy*/, handle /*parent*/) {
       try {
         py::module pycolmap = py::module::import("pycolmap");
         py::object camera_class = pycolmap.attr("Camera");
