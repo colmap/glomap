@@ -36,11 +36,4 @@ using colmap::Rigid3d;
 const image_t kMaxNumImages = std::numeric_limits<image_t>::max();
 const image_pair_t kInvalidImagePairId = -1;
 
-inline std::ostream& operator<<(std::ostream& stream, const Rigid3d& tform) {
-  const static Eigen::IOFormat kVecFmt(
-      Eigen::StreamPrecision, Eigen::DontAlignCols, ", ", ", ");
-  stream << "Rigid3d(rotation_xyzw=[" << tform.rotation.coeffs().format(kVecFmt)
-         << "], translation=[" << tform.translation.format(kVecFmt) << "])";
-  return stream;
-}
 }  // namespace glomap
