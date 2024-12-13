@@ -26,7 +26,7 @@ void BindBundleAdjusterOptions(py::module& m) {
       },
       [](BundleAdjusterOptions& self, const double value) {
         self.thres_loss_function = value;
-        self.UpdateThreshold();
+        self.CreateLossFunction();
       },
       "The threshold for the loss function.")
     .def_readwrite("optimize_rotations",
