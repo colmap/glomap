@@ -33,7 +33,7 @@ typedef uint64_t track_t;
 
 using colmap::Rigid3d;
 
-const image_t kMaxNumImages = std::numeric_limits<image_t>::max();
+const image_t kMaxNumImages = std::numeric_limits<std::int32_t>::max();
 const image_pair_t kInvalidImagePairId = -1;
 
 }  // namespace glomap
