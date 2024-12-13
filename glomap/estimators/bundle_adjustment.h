@@ -19,14 +19,13 @@ struct BundleAdjusterOptions : public OptimizationBaseOptions {
   // Constrain the minimum number of views per track
   int min_num_view_per_track = 3;
 
-  void UpdateThreshold() {
-    loss_function = std::make_shared<ceres::HuberLoss>(thres_loss_function);
-  }
-
   BundleAdjusterOptions() : OptimizationBaseOptions() {
     thres_loss_function = 1.;
-    UpdateThreshold();
     solver_options.max_num_iterations = 200;
+  }
+
+  void CreateLossFunction() {
+    loss_function = std::make_shared<ceres::HuberLoss>(thres_loss_function);
   }
 };
 
