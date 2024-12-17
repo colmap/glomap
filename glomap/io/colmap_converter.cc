@@ -81,7 +81,7 @@ void ConvertGlomapToColmap(const std::unordered_map<camera_t, Camera>& cameras,
       colmap_point.track.AddElement(colmap_track_el);
     }
 
-    if (colmap_point.track.Length() < min_supports) continue;
+    if (track.observations.size() < min_supports) continue;
 
     colmap_point.track.Compress();
     reconstruction.AddPoint3D(track_id, std::move(colmap_point));
