@@ -55,6 +55,11 @@ void ViewGraphCalibrator::Reset(
   focals_.reserve(cameras.size());
   for (const auto& [camera_id, camera] : cameras) {
     focals_[camera_id] = camera.Focal();
+    // Avoid zero focal length
+    if (focals_[camera_id] < 1e-3) {
+      focals_[camera_id] =
+          std::max(std::max(camera.width, camera.height) * 1.2, 1e-3);
+    }
   }
 
   // Set up the problem
@@ -179,7 +184,7 @@ size_t ViewGraphCalibrator::FilterImagePairs(ViewGraph& view_graph) const {
   }
 
   LOG(INFO) << "invalid / total number of two view geometry: "
-            << invalid_counter << " / " << counter;
+            << invalid_counter << " / " << (counter / 2);
 
   return invalid_counter;
 }
