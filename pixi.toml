@@ -1,0 +1,63 @@
+[project]
+channels = ["conda-forge"]
+description = "GLOMAP - Global Structured-from-Motion Revisited"
+name = "glomap"
+platforms = ["linux-64"]
+version = "0.1.0"
+
+[activation]
+scripts = [".pixi.sh"]
+
+[tasks]
+clean = "rm -rf build"
+
+[tasks.download-example-data]
+cmd = """
+test -e "data/south-building/"
+|| (
+    mkdir -p data/
+    && wget https://demuc.de/colmap/datasets/south-building.zip
+    && unzip south-building.zip -d data/
+    && rm south-building.zip
+   )
+"""
+
+[tasks.example]
+cmd = """
+glomap mapper \
+    --database_path data/south-building/database.db \
+    --image_path    data/south-building/images \
+    --output_path   data/south-building/sparse
+"""
+depends-on = ["download-example-data", "build"]
+
+[tasks._prepare]
+cmd = """
+cmake -B build -S . -GNinja \
+    -DCMAKE_PREFIX_PATH=$CONDA_PREFIX \
+    -DCMAKE_INSTALL_PREFIX=$CONDA_PREFIX \
+    -DCMAKE_EXE_LINKER_FLAGS="-L$CONDA_PREFIX/lib"
+"""
+[tasks.build]
+cmd = "ninja -C build && ninja -C build install"
+depends-on = ["_prepare"]
+
+[dependencies]
+cmake = ">=3.30.5,<4"
+make = ">=4.4.1,<5"
+pkg-config = ">=0.29.2,<0.30"
+ninja = ">=1.12.1,<2"
+libgomp = ">=14.2.0,<15"
+eigen = ">=3.4.0,<4"
+libblas = ">=3.9.0,<4"
+libcblas = ">=3.9.0,<4"
+suitesparse = ">=7.8.3,<8"
+ceres-solver = ">=2.2.0,<3"
+libboost-devel = ">=1.86.0,<2"
+glog = ">=0.7.1,<0.8"
+cgal-cpp = ">=6.0.1,<7"
+freeimage = ">=3.18.0,<4"
+sqlite = ">=3.47.0,<4"
+gflags = ">=2.2.2,<3"
+wget = ">=1.21.4,<2"
+unzip = ">=6.0,<7"

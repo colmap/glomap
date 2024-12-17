@@ -1,3 +1,7 @@
 /build
 /data
 /.vscode
+
+# pixi environments
+.pixi
+*.egg-info

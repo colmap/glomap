@@ -23,6 +23,7 @@ If you use this project for your research, please cite
 
 ## Getting Started
 
+### From source
 To build GLOMAP, first install [COLMAP](https://colmap.github.io/install.html#build-from-source)
 dependencies and then build GLOMAP using the following commands: 
 ```shell
@@ -53,6 +54,27 @@ Note:
   tar xfvz cmake-3.30.1.tar.gz && cd cmake-3.30.1
   ./bootstrap && make -j$(nproc) && sudo make install
   ```
+
+### Using Pixi
+Pixi is a package management tools that allows for installing packages from conda ecosystem in a reproducible way. Learn more at [pixi.sh](https://pixi.sh/latest/)
+
+Install pixi [here](https://pixi.sh/latest/#installation) and then run
+```
+pixi run build
+pixi shell
+```
+This will build and install glomap inside of your isolated pixi enviroment (similar to a conda environment), you can check that glomap installed correctly by running
+
+```
+glomap -h
+```
+
+to run an example from pixi just do
+
+```
+pixi run example
+```
+
 
 ## End-to-End Example
 
