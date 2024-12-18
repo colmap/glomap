@@ -63,7 +63,7 @@ struct RotationEstimatorOptions {
   // Flg to use maximum spanning tree for initialization
   bool skip_initialization = false;
 
-  // TODO: Implement the weighted version for rotation averaging
+  // Flag to use weighting for rotation averaging
   bool use_weight = false;
 
   // Flag to use gravity for rotation averaging
@@ -145,6 +145,9 @@ class RotationEstimator {
   // The fixed camera rotation (if with initialization, it would not be identity
   // matrix)
   Eigen::Vector3d fixed_camera_rotation_;
+
+  // The weights for the edges
+  Eigen::ArrayXd weights_;
 };
 
 }  // namespace glomap
