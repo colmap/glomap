@@ -18,6 +18,7 @@ set(SOURCES
     math/two_view_geometry.cc
     processors/image_pair_inliers.cc
     processors/image_undistorter.cc
+    processors/reconstruction_aligner.cc
     processors/reconstruction_normalizer.cc
     processors/reconstruction_pruning.cc
     processors/relpose_filter.cc
@@ -50,6 +51,7 @@ set(HEADERS
     math/union_find.h
     processors/image_pair_inliers.h
     processors/image_undistorter.h
+    processors/reconstruction_aligner.h
     processors/reconstruction_normalizer.h
     processors/reconstruction_pruning.h
     processors/relpose_filter.h

@@ -4,9 +4,15 @@
 #include "glomap/scene/types_sfm.h"
 #include "glomap/types.h"
 
+#include <colmap/geometry/sim3.h>
+
 namespace glomap {
 
 struct GlobalPositionerOptions : public OptimizationBaseOptions {
+  // Defines a bounding box with the min-corner and max-corner coordinates for
+  // generating random positions.
+  using AxisAlignedBoundingBox = std::pair<Eigen::Vector3d, Eigen::Vector3d>;
+
   // ONLY_POINTS is recommended
   enum ConstraintType {
     // only include camera to point constraints
@@ -35,6 +41,11 @@ struct GlobalPositionerOptions : public OptimizationBaseOptions {
   // Random seed
   unsigned seed = 1;
 
+  AxisAlignedBoundingBox cameras_bbox = {Eigen::Vector3d::Constant(-100),
+                                         Eigen::Vector3d::Constant(100)};
+  AxisAlignedBoundingBox points_bbox = {Eigen::Vector3d::Constant(-100),
+                                        Eigen::Vector3d::Constant(100)};
+
   // the type of global positioning
   ConstraintType constraint_type = ONLY_POINTS;
   double constraint_reweight_scale =
@@ -51,7 +62,7 @@ struct GlobalPositionerOptions : public OptimizationBaseOptions {
 
 class GlobalPositioner {
  public:
-  GlobalPositioner(const GlobalPositionerOptions& options);
+  explicit GlobalPositioner(const GlobalPositionerOptions& options);
 
   // Returns true if the optimization was a success, false if there was a
   // failure.
@@ -99,9 +110,14 @@ class GlobalPositioner {
 
   // During the optimization, the camera translation is set to be the camera
   // center Convert the results back to camera poses
-  void ConvertResults(std::unordered_map<image_t, Image>& images);
+  void ConvertResults(std::unordered_map<image_t, Image>& images,
+                      std::unordered_map<track_t, Track>& tracks);
 
   GlobalPositionerOptions options_;
+
+  // Transformation that adjusts prior positions to align with the
+  // camera's bounding box.
+  colmap::Sim3d cameras_bbox_from_prior_frame_;
 
   std::mt19937 random_generator_;
   std::unique_ptr<ceres::Problem> problem_;
