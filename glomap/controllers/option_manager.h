@@ -18,6 +18,7 @@ struct GlobalPositionerOptions;
 struct BundleAdjusterOptions;
 struct TriangulatorOptions;
 struct InlierThresholdOptions;
+struct PosePriorOptions;
 
 class OptionManager {
  public:
@@ -37,6 +38,7 @@ class OptionManager {
   void AddBundleAdjusterOptions();
   void AddTriangulatorOptions();
   void AddInlierThresholdOptions();
+  void AddPosePriorOptions();
 
   template <typename T>
   void AddRequiredOption(const std::string& name,
@@ -88,6 +90,7 @@ class OptionManager {
   bool added_bundle_adjustment_options_ = false;
   bool added_triangulation_options_ = false;
   bool added_inliers_options_ = false;
+  bool added_pose_prior_options_ = false;
 };
 
 template <typename T>
