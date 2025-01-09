@@ -35,7 +35,7 @@ fi
 root_folder=$(git rev-parse --show-toplevel)
 all_files=$( \
     git ls-tree --full-tree -r --name-only HEAD . \
-    | grep "^glomap.*\(\.cc\|\.h\|\.hpp\|\.cpp\|\.cu\)$" \
+    | grep "^\(glomap\|pyglomap\).*\(\.cc\|\.h\|\.hpp\|\.cpp\|\.cu\)$" \
     | sed "s~^~$root_folder/~")
 num_files=$(echo $all_files | wc -w)
 echo "Formatting ${num_files} files"

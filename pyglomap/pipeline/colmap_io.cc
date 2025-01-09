@@ -1,12 +1,12 @@
 #include "glomap/io/colmap_io.h"
+
 #include "glomap/scene/types_sfm.h"
+
+#include <memory>
 
 #include "pyglomap/helpers.h"
 #include "pyglomap/pybind11_extension.h"
 #include "pyglomap/scene/colmap_bindings.h"
-
-#include <memory>
-
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
@@ -21,26 +21,18 @@ void WriteGlomapReconstructionWrapper(
     const std::unordered_map<track_t, Track>& tracks,
     const std::string output_format,
     const std::string image_path) {
-  
   WriteGlomapReconstruction(
-      reconstruction_path,
-      cameras,
-      images,
-      tracks,
-      output_format,
-      image_path);
+      reconstruction_path, cameras, images, tracks, output_format, image_path);
 }
 
 void BindColmapIO(py::module& m) {
-  m.def(
-      "write_glomap_reconstruction",
-      &WriteGlomapReconstructionWrapper,
-      "reconstruction_path"_a,
-      "cameras"_a,
-      "images"_a,
-      "tracks"_a,
-      "output_format"_a = "bin",
-      "image_path"_a = "",
-      "Write the reconstruction to the disk.");
-
+  m.def("write_glomap_reconstruction",
+        &WriteGlomapReconstructionWrapper,
+        "reconstruction_path"_a,
+        "cameras"_a,
+        "images"_a,
+        "tracks"_a,
+        "output_format"_a = "bin",
+        "image_path"_a = "",
+        "Write the reconstruction to the disk.");
 }

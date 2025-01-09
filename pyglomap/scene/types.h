@@ -29,6 +29,5 @@ PYBIND11_MAKE_OPAQUE(ImagePairMap);
 using CameraMap = std::unordered_map<camera_t, glomap::Camera>;
 PYBIND11_MAKE_OPAQUE(CameraMap);
 
-
 // using Point3DMap = std::unordered_map<point3D_t, Point3D>;
 // PYBIND11_MAKE_OPAQUE(Point3DMap);

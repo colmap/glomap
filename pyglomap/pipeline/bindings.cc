@@ -15,10 +15,10 @@ void BindTrackFilter(py::module& m);
 void BindColmapIO(py::module& m);
 
 void BindPipelines(py::module& m) {
-    BindRotationAveraging(m);
-    BindTrackEstablishment(m);
-    BindGlobalPositioning(m);
-    BindBundleAdjustment(m);
-    BindTrackFilter(m);
-    BindColmapIO(m);
+  BindRotationAveraging(m);
+  BindTrackEstablishment(m);
+  BindGlobalPositioning(m);
+  BindBundleAdjustment(m);
+  BindTrackFilter(m);
+  BindColmapIO(m);
 }

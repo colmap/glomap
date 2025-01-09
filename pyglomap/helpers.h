@@ -1,15 +1,14 @@
 #pragma once
 
-#include "colmap/util/logging.h"
-#include "colmap/util/string.h"
-#include "colmap/util/threading.h"
-
 #include <exception>
 #include <optional>
 #include <regex>
 #include <sstream>
 #include <string>
 
+#include "colmap/util/logging.h"
+#include "colmap/util/string.h"
+#include "colmap/util/threading.h"
 #include <Eigen/Core>
 #include <glog/logging.h>
 #include <pybind11/embed.h>
@@ -286,9 +285,9 @@ void AddDefaultsToDocstrings(py::class_<T, options...> cls) {
     const auto type_name = py::type::of(member).attr("__name__");
     const std::string doc =
         colmap::StringPrintf("%s (%s, default: %s)",
-                     py::str(prop.doc()).cast<std::string>().c_str(),
-                     type_name.template cast<std::string>().c_str(),
-                     py::str(member).cast<std::string>().c_str());
+                             py::str(prop.doc()).cast<std::string>().c_str(),
+                             type_name.template cast<std::string>().c_str(),
+                             py::str(member).cast<std::string>().c_str());
     prop.doc() = py::str(doc);
   }
 }

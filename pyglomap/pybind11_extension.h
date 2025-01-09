@@ -1,10 +1,9 @@
 #pragma once
 
-#include "colmap/util/types.h"
-
 #include <memory>
 #include <string>
 
+#include "colmap/util/types.h"
 #include <pybind11/cast.h>
 #include <pybind11/eigen.h>
 #include <pybind11/pybind11.h>
@@ -22,7 +21,8 @@ namespace detail {
 // should be explicit and cannot be automatic - likely not worth the added
 // logic.
 template <typename Type>
-struct type_caster<colmap::span<Type>> : list_caster<colmap::span<Type>, Type> {};
+struct type_caster<colmap::span<Type>> : list_caster<colmap::span<Type>, Type> {
+};
 
 // Autocast os.PathLike to std::string
 // Adapted from pybind11/stl/filesystem.h
@@ -104,15 +104,12 @@ class class_ext_ : public class_<type_, options...> {
   using type = type_;
 
   template <typename C, typename D, typename... Extra>
-  class_ext_& def_readwrite(const char* name,
-                            D C::* pm,
-                            const Extra&... extra) {
+  class_ext_& def_readwrite(const char* name, D C::*pm, const Extra&... extra) {
     static_assert(
         std::is_same<C, type>::value || std::is_base_of<C, type>::value,
         "def_readwrite() requires a class member (or base class member)");
-    cpp_function fget([pm](type& c) -> D& { return c.*pm; }, is_method(*this)),
-        fset([pm](type& c, const D& value) { c.*pm = value; },
-             is_method(*this));
+    cpp_function fget([pm](type&c) -> D& { return c.*pm; }, is_method(*this)),
+        fset([pm](type&c, const D&value) { c.*pm = value; }, is_method(*this));
     this->def_property(
         name, fget, fset, return_value_policy::reference_internal, extra...);
     return *this;
