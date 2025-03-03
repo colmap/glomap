@@ -234,6 +234,12 @@ void OptionManager::AddInlierThresholdOptions() {
     return;
   }
   added_inliers_options_ = true;
+  AddAndRegisterDefaultOption("Thresholds.max_angle_error",
+                              &mapper->inlier_thresholds.max_angle_error);
+  AddAndRegisterDefaultOption("Thresholds.max_reprojection_error",
+                              &mapper->inlier_thresholds.max_reprojection_error);
+  AddAndRegisterDefaultOption("Thresholds.min_triangulation_angle",
+                              &mapper->inlier_thresholds.min_triangulation_angle);
   AddAndRegisterDefaultOption("Thresholds.max_epipolar_error_E",
                               &mapper->inlier_thresholds.max_epipolar_error_E);
   AddAndRegisterDefaultOption("Thresholds.max_epipolar_error_F",

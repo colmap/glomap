@@ -14,6 +14,7 @@ struct BundleAdjusterOptions : public OptimizationBaseOptions {
   bool optimize_rotations = true;
   bool optimize_translation = true;
   bool optimize_intrinsics = true;
+  bool optimize_principal_point = true;
   bool optimize_points = true;
 
   // Constrain the minimum number of views per track
