@@ -1,6 +1,7 @@
 #pragma once
 
 #include <colmap/geometry/rigid3.h>
+#include <colmap/scene/camera_rig.h>
 #include <colmap/scene/database.h>
 #include <colmap/util/types.h>
 
