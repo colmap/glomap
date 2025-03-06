@@ -22,7 +22,7 @@ struct RigGlobalPositionerOptions : public GlobalPositionerOptions {
 //   // Constrain the minimum number of views per track
 //   int min_num_view_per_track = 3;
 
-  RigGlobalPositionerOptions() : RigGlobalPositionerOptions() { }
+  RigGlobalPositionerOptions() : GlobalPositionerOptions() { }
 
 };
 
@@ -34,6 +34,7 @@ class RigGlobalPositioner {
   // failure.
   // Assume tracks here are already filtered
   bool Solve(const ViewGraph& view_graph,
+             const std::vector<CameraRig>& camera_rigs,
              std::unordered_map<camera_t, Camera>& cameras,
              std::unordered_map<image_t, Image>& images,
              std::unordered_map<track_t, Track>& tracks);
@@ -41,26 +42,35 @@ class RigGlobalPositioner {
   RigGlobalPositionerOptions& GetOptions() { return options_; }
 
  protected:
-  void SetupProblem(const ViewGraph& view_graph,
-                    const std::unordered_map<track_t, Track>& tracks);
+  void SetupProblem(
+    const ViewGraph& view_graph,
+    const std::vector<CameraRig>& camera_rigs,
+    const std::unordered_map<image_t, Image>& images,
+    const std::unordered_map<track_t, Track>& tracks);
+  
+  void ExtractRigsFromWorld(
+    const std::vector<CameraRig>& camera_rigs,
+    const std::unordered_map<image_t, Image>& images);
 
   // Initialize all cameras to be random.
   void InitializeRandomPositions(const ViewGraph& view_graph,
                                  std::unordered_map<image_t, Image>& images,
                                  std::unordered_map<track_t, Track>& tracks);
 
-  // Creates camera to camera constraints from relative translations. (3D)
-  void AddCameraToCameraConstraints(const ViewGraph& view_graph,
-                                    std::unordered_map<image_t, Image>& images);
+  // // Creates camera to camera constraints from relative translations. (3D)
+  // void AddCameraToCameraConstraints(const ViewGraph& view_graph,
+  //                                   std::unordered_map<image_t, Image>& images);
 
   // Add tracks to the problem
   void AddPointToCameraConstraints(
+      const std::vector<CameraRig>& camera_rigs,
       std::unordered_map<camera_t, Camera>& cameras,
       std::unordered_map<image_t, Image>& images,
       std::unordered_map<track_t, Track>& tracks);
 
   // Add a single track to the problem
   void AddTrackToProblem(track_t track_id,
+                         const std::vector<CameraRig>& camera_rigs,
                          std::unordered_map<camera_t, Camera>& cameras,
                          std::unordered_map<image_t, Image>& images,
                          std::unordered_map<track_t, Track>& tracks);

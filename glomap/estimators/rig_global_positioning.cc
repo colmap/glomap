@@ -45,7 +45,7 @@ bool RigGlobalPositioner::Solve(const ViewGraph& view_graph,
   LOG(INFO) << "Setting up the global positioner problem";
 
   // Setup the problem.
-  SetupProblem(view_graph, tracks);
+  SetupProblem(view_graph, camera_rigs, images, tracks);
 
   // Initialize camera translations to be random.
   // Also, convert the camera pose translation to be the camera center.
@@ -59,7 +59,7 @@ bool RigGlobalPositioner::Solve(const ViewGraph& view_graph,
   // // Add the point to camera constraints to the problem.
   // if (options_.constraint_type != RigGlobalPositionerOptions::ONLY_CAMERAS) {
   // }
-  AddPointToCameraConstraints(cameras, images, tracks);
+  AddPointToCameraConstraints(camera_rigs, cameras, images, tracks);
 
   AddCamerasAndPointsToParameterGroups(images, tracks);
 
@@ -108,8 +108,10 @@ void RigGlobalPositioner::SetupProblem(
 
   // Check the validity of the provided camera rigs.
   std::unordered_set<camera_t> rig_camera_ids;
-  for (CameraRig& camera_rig : camera_rigs) {
+  // for (const CameraRig& camera_rig : camera_rigs) {
+  for (size_t idx_rig = 0; idx_rig < camera_rigs.size(); idx_rig++) {
     // camera_rig.Check(reconstruction);
+    const CameraRig& camera_rig = camera_rigs.at(idx_rig);
     for (const auto& camera_id : camera_rig.GetCameraIds()) {
       THROW_CHECK_EQ(rig_camera_ids.count(camera_id), 0)
           << "Camera must not be part of multiple camera rigs";
@@ -117,10 +119,13 @@ void RigGlobalPositioner::SetupProblem(
     }
 
     for (const auto& snapshot : camera_rig.Snapshots()) {
-      for (const auto& image_id : snapshot) {
-        THROW_CHECK_EQ(image_id_to_camera_rig_.count(image_id), 0)
+      // for (const auto& image_id : snapshot) {
+      for (size_t idx_snapshot = 0; idx_snapshot < snapshot.size(); idx_snapshot++) {
+        image_t image_id = snapshot[idx_snapshot];
+        THROW_CHECK_EQ(image_id_to_rig_from_world_.count(image_id), 0)
             << "Image must not be part of multiple camera rigs";
-        image_id_to_camera_rig_.emplace(image_id, &camera_rig);
+        // image_id_to_rig_from_world_.emplace(image_id, &camera_rig);
+        image_id_to_rig_from_world_.emplace(image_id, &(rigs_from_world_[idx_rig][idx_snapshot]));
       }
     }
   }
@@ -159,14 +164,14 @@ void RigGlobalPositioner::InitializeRandomPositions(
     const ViewGraph& view_graph,
     std::unordered_map<image_t, Image>& images,
     std::unordered_map<track_t, Track>& tracks) {
-  // std::unordered_set<image_t> constrained_positions;
-  // constrained_positions.reserve(images.size());
-  // for (const auto& [pair_id, image_pair] : view_graph.image_pairs) {
-  //   if (image_pair.is_valid == false) continue;
+  std::unordered_set<image_t> constrained_positions;
+  constrained_positions.reserve(images.size());
+  for (const auto& [pair_id, image_pair] : view_graph.image_pairs) {
+    if (image_pair.is_valid == false) continue;
 
-  //   constrained_positions.insert(image_pair.image_id1);
-  //   constrained_positions.insert(image_pair.image_id2);
-  // }
+    constrained_positions.insert(image_pair.image_id1);
+    constrained_positions.insert(image_pair.image_id2);
+  }
 
   for (auto& rigs : rigs_from_world_) {
     for (auto& rig : rigs) {
@@ -174,18 +179,15 @@ void RigGlobalPositioner::InitializeRandomPositions(
     }
   }
 
-  // if (options_.constraint_type != RigGlobalPositionerOptions::ONLY_CAMERAS) {
-  //   for (const auto& [track_id, track] : tracks) {
-  //     if (track.observations.size() < options_.min_num_view_per_track)
-  //     continue; for (const auto& observation : tracks[track_id].observations)
-  //     {
-  //       if (images.find(observation.first) == images.end()) continue;
-  //       Image& image = images[observation.first];
-  //       if (!image.is_registered) continue;
-  //       constrained_positions.insert(observation.first);
-  //     }
-  //   }
-  // }
+  for (const auto& [track_id, track] : tracks) {
+    if (track.observations.size() < options_.min_num_view_per_track) continue;
+    for (const auto& observation : tracks[track_id].observations) {
+      if (images.find(observation.first) == images.end()) continue;
+      Image& image = images[observation.first];
+      if (!image.is_registered) continue;
+      constrained_positions.insert(observation.first);
+    }
+  }
 
   // if (!options_.generate_random_positions || !options_.optimize_positions) {
   //   for (auto& [image_id, image] : images) {
@@ -245,6 +247,7 @@ void RigGlobalPositioner::InitializeRandomPositions(
 // }
 
 void RigGlobalPositioner::AddPointToCameraConstraints(
+    const std::vector<CameraRig>& camera_rigs,
     std::unordered_map<camera_t, Camera>& cameras,
     std::unordered_map<image_t, Image>& images,
     std::unordered_map<track_t, Track>& tracks) {
@@ -260,7 +263,7 @@ void RigGlobalPositioner::AddPointToCameraConstraints(
 
   if (num_pt_to_cam == 0) return;
 
-  // double weight_scale_pt = 1.0;
+  double weight_scale_pt = 1.0;
   // // Set the relative weight of the point to camera constraints based on
   // // the number of camera to camera constraints.
   // if (num_cam_to_cam > 0 &&
@@ -270,7 +273,7 @@ void RigGlobalPositioner::AddPointToCameraConstraints(
   //                     static_cast<double>(num_cam_to_cam) /
   //                     static_cast<double>(num_pt_to_cam);
   // }
-  // VLOG(2) << "Point to camera weight scaled: " << weight_scale_pt;
+  VLOG(2) << "Point to camera weight scaled: " << weight_scale_pt;
 
   if (loss_function_ptcam_uncalibrated_ == nullptr) {
     loss_function_ptcam_uncalibrated_ =
@@ -297,12 +300,13 @@ void RigGlobalPositioner::AddPointToCameraConstraints(
       track.is_initialized = true;
     }
 
-    AddTrackToProblem(track_id, cameras, images, tracks);
+    AddTrackToProblem(track_id, camera_rigs, cameras, images, tracks);
   }
 }
 
 void RigGlobalPositioner::AddTrackToProblem(
     track_t track_id,
+    const std::vector<CameraRig>& camera_rigs,
     std::unordered_map<camera_t, Camera>& cameras,
     std::unordered_map<image_t, Image>& images,
     std::unordered_map<track_t, Track>& tracks) {
@@ -343,7 +347,7 @@ void RigGlobalPositioner::AddTrackToProblem(
     if (image_id_to_rig_from_world_.find(observation.first) ==
         image_id_to_rig_from_world_.end()) {
       ceres::CostFunction* cost_function =
-          BATAPairwiseDirectionError::Create(translation, translation_rig);
+          BATAPairwiseDirectionError::Create(translation);
 
       // For calibrated and uncalibrated cameras, use different loss functions
       // Down weight the uncalibrated cameras
@@ -385,7 +389,7 @@ void RigGlobalPositioner::AddTrackToProblem(
         problem_->AddResidualBlock(
             cost_function,
             loss_function_ptcam_calibrated_.get(),
-            image_id_to_rig_from_world_->translation.data(),
+            image_id_to_rig_from_world_[observation.first]->translation.data(),
             tracks[track_id].xyz.data(),
             &rig_scales_[image_id_to_camera_rig_index_[observation.first]],
             &scale);
@@ -393,7 +397,7 @@ void RigGlobalPositioner::AddTrackToProblem(
         problem_->AddResidualBlock(
             cost_function,
             loss_function_ptcam_uncalibrated_.get(),
-            image_id_to_rig_from_world_->translation.data(),
+            image_id_to_rig_from_world_[observation.first]->translation.data(),
             tracks[track_id].xyz.data(),
             &rig_scales_[image_id_to_camera_rig_index_[observation.first]],
             &scale);

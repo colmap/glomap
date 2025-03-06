@@ -46,7 +46,7 @@ struct BATAPairwiseDirectionError {
 // Computes the error between a translation direction and the direction formed
 // from two positions such that t_ij - scale * (c_j - c_i + scale_rig * t_rig) is minimized.
 struct RigBATAPairwiseDirectionError {
-  RigBATAPairwiseDirectionError(const Eigen::Vector3d& translation_obs)
+  RigBATAPairwiseDirectionError(const Eigen::Vector3d& translation_obs, const Eigen::Vector3d& translation_rig)
       : translation_obs_(translation_obs), translation_rig_(translation_rig) {}
 
   // The error is given by the position error described above.
@@ -61,13 +61,13 @@ struct RigBATAPairwiseDirectionError {
         translation_obs_.cast<T>() -
         scale[0] * (Eigen::Map<const Eigen::Matrix<T, 3, 1>>(position2) -
                     Eigen::Map<const Eigen::Matrix<T, 3, 1>>(position1) +
-                    scale_rig[0] * Eigen::Map<const Eigen::Matrix<T, 3, 1>>(translation_rig_));
+                    scale_rig[0] * translation_rig_.cast<T>());
     return true;
   }
 
   static ceres::CostFunction* Create(const Eigen::Vector3d& translation_obs, const Eigen::Vector3d& translation_rig) {
     return (
-        new ceres::AutoDiffCostFunction<RigBATAPairwiseDirectionError, 3, 3, 3, 3, 1>(
+        new ceres::AutoDiffCostFunction<RigBATAPairwiseDirectionError, 3, 3, 3, 1, 1>(
             new RigBATAPairwiseDirectionError(translation_obs, translation_rig)));
   }
 

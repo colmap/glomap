@@ -8,6 +8,7 @@ set(SOURCES
     estimators/global_rotation_averaging.cc
     estimators/gravity_refinement.cc
     estimators/relpose_estimation.cc
+    estimators/rig_global_positioning.cc
     estimators/view_graph_calibration.cc
     io/colmap_converter.cc
     io/colmap_io.cc
@@ -38,6 +39,7 @@ set(HEADERS
     estimators/gravity_refinement.h
     estimators/relpose_estimation.h
     estimators/optimization_base.h
+    estimators/rig_global_positioning.h
     estimators/view_graph_calibration.h
     io/colmap_converter.h
     io/colmap_io.h
@@ -107,6 +109,10 @@ target_link_libraries(glomap_main glomap)
 set_target_properties(glomap_main PROPERTIES OUTPUT_NAME glomap)
 install(TARGETS glomap_main DESTINATION bin)
 
+add_executable(test_rig
+    test_rig_function.cc
+)
+target_link_libraries(test_rig glomap)
 
 if(TESTS_ENABLED)
     add_executable(glomap_test
