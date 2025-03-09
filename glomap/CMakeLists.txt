@@ -63,33 +63,33 @@ set(HEADERS
     scene/types.h
 )
 
-add_library(glomap ${SOURCES} ${HEADERS})
+add_library(glomap_gpu ${SOURCES} ${HEADERS})
 if(NOT FETCH_COLMAP)
-    target_link_libraries(glomap PUBLIC colmap::colmap)
+    target_link_libraries(glomap_gpu PUBLIC colmap::colmap)
 else()
-    target_link_libraries(glomap PUBLIC colmap)
+    target_link_libraries(glomap_gpu PUBLIC colmap)
 endif()
 
 if(NOT FETCH_POSELIB)
-    target_link_libraries(glomap PUBLIC PoseLib::PoseLib)
+    target_link_libraries(glomap_gpu PUBLIC PoseLib::PoseLib)
 else()
-    target_link_libraries(glomap PUBLIC PoseLib)
+    target_link_libraries(glomap_gpu PUBLIC PoseLib)
 endif()
 
 target_link_libraries(
-    glomap
+    glomap_gpu
     PUBLIC
         Eigen3::Eigen
         Ceres::ceres
         SuiteSparse::CHOLMOD
         ${BOOST_LIBRARIES}
 )
-target_include_directories(glomap PUBLIC ..)
+target_include_directories(glomap_gpu PUBLIC ..)
 
 if(MSVC)
-    target_compile_options(glomap PRIVATE /bigobj)
+    target_compile_options(glomap_gpu PRIVATE /bigobj)
 else()
-    target_compile_options(glomap PRIVATE
+    target_compile_options(glomap_gpu PRIVATE
         -Wall
         -Werror
         -Wno-sign-compare
@@ -99,12 +99,12 @@ endif()
 
 
 add_executable(glomap_main
-    glomap.cc
+    glomap_gpu.cc
     exe/global_mapper.h
     exe/global_mapper.cc)
-target_link_libraries(glomap_main glomap)
+target_link_libraries(glomap_main glomap_gpu)
 
-set_target_properties(glomap_main PROPERTIES OUTPUT_NAME glomap)
+set_target_properties(glomap_main PROPERTIES OUTPUT_NAME glomap_gpu)
 install(TARGETS glomap_main DESTINATION bin)
 
 
@@ -115,7 +115,7 @@ if(TESTS_ENABLED)
     target_link_libraries(
         glomap_test
         PRIVATE
-            glomap
+            glomap_gpu
             GTest::gtest
             GTest::gtest_main)
     add_test(NAME glomap_test COMMAND glomap_test)

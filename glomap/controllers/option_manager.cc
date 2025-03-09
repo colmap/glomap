@@ -180,6 +180,8 @@ void OptionManager::AddGlobalPositionerOptions() {
     return;
   }
   added_global_positioning_options_ = true;
+  AddAndRegisterDefaultOption("GlobalPositioning.use_gpu",
+                              &mapper->opt_gp.use_gpu);
   AddAndRegisterDefaultOption("GlobalPositioning.optimize_positions",
                               &mapper->opt_gp.optimize_positions);
   AddAndRegisterDefaultOption("GlobalPositioning.optimize_points",
@@ -199,6 +201,10 @@ void OptionManager::AddBundleAdjusterOptions() {
     return;
   }
   added_bundle_adjustment_options_ = true;
+  AddAndRegisterDefaultOption("BundleAdjustment.use_gpu",
+                              &mapper->opt_ba.use_gpu);
+  AddAndRegisterDefaultOption("BundleAdjustment.gpu_index",
+                              &mapper->opt_ba.gpu_index);
   AddAndRegisterDefaultOption("BundleAdjustment.optimize_rotations",
                               &mapper->opt_ba.optimize_rotations);
   AddAndRegisterDefaultOption("BundleAdjustment.optimize_translation",

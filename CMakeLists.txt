@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.28)
 
-project(glomap VERSION 1.0.0)
+project(glomap_gpu VERSION 1.0.0)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
