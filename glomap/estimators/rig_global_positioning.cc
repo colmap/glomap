@@ -51,6 +51,13 @@ bool RigGlobalPositioner::Solve(const ViewGraph& view_graph,
   // Also, convert the camera pose translation to be the camera center.
   InitializeRandomPositions(view_graph, images, tracks);
 
+  for (size_t i = 0; i < camera_rigs.size(); i++) {
+    for (size_t j = 0; j < camera_rigs[i].NumSnapshots(); j++) {
+      std::cout << rigs_from_world_[i][j] << std::endl;
+    }
+    // rig_scales_[i] = camera_rigs[i].ComputeRigFromWorldScale(images);
+  }
+
   // // Add the camera to camera constraints to the problem.
   // if (options_.constraint_type != RigGlobalPositionerOptions::ONLY_POINTS) {
   //   AddCameraToCameraConstraints(view_graph, images);
@@ -70,16 +77,18 @@ bool RigGlobalPositioner::Solve(const ViewGraph& view_graph,
   LOG(INFO) << "Solving the global positioner problem";
 
   ceres::Solver::Summary summary;
-  options_.solver_options.minimizer_progress_to_stdout = VLOG_IS_ON(2);
+  // options_.solver_options.minimizer_progress_to_stdout = VLOG_IS_ON(2);
+  options_.solver_options.minimizer_progress_to_stdout = true;
   ceres::Solve(options_.solver_options, problem_.get(), &summary);
 
-  if (VLOG_IS_ON(2)) {
+  // if (VLOG_IS_ON(2)) {
+  if (true) {
     LOG(INFO) << summary.FullReport();
   } else {
     LOG(INFO) << summary.BriefReport();
   }
 
-  ConvertResults(images);
+  ConvertResults(camera_rigs, images);
   return summary.IsSolutionUsable();
 }
 
@@ -106,36 +115,12 @@ void RigGlobalPositioner::SetupProblem(
                         return sum + track.second.observations.size();
                       }));
 
-  // Check the validity of the provided camera rigs.
-  std::unordered_set<camera_t> rig_camera_ids;
-  // for (const CameraRig& camera_rig : camera_rigs) {
-  for (size_t idx_rig = 0; idx_rig < camera_rigs.size(); idx_rig++) {
-    // camera_rig.Check(reconstruction);
-    const CameraRig& camera_rig = camera_rigs.at(idx_rig);
-    for (const auto& camera_id : camera_rig.GetCameraIds()) {
-      THROW_CHECK_EQ(rig_camera_ids.count(camera_id), 0)
-          << "Camera must not be part of multiple camera rigs";
-      rig_camera_ids.insert(camera_id);
-    }
-
-    for (const auto& snapshot : camera_rig.Snapshots()) {
-      // for (const auto& image_id : snapshot) {
-      for (size_t idx_snapshot = 0; idx_snapshot < snapshot.size(); idx_snapshot++) {
-        image_t image_id = snapshot[idx_snapshot];
-        THROW_CHECK_EQ(image_id_to_rig_from_world_.count(image_id), 0)
-            << "Image must not be part of multiple camera rigs";
-        // image_id_to_rig_from_world_.emplace(image_id, &camera_rig);
-        image_id_to_rig_from_world_.emplace(image_id, &(rigs_from_world_[idx_rig][idx_snapshot]));
-      }
-    }
-  }
-  // Initialize the rig scales to be 1.0.
-  rig_scales_.resize(camera_rigs.size(), 1.0);
-
   // // Establish the reconstruction without 3d points for colmap compatibility
   // ConvertGlomapToColmap(cameras, images, tracks, reconstruction, -1, false);
-
   ExtractRigsFromWorld(camera_rigs, images);
+
+  // Initialize the rig scales to be 1.0.
+  rig_scales_.resize(camera_rigs.size(), 1.0);
 }
 
 void RigGlobalPositioner::ExtractRigsFromWorld(
@@ -168,14 +153,23 @@ void RigGlobalPositioner::InitializeRandomPositions(
   constrained_positions.reserve(images.size());
   for (const auto& [pair_id, image_pair] : view_graph.image_pairs) {
     if (image_pair.is_valid == false) continue;
-
-    constrained_positions.insert(image_pair.image_id1);
-    constrained_positions.insert(image_pair.image_id2);
+    // Only modify the camera positions if they are not part of a camera rig
+    if (image_id_to_camera_rig_index_.find(image_pair.image_id1) ==
+        image_id_to_camera_rig_index_.end())
+      constrained_positions.insert(image_pair.image_id1);
+    if (image_id_to_camera_rig_index_.find(image_pair.image_id2) ==
+        image_id_to_camera_rig_index_.end())
+      constrained_positions.insert(image_pair.image_id2);
   }
 
   for (auto& rigs : rigs_from_world_) {
     for (auto& rig : rigs) {
-      rig.translation = 100.0 * RandVector3d(random_generator_, -1, 1);
+      if (options_.optimize_positions) {
+        rig.translation = 100.0 * RandVector3d(random_generator_, -1, 1);
+      } else {
+        rig.translation = colmap::Inverse(rig).translation;
+        std::cout << rig.translation.transpose() << std::endl;
+      }
     }
   }
 
@@ -189,62 +183,26 @@ void RigGlobalPositioner::InitializeRandomPositions(
     }
   }
 
-  // if (!options_.generate_random_positions || !options_.optimize_positions) {
-  //   for (auto& [image_id, image] : images) {
-  //     image.cam_from_world.translation = image.Center();
-  //   }
-  //   return;
-  // }
+  if (!options_.generate_random_positions || !options_.optimize_positions) {
+    for (auto& [image_id, image] : images) {
+      if (constrained_positions.find(image_id) != constrained_positions.end())
+        image.cam_from_world.translation = image.Center();
+    }
+    return;
+  }
 
-  // // Generate random positions for the cameras centers.
-  // for (auto& [image_id, image] : images) {
-  //   // Only set the cameras to be random if they are needed to be optimized
-  //   if (constrained_positions.find(image_id) != constrained_positions.end())
-  //     image.cam_from_world.translation =
-  //         100.0 * RandVector3d(random_generator_, -1, 1);
-  //   else
-  //     image.cam_from_world.translation = image.Center();
-  // }
+  // Generate random positions for the cameras centers.
+  for (auto& [image_id, image] : images) {
+    // Only set the cameras to be random if they are needed to be optimized
+    if (constrained_positions.find(image_id) != constrained_positions.end())
+      image.cam_from_world.translation =
+          100.0 * RandVector3d(random_generator_, -1, 1);
+    else
+      image.cam_from_world.translation = image.Center();
+  }
 
   VLOG(2) << "Constrained positions: " << constrained_positions.size();
 }
-
-// void RigGlobalPositioner::AddCameraToCameraConstraints(
-//     const ViewGraph& view_graph, std::unordered_map<image_t, Image>& images)
-//     {
-//   for (const auto& [pair_id, image_pair] : view_graph.image_pairs) {
-//     if (image_pair.is_valid == false) continue;
-
-//     const image_t image_id1 = image_pair.image_id1;
-//     const image_t image_id2 = image_pair.image_id2;
-//     if (images.find(image_id1) == images.end() ||
-//         images.find(image_id2) == images.end()) {
-//       continue;
-//     }
-
-//     CHECK_GT(scales_.capacity(), scales_.size())
-//         << "Not enough capacity was reserved for the scales.";
-//     double& scale = scales_.emplace_back(1);
-
-//     const Eigen::Vector3d translation =
-//         -(images[image_id2].cam_from_world.rotation.inverse() *
-//           image_pair.cam2_from_cam1.translation);
-//     ceres::CostFunction* cost_function =
-//         BATAPairwiseDirectionError::Create(translation);
-//     problem_->AddResidualBlock(
-//         cost_function,
-//         loss_function_.get(),
-//         images[image_id1].cam_from_world.translation.data(),
-//         images[image_id2].cam_from_world.translation.data(),
-//         &scale);
-
-//     problem_->SetParameterLowerBound(&scale, 0, 1e-5);
-//   }
-
-//   VLOG(2) << problem_->NumResidualBlocks()
-//           << " camera to camera constraints were added to the position "
-//              "estimation problem.";
-// }
 
 void RigGlobalPositioner::AddPointToCameraConstraints(
     const std::vector<CameraRig>& camera_rigs,
@@ -264,15 +222,6 @@ void RigGlobalPositioner::AddPointToCameraConstraints(
   if (num_pt_to_cam == 0) return;
 
   double weight_scale_pt = 1.0;
-  // // Set the relative weight of the point to camera constraints based on
-  // // the number of camera to camera constraints.
-  // if (num_cam_to_cam > 0 &&
-  //     options_.constraint_type ==
-  //         RigGlobalPositionerOptions::POINTS_AND_CAMERAS_BALANCED) {
-  //   weight_scale_pt = options_.constraint_reweight_scale *
-  //                     static_cast<double>(num_cam_to_cam) /
-  //                     static_cast<double>(num_pt_to_cam);
-  // }
   VLOG(2) << "Point to camera weight scaled: " << weight_scale_pt;
 
   if (loss_function_ptcam_uncalibrated_ == nullptr) {
@@ -282,13 +231,6 @@ void RigGlobalPositioner::AddPointToCameraConstraints(
                                             ceres::DO_NOT_TAKE_OWNERSHIP);
   }
 
-  // if (options_.constraint_type ==
-  //     RigGlobalPositionerOptions::POINTS_AND_CAMERAS_BALANCED) {
-  //   loss_function_ptcam_calibrated_ = std::make_shared<ceres::ScaledLoss>(
-  //       loss_function_.get(), weight_scale_pt, ceres::DO_NOT_TAKE_OWNERSHIP);
-  // } else {
-  //   loss_function_ptcam_calibrated_ = loss_function_;
-  // }
   loss_function_ptcam_calibrated_ = loss_function_;
 
   for (auto& [track_id, track] : tracks) {
@@ -366,19 +308,12 @@ void RigGlobalPositioner::AddTrackToProblem(
       }
       // If the image is part of a camera rig, use the RigBATA error
     } else {
-      // const Eigen::Vector3d translation_rig =
-      //     image.cam_from_world.rotation.inverse() *
-      //     image_id_to_rig_from_world_[observation.first]->translation;
-      const Eigen::Vector3d translation_rig =
-          image.cam_from_world.rotation.inverse() *
+      const Rigid3d& cam_from_rig =
           camera_rigs[image_id_to_camera_rig_index_[observation.first]]
-              .CamFromRig(images[observation.first].camera_id)
-              .translation;
-      // image_id_to_camera_rig_index_[observation.first]
-      //     : image.cam_from_world.rotation.inverse() *
-      //           rigs_from_world_[image_id_to_camera_rig_index_[observation.first]]
-      //               [image_id_to_camera_rig_index_[observation.first] - 1]
-      //               .translation;
+              .CamFromRig(image.camera_id);
+      const Eigen::Vector3d translation_rig =
+          // image.cam_from_world.rotation.inverse() * cam_from_rig.translation;
+          image.cam_from_world.rotation.inverse() * cam_from_rig.translation;
 
       ceres::CostFunction* cost_function =
           RigBATAPairwiseDirectionError::Create(translation, translation_rig);
@@ -391,16 +326,16 @@ void RigGlobalPositioner::AddTrackToProblem(
             loss_function_ptcam_calibrated_.get(),
             image_id_to_rig_from_world_[observation.first]->translation.data(),
             tracks[track_id].xyz.data(),
-            &rig_scales_[image_id_to_camera_rig_index_[observation.first]],
-            &scale);
+            &scale,
+            &rig_scales_[image_id_to_camera_rig_index_[observation.first]]);
       } else {
         problem_->AddResidualBlock(
             cost_function,
             loss_function_ptcam_uncalibrated_.get(),
             image_id_to_rig_from_world_[observation.first]->translation.data(),
             tracks[track_id].xyz.data(),
-            &rig_scales_[image_id_to_camera_rig_index_[observation.first]],
-            &scale);
+            &scale,
+            &rig_scales_[image_id_to_camera_rig_index_[observation.first]]);
       }
     }
 
@@ -439,7 +374,6 @@ void RigGlobalPositioner::AddCamerasAndPointsToParameterGroups(
           image.cam_from_world.translation.data(), group_id);
     }
   }
-  group_id++;
 
   for (auto& rigs : rigs_from_world_) {
     for (auto& rig : rigs) {
@@ -448,9 +382,12 @@ void RigGlobalPositioner::AddCamerasAndPointsToParameterGroups(
       }
     }
   }
+  group_id++;
+
   // Also add the scales to the group
   for (double& scale : rig_scales_) {
-    parameter_ordering->AddElementToGroup(&scale, group_id);
+    if (problem_->HasParameterBlock(&scale))
+      parameter_ordering->AddElementToGroup(&scale, group_id);
   }
 }
 
@@ -466,6 +403,13 @@ void RigGlobalPositioner::ParameterizeVariables(
       if (problem_->HasParameterBlock(image.cam_from_world.translation.data()))
         problem_->SetParameterBlockConstant(
             image.cam_from_world.translation.data());
+
+    for (auto& rigs : rigs_from_world_) {
+      for (auto& rig : rigs) {
+        if (problem_->HasParameterBlock(rig.translation.data()))
+          problem_->SetParameterBlockConstant(rig.translation.data());
+      }
+    }
   }
 
   // If do not optimize the rotations, set the camera rotations to be constant
@@ -484,9 +428,13 @@ void RigGlobalPositioner::ParameterizeVariables(
     }
   }
 
-  // Also add the scales to the group
+  // Set the rig scales to be constant
+  // TODO: add a flag to allow the scales to be optimized (if they are not in
+  // metric scale)
   for (double& scale : rig_scales_) {
-    problem_->SetParameterLowerBound(&scale, 0, 1e-5);
+    if (problem_->HasParameterBlock(&scale)) {
+      problem_->SetParameterBlockConstant(&scale);
+    }
   }
 
   // Set up the options for the solver
@@ -501,13 +449,43 @@ void RigGlobalPositioner::ParameterizeVariables(
 }
 
 void RigGlobalPositioner::ConvertResults(
+    const std::vector<CameraRig>& camera_rigs,
     std::unordered_map<image_t, Image>& images) {
-  // translation now stores the camera position, needs to convert back to
-  // translation
-  for (auto& [image_id, image] : images) {
-    image.cam_from_world.translation =
-        -(image.cam_from_world.rotation * image.cam_from_world.translation);
+  // translation now stores the camera position, needs to convert back
+  // First, calculate the camera translations of the rigs
+  for (auto& rig_from_world_single : rigs_from_world_) {
+    for (auto& rig_from_world : rig_from_world_single) {
+      rig_from_world.translation =
+          -(rig_from_world.rotation * rig_from_world.translation);
+      std::cout << rig_from_world.translation.transpose() << std::endl;
+    }
   }
+
+  // For images that are not belong to any rig, directly use the center as the
+  for (auto& [image_id, image] : images) {
+    if (image_id_to_rig_from_world_.count(image_id) == 0) {
+      image.cam_from_world.translation =
+          -(image.cam_from_world.rotation * image.cam_from_world.translation);
+    }
+  }
+  // For images within rigs, use the chained translation
+  for (size_t idx_rig = 0; idx_rig < camera_rigs.size(); idx_rig++) {
+    const CameraRig& camera_rig = camera_rigs.at(idx_rig);
+    const size_t num_snapshots = camera_rig.NumSnapshots();
+    for (size_t snapshot_idx = 0; snapshot_idx < num_snapshots;
+         ++snapshot_idx) {
+      for (const auto image_id : camera_rig.Snapshots()[snapshot_idx]) {
+        camera_t camera_id = images[image_id].camera_id;
+        Rigid3d cam_from_rig = camera_rig.CamFromRig(camera_id);
+        cam_from_rig.translation *= rig_scales_[idx_rig];
+
+        images[image_id].cam_from_world =
+            (cam_from_rig * rigs_from_world_[idx_rig][snapshot_idx]);
+      }
+    }
+  }
+
+  // TODO: if the scale is optimized, then also update the rigs.
 }
 
 }  // namespace glomap

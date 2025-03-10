@@ -25,6 +25,7 @@ set(SOURCES
     processors/track_filter.cc
     processors/view_graph_manipulation.cc
     scene/view_graph.cc
+    scene/camera_rig.cc
 )
 
 set(HEADERS
@@ -57,6 +58,7 @@ set(HEADERS
     processors/relpose_filter.h
     processors/track_filter.h
     processors/view_graph_manipulation.h
+    scene/camera_rig.h
     scene/camera.h
     scene/image_pair.h
     scene/image.h
@@ -111,6 +113,7 @@ install(TARGETS glomap_main DESTINATION bin)
 
 add_executable(test_rig
     test_rig_function.cc
+    # test_relative_pose.cc
 )
 target_link_libraries(test_rig glomap)
 

@@ -44,9 +44,11 @@ struct BATAPairwiseDirectionError {
 // RigBATAPairwiseDirectionError
 // ----------------------------------------
 // Computes the error between a translation direction and the direction formed
-// from two positions such that t_ij - scale * (c_j - c_i + scale_rig * t_rig) is minimized.
+// from two positions such that t_ij - scale * (c_j - c_i + scale_rig * t_rig)
+// is minimized.
 struct RigBATAPairwiseDirectionError {
-  RigBATAPairwiseDirectionError(const Eigen::Vector3d& translation_obs, const Eigen::Vector3d& translation_rig)
+  RigBATAPairwiseDirectionError(const Eigen::Vector3d& translation_obs,
+                                const Eigen::Vector3d& translation_rig)
       : translation_obs_(translation_obs), translation_rig_(translation_rig) {}
 
   // The error is given by the position error described above.
@@ -65,15 +67,18 @@ struct RigBATAPairwiseDirectionError {
     return true;
   }
 
-  static ceres::CostFunction* Create(const Eigen::Vector3d& translation_obs, const Eigen::Vector3d& translation_rig) {
+  static ceres::CostFunction* Create(const Eigen::Vector3d& translation_obs,
+                                     const Eigen::Vector3d& translation_rig) {
     return (
-        new ceres::AutoDiffCostFunction<RigBATAPairwiseDirectionError, 3, 3, 3, 1, 1>(
-            new RigBATAPairwiseDirectionError(translation_obs, translation_rig)));
+        new ceres::
+            AutoDiffCostFunction<RigBATAPairwiseDirectionError, 3, 3, 3, 1, 1>(
+                new RigBATAPairwiseDirectionError(translation_obs,
+                                                  translation_rig)));
   }
 
   // TODO: add covariance
   const Eigen::Vector3d translation_obs_;
-  const Eigen::Vector3d translation_rig_; // = c_R_w^T * c_t_r
+  const Eigen::Vector3d translation_rig_;  // = c_R_w^T * c_t_r
 };
 
 // ----------------------------------------

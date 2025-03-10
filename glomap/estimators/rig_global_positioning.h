@@ -8,22 +8,20 @@
 namespace glomap {
 
 struct RigGlobalPositionerOptions : public GlobalPositionerOptions {
+  //   // Whether initialize the reconstruction randomly
+  //   bool generate_random_positions = true;
+  //   bool generate_random_points = true;
+  //   bool generate_scales = true;  // Now using fixed 1 as initializaiton
 
-//   // Whether initialize the reconstruction randomly
-//   bool generate_random_positions = true;
-//   bool generate_random_points = true;
-//   bool generate_scales = true;  // Now using fixed 1 as initializaiton
+  //   // Flags for which parameters to optimize
+  //   bool optimize_positions = true;
+  //   bool optimize_points = true;
+  //   bool optimize_scales = true;
 
-//   // Flags for which parameters to optimize
-//   bool optimize_positions = true;
-//   bool optimize_points = true;
-//   bool optimize_scales = true;
+  //   // Constrain the minimum number of views per track
+  //   int min_num_view_per_track = 3;
 
-//   // Constrain the minimum number of views per track
-//   int min_num_view_per_track = 3;
-
-  RigGlobalPositionerOptions() : GlobalPositionerOptions() { }
-
+  RigGlobalPositionerOptions() : GlobalPositionerOptions() {}
 };
 
 class RigGlobalPositioner {
@@ -42,15 +40,13 @@ class RigGlobalPositioner {
   RigGlobalPositionerOptions& GetOptions() { return options_; }
 
  protected:
-  void SetupProblem(
-    const ViewGraph& view_graph,
-    const std::vector<CameraRig>& camera_rigs,
-    const std::unordered_map<image_t, Image>& images,
-    const std::unordered_map<track_t, Track>& tracks);
-  
-  void ExtractRigsFromWorld(
-    const std::vector<CameraRig>& camera_rigs,
-    const std::unordered_map<image_t, Image>& images);
+  void SetupProblem(const ViewGraph& view_graph,
+                    const std::vector<CameraRig>& camera_rigs,
+                    const std::unordered_map<image_t, Image>& images,
+                    const std::unordered_map<track_t, Track>& tracks);
+
+  void ExtractRigsFromWorld(const std::vector<CameraRig>& camera_rigs,
+                            const std::unordered_map<image_t, Image>& images);
 
   // Initialize all cameras to be random.
   void InitializeRandomPositions(const ViewGraph& view_graph,
@@ -59,7 +55,8 @@ class RigGlobalPositioner {
 
   // // Creates camera to camera constraints from relative translations. (3D)
   // void AddCameraToCameraConstraints(const ViewGraph& view_graph,
-  //                                   std::unordered_map<image_t, Image>& images);
+  //                                   std::unordered_map<image_t, Image>&
+  //                                   images);
 
   // Add tracks to the problem
   void AddPointToCameraConstraints(
@@ -86,7 +83,8 @@ class RigGlobalPositioner {
 
   // During the optimization, the camera translation is set to be the camera
   // center Convert the results back to camera poses
-  void ConvertResults(std::unordered_map<image_t, Image>& images);
+  void ConvertResults(const std::vector<CameraRig>& camera_rigs,
+                      std::unordered_map<image_t, Image>& images);
 
   RigGlobalPositionerOptions options_;
 
@@ -120,7 +118,7 @@ class RigGlobalPositioner {
   // // The Quaternions added to the problem, used to set the local
   // // parameterization once after setting up the problem.
   // std::unordered_set<double*> parameterized_cams_from_rig_rotations_;
-  
+
   std::vector<double> rig_scales_;
 
   colmap::Reconstruction reconstruction_;
