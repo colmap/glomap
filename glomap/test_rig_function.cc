@@ -64,34 +64,34 @@ int main(int argc, char** argv) {
   ConvertDatabaseToGlomap(database, view_graph, cameras, images);
   std::cout << "Loaded database" << std::endl;
 
-  // --------------------------------------------------------------
-  // For experiment, keep only 10 images for each sequence
-  int kept_img = 10;
-  std::unordered_map<camera_t, std::vector<image_t>> camera_id_to_image_id;
-  for (auto& [camera_id, camera] : cameras) {
-    camera_id_to_image_id[camera_id] = std::vector<image_t>();
-  }
+//   // --------------------------------------------------------------
+//   // For experiment, keep only 10 images for each sequence
+//   int kept_img = 10;
+//   std::unordered_map<camera_t, std::vector<image_t>> camera_id_to_image_id;
+//   for (auto& [camera_id, camera] : cameras) {
+//     camera_id_to_image_id[camera_id] = std::vector<image_t>();
+//   }
 
-  for (auto& [image_id, image] : images) {
-    camera_id_to_image_id[image.camera_id].emplace_back(image_id);
-  }
+//   for (auto& [image_id, image] : images) {
+//     camera_id_to_image_id[image.camera_id].emplace_back(image_id);
+//   }
 
-  std::unordered_set<image_t> erased_ids;
-  for (auto& [camera_id, camera] : cameras) {
-    std::vector<image_t>& image_ids = camera_id_to_image_id[camera_id];
-    std::sort(image_ids.begin(), image_ids.end());
-    for (size_t i = kept_img; i < image_ids.size(); i++) {
-      erased_ids.insert(image_ids[i]);
-    }
-  }
+//   std::unordered_set<image_t> erased_ids;
+//   for (auto& [camera_id, camera] : cameras) {
+//     std::vector<image_t>& image_ids = camera_id_to_image_id[camera_id];
+//     std::sort(image_ids.begin(), image_ids.end());
+//     for (size_t i = kept_img; i < image_ids.size(); i++) {
+//       erased_ids.insert(image_ids[i]);
+//     }
+//   }
 
-  std::unordered_set<image_pair_t> erased_pair_ids;
-  for (auto& [pair_id, image_pair] : view_graph.image_pairs) {
-    if (erased_ids.find(image_pair.image_id1) != erased_ids.end() ||
-        erased_ids.find(image_pair.image_id2) != erased_ids.end())
-      image_pair.is_valid = false;
-  }
-  // --------------------------------------------------------------
+//   std::unordered_set<image_pair_t> erased_pair_ids;
+//   for (auto& [pair_id, image_pair] : view_graph.image_pairs) {
+//     if (erased_ids.find(image_pair.image_id1) != erased_ids.end() ||
+//         erased_ids.find(image_pair.image_id2) != erased_ids.end())
+//       image_pair.is_valid = false;
+//   }
+//   // --------------------------------------------------------------
 
   int num_img = view_graph.KeepLargestConnectedComponents(images);
   std::cout << "KeepLargestConnectedComponents done" << std::endl;
@@ -180,7 +180,7 @@ int main(int argc, char** argv) {
   // Run the relative pose estimation and establish tracks
   options.skip_preprocessing = false;
   options.skip_view_graph_calibration = false;
-  options.skip_relative_pose_estimation = false;
+  options.skip_relative_pose_estimation = true;
   options.skip_rotation_averaging = false;
   options.skip_track_establishment = false;
 
@@ -193,6 +193,9 @@ int main(int argc, char** argv) {
   options.inlier_thresholds.max_epipolar_error_E = 1.;
 
   options.opt_ba.solver_options.max_num_iterations = 200;
+
+
+  options.opt_track.min_num_tracks_per_view = 50;
 
   // if (argc > 3)
   //     options.use_ = (std::stoi(argv[3]) > 0);
@@ -283,11 +286,6 @@ int main(int argc, char** argv) {
   std::cout << "Camera Rotations solved" << std::endl;
 
   RigGlobalPositionerOptions options_rig;
-  //   options_rig.optimize_points = true;
-  //   options_rig.optimize_positions = true;
-  //   options_rig.generate_scales = true;
-  //   options_rig.optimize_scales = true;
-  options_rig.solver_options.function_tolerance = 1e-10;
 
   RigGlobalPositioner rig_global_positioner(options_rig);
 
