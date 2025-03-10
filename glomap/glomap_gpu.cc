@@ -13,9 +13,11 @@ int ShowHelp(
             << std::endl;
 
 #ifdef GLOMAP_CUDA_ENABLED
-    std::cout << "\nThis version was compiled with CUDA!\n" << std::endl;
+    std::cout << "This version was compiled with CUDA!" << std::endl
+              << std::endl;
 #else
-    std::cout << "\nThis version was NOT compiled CUDA!\n" << std::endl;
+    std::cout << "This version was NOT compiled CUDA!" << std::endl
+              << std::endl;
 #endif
 
   std::cout << "Usage:" << std::endl;
