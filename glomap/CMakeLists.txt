@@ -116,6 +116,7 @@ install(TARGETS glomap_main DESTINATION bin)
 if(TESTS_ENABLED)
     add_executable(glomap_test
         controllers/global_mapper_test.cc
+        controllers/rotation_averager_test.cc
     )
     target_link_libraries(
         glomap_test
