@@ -1,6 +1,7 @@
 #include "glomap/estimators/global_positioning.h"
 
 #include "glomap/estimators/cost_function.h"
+
 #include <colmap/util/cuda.h>
 #include <colmap/util/misc.h>
 
@@ -401,7 +402,8 @@ void GlobalPositioner::ParameterizeVariables(
 #endif
 
   if (cuda_solver_enabled) {
-    const std::vector<int> gpu_indices = colmap::CSVToVector<int>(options_.gpu_index);
+    const std::vector<int> gpu_indices =
+        colmap::CSVToVector<int>(options_.gpu_index);
     THROW_CHECK_GT(gpu_indices.size(), 0);
     colmap::SetBestCudaDevice(gpu_indices[0]);
   }

@@ -76,7 +76,8 @@ bool BundleAdjuster::Solve(const ViewGraph& view_graph,
 #endif
 
   if (cuda_solver_enabled) {
-    const std::vector<int> gpu_indices = colmap::CSVToVector<int>(options_.gpu_index);
+    const std::vector<int> gpu_indices =
+        colmap::CSVToVector<int>(options_.gpu_index);
     THROW_CHECK_GT(gpu_indices.size(), 0);
     colmap::SetBestCudaDevice(gpu_indices[0]);
   }
