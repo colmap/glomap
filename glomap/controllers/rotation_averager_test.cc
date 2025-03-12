@@ -1,5 +1,6 @@
-#include "glomap/controllers/global_mapper.h"
 #include "glomap/controllers/rotation_averager.h"
+
+#include "glomap/controllers/global_mapper.h"
 #include "glomap/estimators/gravity_refinement.h"
 #include "glomap/io/colmap_io.h"
 #include "glomap/math/rigid3d.h"
@@ -48,12 +49,12 @@ void PrepareGravity(const colmap::Reconstruction& gt,
     if (outlier_ratio > 0.0 && double(rand()) / RAND_MAX < outlier_ratio) {
       Eigen::Quaterniond q;
       CreateRandomRotation(1., q);
-      gravity = Rigid3dToAngleAxis(Rigid3d(q, Eigen::Vector3d::Zero())).normalized();
+      gravity =
+          Rigid3dToAngleAxis(Rigid3d(q, Eigen::Vector3d::Zero())).normalized();
     }
     images[image_id].gravity_info.SetGravity(gravity);
   }
 }
-
 
 GlobalMapperOptions CreateMapperTestOptions() {
   GlobalMapperOptions options;
@@ -75,11 +76,9 @@ RotationAveragerOptions CreateRATestOptions(bool use_gravity = false) {
   return options;
 }
 
-void ExpectEqualRotations(
-    const colmap::Reconstruction& gt,
-    const colmap::Reconstruction& computed,
-    const double max_rotation_error_deg) {
-      
+void ExpectEqualRotations(const colmap::Reconstruction& gt,
+                          const colmap::Reconstruction& computed,
+                          const double max_rotation_error_deg) {
   const std::set<image_t> reg_image_ids_set = gt.RegImageIds();
   std::vector<image_t> reg_image_ids(reg_image_ids_set.begin(),
                                      reg_image_ids_set.end());
@@ -115,7 +114,6 @@ void ExpectEqualGravity(
 
     double gravity_error_deg = CalcAngle(gravity_gt, gravity_computed);
     EXPECT_LT(gravity_error_deg, max_gravity_error_deg);
-  
   }
 }
 
@@ -199,7 +197,6 @@ TEST(RotationEstimator, WithNoiseAndOutliers) {
       ExpectEqualRotations(
           gt_reconstruction, reconstruction, /*max_rotation_error_deg=*/2.);
   }
-
 }
 
 TEST(RotationEstimator, RefineGravity) {
@@ -224,11 +221,11 @@ TEST(RotationEstimator, RefineGravity) {
   ConvertDatabaseToGlomap(database, view_graph, cameras, images);
 
   // PrepareRelativeRotations(view_graph, images);
-  PrepareGravity(gt_reconstruction, images, /*stddev_gravity=*/0., /*outlier_ratio=*/0.3);
+  PrepareGravity(
+      gt_reconstruction, images, /*stddev_gravity=*/0., /*outlier_ratio=*/0.3);
 
   GlobalMapper global_mapper(CreateMapperTestOptions());
   global_mapper.Solve(database, view_graph, cameras, images, tracks);
-
 
   GravityRefinerOptions opt_grav_refine;
   GravityRefiner grav_refiner(opt_grav_refine);
@@ -236,8 +233,6 @@ TEST(RotationEstimator, RefineGravity) {
 
   // Check whether the gravity does not have error after refinement
   ExpectEqualGravity(gt_reconstruction, images, /*max_gravity_error_deg=*/1e-2);
-  
-
 }
 
 }  // namespace
