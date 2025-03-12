@@ -3,10 +3,12 @@
 #include "glomap/io/colmap_converter.h"
 // #include "glomap/io/theia_converter.h"
 #include "glomap/io/colmap_io.h"
+#include "glomap/io/pose_io.h"
 // #include "glomap/controllers/global_mapper_stochastic.h"
 #include "glomap/controllers/global_mapper.h"
 #include "glomap/estimators/callback_functions.h"
 #include "glomap/processors/reconstruction_pruning.h"
+#include "glomap/processors/relpose_filter.h"
 #include "glomap/scene/types_sfm.h"
 #include "glomap/test/prepare_experiment.h"
 #include "glomap/types.h"
@@ -64,6 +66,8 @@ int main(int argc, char** argv) {
   ConvertDatabaseToGlomap(database, view_graph, cameras, images);
   std::cout << "Loaded database" << std::endl;
 
+  ReadRelPose("../../prague/relpoase_glomap.txt", images, view_graph);
+
 //   // --------------------------------------------------------------
 //   // For experiment, keep only 10 images for each sequence
 //   int kept_img = 10;
@@ -100,70 +104,55 @@ int main(int argc, char** argv) {
   // --------------------------------------------------------------
   // Set up camera rigs
   std::vector<CameraRig> camera_rigs;
-  camera_rigs.emplace_back(CameraRig());
-  CameraRig& camera_rig = camera_rigs[0];
+  // camera_rigs.emplace_back(CameraRig());
+  // CameraRig& camera_rig = camera_rigs[0];
 
-  // Read rig info from the calib.json
-  std::string calib_path = "../../prague/calib.json";
-  std::ifstream calib_file(calib_path, std::ifstream::binary);
-  json calib = json::parse(calib_file);
-  // Json::Value calib;
-  // calib_file >> calib;
-  Eigen::Matrix3d R_0 = Eigen::Matrix3d::Zero();
-  R_0(0, 1) = 1;
-  R_0(1, 0) = -1;
-  R_0(2, 2) = 1;
-  Rigid3d rig_0(Eigen::Quaterniond(R_0), Eigen::Vector3d::Zero());
-  for (int idx = 0; idx < 6; idx++) {
-    Eigen::Matrix3d R;
-    for (size_t i = 0; i < 3; i++) {
-      for (size_t j = 0; j < 3; j++) {
-        R(i, j) = calib["cams"]["cam" + std::to_string(idx)]["R"][i][j];
-      }
-    }
-    Eigen::Vector3d t;
-    for (size_t i = 0; i < 3; i++) {
-      t[i] = calib["cams"]["cam" + std::to_string(idx)]["t"][i];
-    }
+  // // Read rig info from the calib.json
+  // std::string calib_path = "../../prague/calib.json";
+  // std::ifstream calib_file(calib_path, std::ifstream::binary);
+  // json calib = json::parse(calib_file);
+  // // Json::Value calib;
+  // // calib_file >> calib;
+  // Eigen::Matrix3d R_0 = Eigen::Matrix3d::Zero();
+  // R_0(0, 1) = 1;
+  // R_0(1, 0) = -1;
+  // R_0(2, 2) = 1;
+  // Rigid3d rig_0(Eigen::Quaterniond(R_0), Eigen::Vector3d::Zero());
+  // for (int idx = 0; idx < 6; idx++) {
+  //   Eigen::Matrix3d R;
+  //   for (size_t i = 0; i < 3; i++) {
+  //     for (size_t j = 0; j < 3; j++) {
+  //       R(i, j) = calib["cams"]["cam" + std::to_string(idx)]["R"][i][j];
+  //     }
+  //   }
+  //   Eigen::Vector3d t;
+  //   for (size_t i = 0; i < 3; i++) {
+  //     t[i] = calib["cams"]["cam" + std::to_string(idx)]["t"][i];
+  //   }
 
-    if (idx == 0) {
-      // R_0 = R;
-      // rig_0 = Rigid3d(Eigen::Quaterniond(R), t);
-    }
-    // std::cout << t << std::endl;
 
-    camera_rig.AddCamera(
-        idx + 1, rig_0 * colmap::Inverse(Rigid3d(Eigen::Quaterniond(R), t)));
-    // idx + 1,  colmap::Inverse(Rigid3d(Eigen::Quaterniond(R *
-    // R_0.transpose()), t)));
-    std::cout << idx + 1 << ", "
-              << camera_rig.CamFromRig(idx + 1).rotation.toRotationMatrix()
-              << std::endl;
-  }
-  std::cout << "AddCamera done" << std::endl;
+  //   camera_rig.AddCamera(
+  //       idx + 1, rig_0 * colmap::Inverse(Rigid3d(Eigen::Quaterniond(R), t)));
+  //   // idx + 1,  colmap::Inverse(Rigid3d(Eigen::Quaterniond(R *
+  //   // R_0.transpose()), t)));
 
-  // Add snapshot to the CameraRig
-  // std::unordered_map<image_t, int> image_id_to_snapshot_idx;
-  std::unordered_map<int, std::vector<image_t>> snapshot_idx_to_image_ids;
-  for (auto& [image_id, image] : images) {
-    if (!image.is_registered) continue;
-    int str_len = image.file_name.size();
+  // }
+  // std::cout << "AddCamera done" << std::endl;
 
-    int sequence_idx = std::stoi(image.file_name.substr(str_len - 4 - 7, 7));
-    snapshot_idx_to_image_ids[sequence_idx].emplace_back(image_id);
-  }
+  // // Add snapshot to the CameraRig
+  // // std::unordered_map<image_t, int> image_id_to_snapshot_idx;
+  // std::unordered_map<int, std::vector<image_t>> snapshot_idx_to_image_ids;
+  // for (auto& [image_id, image] : images) {
+  //   if (!image.is_registered) continue;
+  //   int str_len = image.file_name.size();
 
-  for (const auto& [snapshot_idx, image_ids] : snapshot_idx_to_image_ids) {
-    camera_rig.AddSnapshot(image_ids);
-  }
-  for (size_t i = 0; i < camera_rig.Snapshots().size(); i++) {
-    std::cout << i;
-    for (size_t j = 0; j < camera_rig.Snapshots()[i].size(); j++) {
-      image_t image_id = camera_rig.Snapshots()[i][j];
-      std::cout << ", " << image_id << ", " << images[image_id].file_name;
-    }
-    std::cout << std::endl;
-  }
+  //   int sequence_idx = std::stoi(image.file_name.substr(str_len - 4 - 7, 7));
+  //   snapshot_idx_to_image_ids[sequence_idx].emplace_back(image_id);
+  // }
+
+  // for (const auto& [snapshot_idx, image_ids] : snapshot_idx_to_image_ids) {
+  //   camera_rig.AddSnapshot(image_ids);
+  // }
 
   // Cameras are added to the snapshots
 
@@ -178,8 +167,8 @@ int main(int argc, char** argv) {
   GlobalMapperOptions options;
 
   // Run the relative pose estimation and establish tracks
-  options.skip_preprocessing = false;
-  options.skip_view_graph_calibration = false;
+  options.skip_preprocessing = true;
+  options.skip_view_graph_calibration = true;
   options.skip_relative_pose_estimation = true;
   options.skip_rotation_averaging = false;
   options.skip_track_establishment = false;
@@ -196,6 +185,16 @@ int main(int argc, char** argv) {
 
 
   options.opt_track.min_num_tracks_per_view = 50;
+
+  InlierThresholdOptions inlier_thresholds = options.inlier_thresholds;
+  // Undistort the images and filter edges by inlier number
+  UndistortImages(cameras, images, true);
+  ImagePairsInlierCount(view_graph, cameras, images, inlier_thresholds, true);
+
+  RelPoseFilter::FilterInlierNum(view_graph,
+                                  options.inlier_thresholds.min_inlier_num);
+  RelPoseFilter::FilterInlierRatio(
+      view_graph, options.inlier_thresholds.min_inlier_ratio);
 
   // if (argc > 3)
   //     options.use_ = (std::stoi(argv[3]) > 0);
@@ -234,48 +233,49 @@ int main(int argc, char** argv) {
 
   // Check whether the local rotation is consistent with the global rotation
   // Check the first snapshot
-  for (int i = 0; i < camera_rig.NumSnapshots(); i++) {
-    Rigid3d rig_from_world = camera_rig.ComputeRigFromWorld(i, images);
-    for (int j = 0; j < camera_rig.Snapshots()[i].size(); j++) {
-      image_t image_id = camera_rig.Snapshots()[i][j];
-      Rigid3d cam_from_world = images[image_id].cam_from_world;
-      Rigid3d cam_from_rig = camera_rig.CamFromRig(images[image_id].camera_id);
+// //   for (int i = 0; i < camera_rig.NumSnapshots(); i++) {
+//   for (int i = 0; i < 10; i++) {
+//     Rigid3d rig_from_world = camera_rig.ComputeRigFromWorld(i, images);
+//     for (int j = 0; j < camera_rig.Snapshots()[i].size(); j++) {
+//       image_t image_id = camera_rig.Snapshots()[i][j];
+//       Rigid3d cam_from_world = images[image_id].cam_from_world;
+//       Rigid3d cam_from_rig = camera_rig.CamFromRig(images[image_id].camera_id);
 
-      images[image_id].cam_from_world = cam_from_rig * rig_from_world;
-      std::cout << CalcAngle(cam_from_world, cam_from_rig * rig_from_world)
-                << " ";
-      // std::cout << "image_id: " << image_id << std::endl;
-      // std::cout << "cam_from_rig (store): " <<
-      // cam_from_rig.rotation.toRotationMatrix() << std::endl; std::cout <<
-      // "cam_from_rig: " << (cam_from_world *
-      // colmap::Inverse(rig_from_world)).rotation.toRotationMatrix() <<
-      // std::endl;
-    }
-    std::cout << std::endl;
+//       images[image_id].cam_from_world = cam_from_rig * rig_from_world;
+//       std::cout << CalcAngle(cam_from_world, cam_from_rig * rig_from_world)
+//                 << " ";
+//       // std::cout << "image_id: " << image_id << std::endl;
+//       // std::cout << "cam_from_rig (store): " <<
+//       // cam_from_rig.rotation.toRotationMatrix() << std::endl; std::cout <<
+//       // "cam_from_rig: " << (cam_from_world *
+//       // colmap::Inverse(rig_from_world)).rotation.toRotationMatrix() <<
+//       // std::endl;
+//     }
+//     std::cout << std::endl;
 
-    // for (int j = 0; j < camera_rig.Snapshots()[i].size(); j++) {
-    //     image_t image_id_1 = camera_rig.Snapshots()[i][j];
-    //     Rigid3d cam_from_rig_1 =
-    //     camera_rig.CamFromRig(images[image_id_1].camera_id); Rigid3d
-    //     cam_from_world_1 = images[image_id_1].cam_from_world; for (int k = j
-    //     + 1; k < camera_rig.Snapshots()[i].size(); k++) {
-    //         image_t image_id_2 = camera_rig.Snapshots()[i][k];
-    //         Rigid3d cam_from_rig_2 =
-    //         camera_rig.CamFromRig(images[image_id_2].camera_id); Rigid3d
-    //         cam_from_world_2 = images[image_id_2].cam_from_world; std::cout
-    //         << "image_id1, image_id2: " << image_id_1 << ", " << image_id_2
-    //         << std::endl; std::cout << "camera_id1, camera_id2: " <<
-    //         images[image_id_1].camera_id << ", " <<
-    //         images[image_id_2].camera_id << std::endl; std::cout <<
-    //         "cam_from_rig_2 * cam_from_rig_1.T" << (cam_from_rig_2 *
-    //         colmap::Inverse(cam_from_rig_1)).rotation.toRotationMatrix() <<
-    //         std::endl; std::cout << "cam_from_world_2 * cam_from_world_1.T"
-    //         << (cam_from_world_2 *
-    //         colmap::Inverse(cam_from_world_1)).rotation.toRotationMatrix() <<
-    //         std::endl;
-    //     }
-    // }
-  }
+//     // for (int j = 0; j < camera_rig.Snapshots()[i].size(); j++) {
+//     //     image_t image_id_1 = camera_rig.Snapshots()[i][j];
+//     //     Rigid3d cam_from_rig_1 =
+//     //     camera_rig.CamFromRig(images[image_id_1].camera_id); Rigid3d
+//     //     cam_from_world_1 = images[image_id_1].cam_from_world; for (int k = j
+//     //     + 1; k < camera_rig.Snapshots()[i].size(); k++) {
+//     //         image_t image_id_2 = camera_rig.Snapshots()[i][k];
+//     //         Rigid3d cam_from_rig_2 =
+//     //         camera_rig.CamFromRig(images[image_id_2].camera_id); Rigid3d
+//     //         cam_from_world_2 = images[image_id_2].cam_from_world; std::cout
+//     //         << "image_id1, image_id2: " << image_id_1 << ", " << image_id_2
+//     //         << std::endl; std::cout << "camera_id1, camera_id2: " <<
+//     //         images[image_id_1].camera_id << ", " <<
+//     //         images[image_id_2].camera_id << std::endl; std::cout <<
+//     //         "cam_from_rig_2 * cam_from_rig_1.T" << (cam_from_rig_2 *
+//     //         colmap::Inverse(cam_from_rig_1)).rotation.toRotationMatrix() <<
+//     //         std::endl; std::cout << "cam_from_world_2 * cam_from_world_1.T"
+//     //         << (cam_from_world_2 *
+//     //         colmap::Inverse(cam_from_world_1)).rotation.toRotationMatrix() <<
+//     //         std::endl;
+//     //     }
+//     // }
+//   }
 
   //   colmap::Reconstruction recontruction;
   //   recontruction.Read("test_2/0");
@@ -314,7 +314,7 @@ int main(int argc, char** argv) {
   GlobalMapper global_mapper_new(options);
   global_mapper_new.Solve(database, view_graph, cameras, images, tracks);
 
-  WriteGlomapReconstruction("test_3", cameras, images, tracks, "bin", "");
+  WriteGlomapReconstruction("test_4", cameras, images, tracks, "bin", "");
   // // -------------------------------------------------
   // std::ofstream file_rel;
   // file_rel.open("relpose_3dof_trans.txt");

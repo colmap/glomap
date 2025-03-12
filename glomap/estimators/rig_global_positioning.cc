@@ -51,13 +51,6 @@ bool RigGlobalPositioner::Solve(const ViewGraph& view_graph,
   // Also, convert the camera pose translation to be the camera center.
   InitializeRandomPositions(view_graph, images, tracks);
 
-  for (size_t i = 0; i < camera_rigs.size(); i++) {
-    for (size_t j = 0; j < camera_rigs[i].NumSnapshots(); j++) {
-      std::cout << rigs_from_world_[i][j] << std::endl;
-    }
-    // rig_scales_[i] = camera_rigs[i].ComputeRigFromWorldScale(images);
-  }
-
   // // Add the camera to camera constraints to the problem.
   // if (options_.constraint_type != RigGlobalPositionerOptions::ONLY_POINTS) {
   //   AddCameraToCameraConstraints(view_graph, images);
@@ -457,7 +450,6 @@ void RigGlobalPositioner::ConvertResults(
     for (auto& rig_from_world : rig_from_world_single) {
       rig_from_world.translation =
           -(rig_from_world.rotation * rig_from_world.translation);
-      std::cout << rig_from_world.translation.transpose() << std::endl;
     }
   }
 

@@ -13,6 +13,7 @@ set(SOURCES
     io/colmap_converter.cc
     io/colmap_io.cc
     io/gravity_io.cc
+    io/pose_io.cc
     math/gravity.cc
     math/rigid3d.cc
     math/tree.cc
@@ -45,6 +46,7 @@ set(HEADERS
     io/colmap_converter.h
     io/colmap_io.h
     io/gravity_io.h
+    io/pose_io.h
     math/gravity.h
     math/l1_solver.h
     math/rigid3d.h
