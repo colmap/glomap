@@ -16,6 +16,15 @@ double RelAngleError(double angle_12, double angle_1, double angle_2) {
 
   while (est < -EIGEN_PI) est += TWO_PI;
 
+  // Inject random noise if the angle is too close to the boundary to break the
+  // possible balance at the local minima
+  if (est > EIGEN_PI - 0.01 || est < -EIGEN_PI + 0.01) {
+    if (est < 0)
+      est += (rand() % 1000) / 1000.0 * 0.01;
+    else
+      est -= (rand() % 1000) / 1000.0 * 0.01;
+  }
+
   return est;
 }
 }  // namespace
