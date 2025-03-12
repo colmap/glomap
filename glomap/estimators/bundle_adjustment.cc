@@ -54,6 +54,7 @@ void BundleAdjuster::Reset() {
   ceres::Problem::Options problem_options;
   problem_options.loss_function_ownership = ceres::DO_NOT_TAKE_OWNERSHIP;
   problem_ = std::make_unique<ceres::Problem>(problem_options);
+  loss_function_ = options_.CreateLossFunction();
 }
 
 void BundleAdjuster::AddPointToCameraConstraints(
@@ -70,14 +71,14 @@ void BundleAdjuster::AddPointToCameraConstraints(
       Image& image = images[observation.first];
 
       ceres::CostFunction* cost_function =
-          colmap::CameraCostFunction<colmap::ReprojErrorCostFunction>(
+          colmap::CreateCameraCostFunction<colmap::ReprojErrorCostFunctor>(
               cameras[image.camera_id].model_id,
               image.features[observation.second]);
 
       if (cost_function != nullptr) {
         problem_->AddResidualBlock(
             cost_function,
-            options_.loss_function.get(),
+            loss_function_.get(),
             image.cam_from_world.rotation.coeffs().data(),
             image.cam_from_world.translation.data(),
             tracks[track_id].xyz.data(),

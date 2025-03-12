@@ -4,6 +4,7 @@
 #include "glomap/io/colmap_io.h"
 #include "glomap/types.h"
 
+#include <colmap/util/file.h>
 #include <colmap/util/misc.h>
 #include <colmap/util/timer.h>
 

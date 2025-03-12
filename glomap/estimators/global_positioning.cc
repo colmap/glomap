@@ -87,6 +87,8 @@ void GlobalPositioner::SetupProblem(
   ceres::Problem::Options problem_options;
   problem_options.loss_function_ownership = ceres::DO_NOT_TAKE_OWNERSHIP;
   problem_ = std::make_unique<ceres::Problem>(problem_options);
+  loss_function_ = options_.CreateLossFunction();
+
   // Allocate enough memory for the scales. One for each residual.
   // Due to possibly invalid image pairs or tracks, the actual number of
   // residuals may be smaller.
@@ -169,7 +171,7 @@ void GlobalPositioner::AddCameraToCameraConstraints(
         BATAPairwiseDirectionError::Create(translation);
     problem_->AddResidualBlock(
         cost_function,
-        options_.loss_function.get(),
+        loss_function_.get(),
         images[image_id1].cam_from_world.translation.data(),
         images[image_id2].cam_from_world.translation.data(),
         &scale);
@@ -212,19 +214,17 @@ void GlobalPositioner::AddPointToCameraConstraints(
 
   if (loss_function_ptcam_uncalibrated_ == nullptr) {
     loss_function_ptcam_uncalibrated_ =
-        std::make_shared<ceres::ScaledLoss>(options_.loss_function.get(),
+        std::make_shared<ceres::ScaledLoss>(loss_function_.get(),
                                             0.5 * weight_scale_pt,
                                             ceres::DO_NOT_TAKE_OWNERSHIP);
   }
 
   if (options_.constraint_type ==
       GlobalPositionerOptions::POINTS_AND_CAMERAS_BALANCED) {
-    loss_function_ptcam_calibrated_ =
-        std::make_shared<ceres::ScaledLoss>(options_.loss_function.get(),
-                                            weight_scale_pt,
-                                            ceres::DO_NOT_TAKE_OWNERSHIP);
+    loss_function_ptcam_calibrated_ = std::make_shared<ceres::ScaledLoss>(
+        loss_function_.get(), weight_scale_pt, ceres::DO_NOT_TAKE_OWNERSHIP);
   } else {
-    loss_function_ptcam_calibrated_ = options_.loss_function;
+    loss_function_ptcam_calibrated_ = loss_function_;
   }
 
   for (auto& [track_id, track] : tracks) {

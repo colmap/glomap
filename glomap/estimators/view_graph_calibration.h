@@ -21,6 +21,10 @@ struct ViewGraphCalibratorOptions : public OptimizationBaseOptions {
   ViewGraphCalibratorOptions() : OptimizationBaseOptions() {
     thres_loss_function = 1e-2;
   }
+
+  std::shared_ptr<ceres::LossFunction> CreateLossFunction() {
+    return std::make_shared<ceres::CauchyLoss>(thres_loss_function);
+  }
 };
 
 class ViewGraphCalibrator {
@@ -61,6 +65,7 @@ class ViewGraphCalibrator {
   ViewGraphCalibratorOptions options_;
   std::unique_ptr<ceres::Problem> problem_;
   std::unordered_map<camera_t, double> focals_;
+  std::shared_ptr<ceres::LossFunction> loss_function_;
 };
 
 }  // namespace glomap
