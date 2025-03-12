@@ -120,7 +120,6 @@ void ExpectEqualGravity(
 TEST(RotationEstimator, WithoutNoise) {
   const std::string database_path = colmap::CreateTestDir() + "/database.db";
 
-  // FLAGS_v = 2;
   colmap::Database database(database_path);
   colmap::Reconstruction gt_reconstruction;
   colmap::SyntheticDatasetOptions synthetic_dataset_options;
@@ -166,7 +165,6 @@ TEST(RotationEstimator, WithNoiseAndOutliers) {
   synthetic_dataset_options.num_cameras = 2;
   synthetic_dataset_options.num_images = 7;
   synthetic_dataset_options.num_points3D = 100;
-  // synthetic_dataset_options.point2D_stddev = 0.5;
   synthetic_dataset_options.point2D_stddev = 1;
   synthetic_dataset_options.inlier_match_ratio = 0.6;
   colmap::SynthesizeDataset(
@@ -208,7 +206,7 @@ TEST(RotationEstimator, RefineGravity) {
   colmap::SyntheticDatasetOptions synthetic_dataset_options;
   synthetic_dataset_options.num_cameras = 2;
   synthetic_dataset_options.num_images = 100;
-  synthetic_dataset_options.num_points3D = 50;
+  synthetic_dataset_options.num_points3D = 200;
   synthetic_dataset_options.point2D_stddev = 0;
   colmap::SynthesizeDataset(
       synthetic_dataset_options, &gt_reconstruction, &database);
@@ -220,7 +218,6 @@ TEST(RotationEstimator, RefineGravity) {
 
   ConvertDatabaseToGlomap(database, view_graph, cameras, images);
 
-  // PrepareRelativeRotations(view_graph, images);
   PrepareGravity(
       gt_reconstruction, images, /*stddev_gravity=*/0., /*outlier_ratio=*/0.3);
 
