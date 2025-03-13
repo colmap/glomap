@@ -1,12 +1,5 @@
 cmake_minimum_required(VERSION 3.28)
 
-project(glomap VERSION 1.0.0)
-
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-set_property(GLOBAL PROPERTY GLOBAL_DEPENDS_NO_CYCLES ON)
-
 option(CUDA_ENABLED "Whether to enable CUDA, if available" ON)
 option(TESTS_ENABLED "Whether to build test binaries" OFF)
 option(ASAN_ENABLED "Whether to enable AddressSanitizer flags" OFF)
@@ -14,12 +7,20 @@ option(CCACHE_ENABLED "Whether to enable compiler caching, if available" ON)
 option(FETCH_COLMAP "Whether to use COLMAP with FetchContent or with self-installed software" ON)
 option(FETCH_POSELIB "Whether to use PoseLib with FetchContent or with self-installed software" ON)
 
-include(cmake/FindDependencies.cmake)
-
 # Propagate options to vcpkg manifest.
 if(CUDA_ENABLED)
     list(APPEND VCPKG_MANIFEST_FEATURES "cuda")
 endif()
+
+# Initialize the project.
+project(glomap VERSION 1.0.0)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+set_property(GLOBAL PROPERTY GLOBAL_DEPENDS_NO_CYCLES ON)
+
+include(cmake/FindDependencies.cmake)
 
 if (TESTS_ENABLED)
     enable_testing()
@@ -43,6 +44,7 @@ if(CCACHE_ENABLED)
 else()
     message(STATUS "Disabling ccache support")
 endif()
+
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     # Some fixes for the Glog library.
