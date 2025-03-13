@@ -63,22 +63,29 @@ void EstimateRelativePoses(ViewGraph& view_graph,
           // Undistort points
           // Note that here, we still rescale by the focal length (to avoid
           // change the RANSAC threshold)
+          Eigen::Matrix2d K1_new = Eigen::Matrix2d::Zero();
+          Eigen::Matrix2d K2_new = Eigen::Matrix2d::Zero();
+          K1_new(0, 0) = camera1.FocalLengthX();
+          K1_new(1, 1) = camera1.FocalLengthY();
+          K2_new(0, 0) = camera2.FocalLengthX();
+          K2_new(1, 1) = camera2.FocalLengthY();
           for (size_t idx = 0; idx < matches.rows(); idx++) {
-            points2D_1[idx] =
-                camera1.Focal() * camera1.CamFromImg(points2D_1[idx]);
-            points2D_2[idx] =
-                camera2.Focal() * camera2.CamFromImg(points2D_2[idx]);
+            points2D_1[idx] = K1_new * camera1.CamFromImg(points2D_1[idx]);
+            points2D_2[idx] = K2_new * camera2.CamFromImg(points2D_2[idx]);
           }
+
           // Reset the camera to be the pinhole camera with original focal
           // length and zero principal point
-          camera_poselib1 = poselib::Camera("SIMPLE_PINHOLE",
-                                            {camera1.Focal(), 0., 0.},
-                                            camera1.width,
-                                            camera1.height);
-          camera_poselib2 = poselib::Camera("SIMPLE_PINHOLE",
-                                            {camera2.Focal(), 0., 0.},
-                                            camera2.width,
-                                            camera2.height);
+          camera_poselib1 = poselib::Camera(
+              "PINHOLE",
+              {camera1.FocalLengthX(), camera1.FocalLengthY(), 0., 0.},
+              camera1.width,
+              camera1.height);
+          camera_poselib2 = poselib::Camera(
+              "PINHOLE",
+              {camera2.FocalLengthX(), camera2.FocalLengthY(), 0., 0.},
+              camera2.width,
+              camera2.height);
         }
         inliers.clear();
         poselib::CameraPose pose_rel_calc;
