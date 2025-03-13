@@ -26,6 +26,13 @@ jobs:
           {
             os: windows-2022,
             cmakeBuildType: Release,
+            cudaEnabled: true,
+            testsEnabled: true,
+            exportPackage: true,
+          },
+          {
+            os: windows-2022,
+            cmakeBuildType: Release,
             cudaEnabled: false,
             testsEnabled: true,
             exportPackage: true,
@@ -70,6 +77,15 @@ jobs:
 
           .github/workflows/install-ccache.ps1 -Destination "${{ env.COMPILER_CACHE_DIR }}/bin"
 
+      - name: Install CUDA
+        uses: Jimver/cuda-toolkit@v0.2.18
+        if: matrix.config.cudaEnabled
+        id: cuda-toolkit
+        with:
+          cuda: '12.6.2'
+          sub-packages: '["nvcc", "nvtx", "cudart", "curand", "curand_dev", "nvrtc_dev"]'
+          method: 'network'
+
       - name: Install CMake and Ninja
         uses: lukka/get-cmake@latest
 
@@ -96,10 +112,11 @@ jobs:
             -DCMAKE_MAKE_PROGRAM=ninja `
             -DCMAKE_BUILD_TYPE=Release `
             -DTESTS_ENABLED=ON `
-            -DCUDA_ENABLED=OFF `
+            -DCUDA_ENABLED=${{ matrix.config.cudaEnabled }} `
             -DGUI_ENABLED=OFF `
             -DCGAL_ENABLED=OFF `
             -DCMAKE_CUDA_ARCHITECTURES=all-major `
+            -DCUDAToolkit_ROOT="${{ steps.cuda-toolkit.outputs.CUDA_PATH }}" `
             -DCMAKE_TOOLCHAIN_FILE="${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake" `
             -DVCPKG_TARGET_TRIPLET=x64-windows-release `
             -DCMAKE_INSTALL_PREFIX=install
@@ -123,15 +140,27 @@ jobs:
 
           ../vcpkg/vcpkg.exe install `
               --triplet=x64-windows-release
+              $(if ($${{ matrix.config.cudaEnabled }}) { echo "--x-feature=cuda" })
           ../vcpkg/vcpkg.exe export --raw --output-dir vcpkg_export --output glomap
           cp vcpkg_export/glomap/installed/x64-windows/bin/*.dll install/bin
           cp vcpkg_export/glomap/installed/x64-windows-release/bin/*.dll install/bin
+          if ($${{ matrix.config.cudaEnabled }}) {
+              cp "${{ steps.cuda-toolkit.outputs.CUDA_PATH }}/bin/cudart64_*.dll" install/bin
+              cp "${{ steps.cuda-toolkit.outputs.CUDA_PATH }}/bin/curand64_*.dll" install/bin
+          }
 
       - name: Upload package
         uses: actions/upload-artifact@v4
-        if: ${{ matrix.config.exportPackage }}
+        if: ${{ matrix.config.exportPackage && matrix.config.cudaEnabled }}
         with:
-          name: glomap-x64-windows
+          name: glomap-x64-windows-cuda
+          path: build/install
+
+      - name: Upload package
+        uses: actions/upload-artifact@v4
+        if: ${{ matrix.config.exportPackage && !matrix.config.cudaEnabled }}
+        with:
+          name: glomap-x64-windows-nocuda
           path: build/install
 
       - name: Cleanup compiler cache
