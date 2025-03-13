@@ -215,7 +215,7 @@ void BundleAdjuster::ParameterizeVariables(
       images[center].cam_from_world.translation.data());
 
   // Parameterize the camera parameters, or set them to be constant if desired
-  if (options_.optimize_intrinsics) {
+  if (options_.optimize_intrinsics && !options_.optimize_principal_point) {
     for (auto& [camera_id, camera] : cameras) {
       if (problem_->HasParameterBlock(camera.params.data())) {
         std::vector<int> principal_point_idxs;
@@ -228,8 +228,8 @@ void BundleAdjuster::ParameterizeVariables(
                                   camera.params.data());
       }
     }
-
-  } else {
+  } else if (!options_.optimize_intrinsics &&
+             !options_.optimize_principal_point) {
     for (auto& [camera_id, camera] : cameras) {
       if (problem_->HasParameterBlock(camera.params.data())) {
         problem_->SetParameterBlockConstant(camera.params.data());
