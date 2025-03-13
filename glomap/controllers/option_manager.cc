@@ -182,6 +182,8 @@ void OptionManager::AddGlobalPositionerOptions() {
   added_global_positioning_options_ = true;
   AddAndRegisterDefaultOption("GlobalPositioning.use_gpu",
                               &mapper->opt_gp.use_gpu);
+  AddAndRegisterDefaultOption("GlobalPositioning.gpu_index",
+                              &mapper->opt_gp.gpu_index);
   AddAndRegisterDefaultOption("GlobalPositioning.optimize_positions",
                               &mapper->opt_gp.optimize_positions);
   AddAndRegisterDefaultOption("GlobalPositioning.optimize_points",
