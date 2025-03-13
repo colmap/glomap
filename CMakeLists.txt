@@ -13,7 +13,7 @@ if(CUDA_ENABLED)
 endif()
 
 # Initialize the project.
-project(glomap VERSION 1.0.0)
+project(glomap VERSION 1.1.0)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
