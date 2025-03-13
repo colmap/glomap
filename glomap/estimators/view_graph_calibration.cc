@@ -179,7 +179,7 @@ size_t ViewGraphCalibrator::FilterImagePairs(ViewGraph& view_graph) const {
   }
 
   LOG(INFO) << "invalid / total number of two view geometry: "
-            << invalid_counter << " / " << counter;
+            << invalid_counter << " / " << (counter / 2);
 
   return invalid_counter;
 }
