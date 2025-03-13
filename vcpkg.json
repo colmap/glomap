@@ -42,5 +42,12 @@
         "suitesparse"
     ],
     "features": {
+        "cuda": {
+            "description": "Build with CUDA.",
+            "dependencies": [
+                "glew",
+                "cuda"
+            ]
+        }
     }
 }
