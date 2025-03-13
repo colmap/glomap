@@ -220,27 +220,31 @@ void ConvertDatabaseToGlomap(const colmap::Database& database,
     cameras[camera_id] = camera;
   }
 
-  // Add the matches
-  std::vector<std::pair<colmap::image_pair_t, colmap::FeatureMatches>>
-      all_matches = database.ReadAllMatches();
+  // Add the valid matches
+  std::vector<std::pair<image_pair_t, int>> two_view_geometries_inliers =
+      database.ReadTwoViewGeometryNumInliers();
 
   // Go through all matches and store the matche with enough observations in the
   // view_graph
   size_t invalid_count = 0;
   std::unordered_map<image_pair_t, ImagePair>& image_pairs =
       view_graph.image_pairs;
-  for (size_t match_idx = 0; match_idx < all_matches.size(); match_idx++) {
-    if ((match_idx + 1) % 1000 == 0 || match_idx == all_matches.size() - 1)
+  for (size_t match_idx = 0; match_idx < two_view_geometries_inliers.size();
+       match_idx++) {
+    if ((match_idx + 1) % 1000 == 0 ||
+        match_idx == two_view_geometries_inliers.size() - 1)
       std::cout << "\r Loading Image Pair " << match_idx + 1 << " / "
-                << all_matches.size() << std::flush;
+                << two_view_geometries_inliers.size() << std::flush;
     // Read the image pair from COLMAP database
-    colmap::image_pair_t pair_id = all_matches[match_idx].first;
+    colmap::image_pair_t pair_id = two_view_geometries_inliers[match_idx].first;
     std::pair<colmap::image_t, colmap::image_t> image_pair_colmap =
         database.PairIdToImagePair(pair_id);
     colmap::image_t image_id1 = image_pair_colmap.first;
     colmap::image_t image_id2 = image_pair_colmap.second;
 
-    colmap::FeatureMatches& feature_matches = all_matches[match_idx].second;
+    // colmap::FeatureMatches& feature_matches = all_matches[match_idx].second;
+    colmap::FeatureMatches feature_matches =
+        database.ReadMatches(image_id1, image_id2);
 
     // Initialize the image pair
     auto ite = image_pairs.insert(
