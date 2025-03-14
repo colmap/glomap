@@ -179,25 +179,54 @@ void ConvertColmapPoints3DToGlomapTracks(
 void ConvertDatabaseToGlomap(const colmap::Database& database,
                              ViewGraph& view_graph,
                              std::unordered_map<camera_t, Camera>& cameras,
-                             std::unordered_map<image_t, Image>& images) {
+                             std::unordered_map<image_t, Image>& images,
+                             bool extract_pose_priors) {
   // Add the images
-  std::vector<colmap::Image> images_colmap = database.ReadAllImages();
+  const std::vector<colmap::Image> images_colmap = database.ReadAllImages();
+
   image_t counter = 0;
   for (auto& image : images_colmap) {
     std::cout << "\r Loading Images " << counter + 1 << " / "
               << images_colmap.size() << std::flush;
     counter++;
 
-    image_t image_id = image.ImageId();
+    const image_t image_id = image.ImageId();
     if (image_id == colmap::kInvalidImageId) continue;
     auto ite = images.insert(std::make_pair(
         image_id, Image(image_id, image.CameraId(), image.Name())));
-    const colmap::PosePrior prior = database.ReadPosePrior(image_id);
+
+    Image& inserted_image = ite.first->second;
+    if (!extract_pose_priors) {
+      continue;
+    }
+
+    colmap::PosePrior prior = database.ReadPosePrior(image_id);
     if (prior.IsValid()) {
-      ite.first->second.cam_from_world = Rigid3d(
-          colmap::Rigid3d(Eigen::Quaterniond::Identity(), prior.position));
+      // Thransform prior position to XYZ if needed.
+      if (prior.coordinate_system ==
+          colmap::PosePrior::CoordinateSystem::WGS84) {
+        colmap::GPSTransform gps_transform(colmap::GPSTransform::WGS84);
+        // TODO: Add an option to control which cartesian frame to
+        // use(ECEF/ENU/UTM). Note EllToENU doesn't support single input up to
+        // the colmap commit #590c509.
+        prior.position =
+            gps_transform.EllToUTM(std::vector<Eigen::Vector3d>{prior.position})
+                .first.front();
+        prior.coordinate_system =
+            colmap::PosePrior::CoordinateSystem::CARTESIAN;
+      } else if (prior.coordinate_system ==
+                 colmap::PosePrior::CoordinateSystem::UNDEFINED) {
+        LOG(WARNING) << "Unknown coordinate system for image " << image_id
+                     << ", assuming cartesian.";
+      }
+
+      const colmap::Rigid3d world_from_cam_prior(Eigen::Quaterniond::Identity(),
+                                                 prior.position);
+      inserted_image.cam_from_world = Rigid3d(Inverse(world_from_cam_prior));
+      inserted_image.pose_prior = prior;
     } else {
-      ite.first->second.cam_from_world = Rigid3d();
+      inserted_image.cam_from_world = Rigid3d();
+      inserted_image.pose_prior = std::nullopt;
     }
   }
   std::cout << std::endl;

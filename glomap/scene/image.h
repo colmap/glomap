@@ -4,6 +4,10 @@
 #include "glomap/scene/types.h"
 #include "glomap/types.h"
 
+#include <colmap/geometry/gps.h>
+
+#include <optional>
+
 namespace glomap {
 
 struct GravityInfo {
@@ -43,6 +47,9 @@ struct Image {
 
   // The pose of the image, defined as the transformation from world to camera.
   Rigid3d cam_from_world;
+
+  // Pose prior of the image, now only contains prior position.
+  std::optional<colmap::PosePrior> pose_prior = std::nullopt;
 
   // Gravity information
   GravityInfo gravity_info;
