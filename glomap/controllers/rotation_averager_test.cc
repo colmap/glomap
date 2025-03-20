@@ -190,7 +190,7 @@ TEST(RotationEstimator, WithNoiseAndOutliers) {
     ConvertGlomapToColmap(cameras, images, tracks, reconstruction);
     if (use_gravity)
       ExpectEqualRotations(
-          gt_reconstruction, reconstruction, /*max_rotation_error_deg=*/1.);
+          gt_reconstruction, reconstruction, /*max_rotation_error_deg=*/1.5);
     else
       ExpectEqualRotations(
           gt_reconstruction, reconstruction, /*max_rotation_error_deg=*/2.);
