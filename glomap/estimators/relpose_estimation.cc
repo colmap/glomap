@@ -44,6 +44,13 @@ void EstimateRelativePoses(ViewGraph& view_graph,
         const Image& image2 = images[image_pair.image_id2];
         const Eigen::MatrixXi& matches = image_pair.matches;
 
+        const Camera& camera1 = cameras[image1.camera_id];
+        const Camera& camera2 = cameras[image2.camera_id];
+        poselib::Camera camera_poselib1 = ColmapCameraToPoseLibCamera(camera1);
+        poselib::Camera camera_poselib2 = ColmapCameraToPoseLibCamera(camera2);
+        bool valid_camera_model =
+            (camera_poselib1.model_id >= 0 && camera_poselib2.model_id >= 0);
+
         // Collect the original 2D points
         points2D_1.clear();
         points2D_2.clear();
@@ -51,19 +58,46 @@ void EstimateRelativePoses(ViewGraph& view_graph,
           points2D_1.push_back(image1.features[matches(idx, 0)]);
           points2D_2.push_back(image2.features[matches(idx, 1)]);
         }
+        // If the camera model is not supported by poselib
+        if (!valid_camera_model) {
+          // Undistort points
+          // Note that here, we still rescale by the focal length (to avoid
+          // change the RANSAC threshold)
+          Eigen::Matrix2d K1_new = Eigen::Matrix2d::Zero();
+          Eigen::Matrix2d K2_new = Eigen::Matrix2d::Zero();
+          K1_new(0, 0) = camera1.FocalLengthX();
+          K1_new(1, 1) = camera1.FocalLengthY();
+          K2_new(0, 0) = camera2.FocalLengthX();
+          K2_new(1, 1) = camera2.FocalLengthY();
+          for (size_t idx = 0; idx < matches.rows(); idx++) {
+            points2D_1[idx] = K1_new * camera1.CamFromImg(points2D_1[idx]);
+            points2D_2[idx] = K2_new * camera2.CamFromImg(points2D_2[idx]);
+          }
 
+          // Reset the camera to be the pinhole camera with original focal
+          // length and zero principal point
+          camera_poselib1 = poselib::Camera(
+              "PINHOLE",
+              {camera1.FocalLengthX(), camera1.FocalLengthY(), 0., 0.},
+              camera1.width,
+              camera1.height);
+          camera_poselib2 = poselib::Camera(
+              "PINHOLE",
+              {camera2.FocalLengthX(), camera2.FocalLengthY(), 0., 0.},
+              camera2.width,
+              camera2.height);
+        }
         inliers.clear();
         poselib::CameraPose pose_rel_calc;
         try {
-          poselib::estimate_relative_pose(
-              points2D_1,
-              points2D_2,
-              ColmapCameraToPoseLibCamera(cameras[image1.camera_id]),
-              ColmapCameraToPoseLibCamera(cameras[image2.camera_id]),
-              options.ransac_options,
-              options.bundle_options,
-              &pose_rel_calc,
-              &inliers);
+          poselib::estimate_relative_pose(points2D_1,
+                                          points2D_2,
+                                          camera_poselib1,
+                                          camera_poselib2,
+                                          options.ransac_options,
+                                          options.bundle_options,
+                                          &pose_rel_calc,
+                                          &inliers);
         } catch (const std::exception& e) {
           LOG(ERROR) << "Error in relative pose estimation: " << e.what();
           image_pair.is_valid = false;
