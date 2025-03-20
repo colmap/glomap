@@ -1,6 +1,7 @@
 #include "option_manager.h"
 
 #include "glomap/controllers/global_mapper.h"
+#include "glomap/estimators/gravity_refinement.h"
 
 #include <boost/filesystem/operations.hpp>
 #include <boost/property_tree/ini_parser.hpp>
@@ -14,6 +15,7 @@ OptionManager::OptionManager(bool add_project_options) {
   image_path = std::make_shared<std::string>();
 
   mapper = std::make_shared<GlobalMapperOptions>();
+  gravity_refiner = std::make_shared<GravityRefinerOptions>();
   Reset();
 
   desc_->add_options()("help,h", "");
@@ -266,6 +268,18 @@ void OptionManager::AddInlierThresholdOptions() {
                               &mapper->inlier_thresholds.max_rotation_error);
 }
 
+void OptionManager::AddGravityRefinerOptions() {
+  if (added_gravity_refiner_options_) {
+    return;
+  }
+  added_gravity_refiner_options_ = true;
+  AddAndRegisterDefaultOption("GravityRefiner.max_outlier_ratio",
+                              &gravity_refiner->max_outlier_ratio);
+  AddAndRegisterDefaultOption("GravityRefiner.max_gravity_error",
+                              &gravity_refiner->max_gravity_error);
+  AddAndRegisterDefaultOption("GravityRefiner.min_num_neighbors",
+                              &gravity_refiner->min_num_neighbors);
+}
 void OptionManager::Reset() {
   const bool kResetPaths = true;
   ResetOptions(kResetPaths);
@@ -294,6 +308,7 @@ void OptionManager::ResetOptions(const bool reset_paths) {
     *image_path = "";
   }
   *mapper = GlobalMapperOptions();
+  *gravity_refiner = GravityRefinerOptions();
 }
 
 void OptionManager::Parse(const int argc, char** argv) {

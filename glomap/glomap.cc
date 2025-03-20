@@ -1,4 +1,5 @@
 #include "glomap/exe/global_mapper.h"
+#include "glomap/exe/rotation_averager.h"
 
 #include <colmap/util/logging.h>
 
@@ -44,6 +45,7 @@ int main(int argc, char** argv) {
   std::vector<std::pair<std::string, command_func_t>> commands;
   commands.emplace_back("mapper", &glomap::RunMapper);
   commands.emplace_back("mapper_resume", &glomap::RunMapperResume);
+  commands.emplace_back("rotation_averager", &glomap::RunRotationAverager);
 
   if (argc == 1) {
     return ShowHelp(commands);
@@ -62,7 +64,7 @@ int main(int argc, char** argv) {
     }
     if (matched_command_func == nullptr) {
       std::cout << "Command " << command << " not recognized. "
-                << "To list the available commands, run `colmap help`."
+                << "To list the available commands, run `glomap help`."
                 << std::endl;
       return EXIT_FAILURE;
     } else {
