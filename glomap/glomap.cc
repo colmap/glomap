@@ -12,6 +12,12 @@ int ShowHelp(
   std::cout << "GLOMAP -- Global Structure-from-Motion" << std::endl
             << std::endl;
 
+#ifdef GLOMAP_CUDA_ENABLED
+  std::cout << "This version was compiled with CUDA!" << std::endl << std::endl;
+#else
+  std::cout << "This version was NOT compiled CUDA!" << std::endl << std::endl;
+#endif
+
   std::cout << "Usage:" << std::endl;
   std::cout << "  glomap mapper --database_path DATABASE --output_path MODEL"
             << std::endl;
