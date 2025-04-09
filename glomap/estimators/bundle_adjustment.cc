@@ -1,5 +1,7 @@
 #include "bundle_adjustment.h"
 
+#include <optional>
+
 #include <colmap/estimators/cost_functions.h>
 #include <colmap/estimators/manifold.h>
 #include <colmap/sensor/models.h>
@@ -33,7 +35,9 @@ bool BundleAdjuster::Solve(const ViewGraph& view_graph,
   AddCamerasAndPointsToParameterGroups(cameras, images, tracks);
 
   // Parameterize the variables
-  ParameterizeVariables(cameras, images, tracks);
+  if (!ParameterizeVariables(cameras, images, tracks)) {
+    return false;
+  }
 
   // Set the solver options.
   ceres::Solver::Summary summary;
@@ -180,25 +184,25 @@ void BundleAdjuster::AddCamerasAndPointsToParameterGroups(
   }
 }
 
-void BundleAdjuster::ParameterizeVariables(
+bool BundleAdjuster::ParameterizeVariables(
     std::unordered_map<camera_t, Camera>& cameras,
     std::unordered_map<image_t, Image>& images,
     std::unordered_map<track_t, Track>& tracks) {
-  image_t center;
-
   // Parameterize rotations, and set rotations and translations to be constant
   // if desired FUTURE: Consider fix the scale of the reconstruction
-  int counter = 0;
+  std::optional<image_t> center;
   for (auto& [image_id, image] : images) {
     if (problem_->HasParameterBlock(
             image.cam_from_world.rotation.coeffs().data())) {
       colmap::SetQuaternionManifold(
           problem_.get(), image.cam_from_world.rotation.coeffs().data());
 
-      if (counter == 0) {
+      if (!center) {
+        // Center is taken as the first image whose rotation is present in the
+        // problem variables.
         center = image_id;
-        counter++;
       }
+
       if (!options_.optimize_rotations)
         problem_->SetParameterBlockConstant(
             image.cam_from_world.rotation.coeffs().data());
@@ -208,11 +212,16 @@ void BundleAdjuster::ParameterizeVariables(
     }
   }
 
+  if (!center.has_value()) {
+    LOG(ERROR) << "No valid image found in the problem parameters.";
+    return false;
+  }
+
   // Set the first camera to be fixed to remove the gauge ambiguity.
   problem_->SetParameterBlockConstant(
-      images[center].cam_from_world.rotation.coeffs().data());
+      images[*center].cam_from_world.rotation.coeffs().data());
   problem_->SetParameterBlockConstant(
-      images[center].cam_from_world.translation.data());
+      images[*center].cam_from_world.translation.data());
 
   // Parameterize the camera parameters, or set them to be constant if desired
   if (options_.optimize_intrinsics && !options_.optimize_principal_point) {
@@ -244,6 +253,7 @@ void BundleAdjuster::ParameterizeVariables(
       }
     }
   }
+  return true;
 }
 
 }  // namespace glomap
