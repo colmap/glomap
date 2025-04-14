@@ -70,15 +70,7 @@ class OptionManager {
                                    T* option,
                                    const std::string& help_text = "");
 
-  template <typename T>
-  void RegisterOption(const std::string& name, const T* option);
-
   std::shared_ptr<boost::program_options::options_description> desc_;
-
-  std::vector<std::pair<std::string, const bool*>> options_bool_;
-  std::vector<std::pair<std::string, const int*>> options_int_;
-  std::vector<std::pair<std::string, const double*>> options_double_;
-  std::vector<std::pair<std::string, const std::string*>> options_string_;
 
   bool added_database_options_ = false;
   bool added_image_options_ = false;
@@ -120,7 +112,6 @@ void OptionManager::AddAndRegisterRequiredOption(const std::string& name,
   desc_->add_options()(name.c_str(),
                        boost::program_options::value<T>(option)->required(),
                        help_text.c_str());
-  RegisterOption(name, option);
 }
 
 template <typename T>
@@ -131,23 +122,6 @@ void OptionManager::AddAndRegisterDefaultOption(const std::string& name,
       name.c_str(),
       boost::program_options::value<T>(option)->default_value(*option),
       help_text.c_str());
-  RegisterOption(name, option);
-}
-
-template <typename T>
-void OptionManager::RegisterOption(const std::string& name, const T* option) {
-  if (std::is_same<T, bool>::value) {
-    options_bool_.emplace_back(name, reinterpret_cast<const bool*>(option));
-  } else if (std::is_same<T, int>::value) {
-    options_int_.emplace_back(name, reinterpret_cast<const int*>(option));
-  } else if (std::is_same<T, double>::value) {
-    options_double_.emplace_back(name, reinterpret_cast<const double*>(option));
-  } else if (std::is_same<T, std::string>::value) {
-    options_string_.emplace_back(name,
-                                 reinterpret_cast<const std::string*>(option));
-  } else {
-    LOG(ERROR) << "Unsupported option type: " << name;
-  }
 }
 
 }  // namespace glomap
