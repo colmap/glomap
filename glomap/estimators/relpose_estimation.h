@@ -8,10 +8,11 @@ namespace glomap {
 
 struct RelativePoseEstimationOptions {
   // Options for poselib solver
-  poselib::RansacOptions ransac_options;
-  poselib::BundleOptions bundle_options;
+  poselib::RelativePoseOptions relpose_options;
 
-  RelativePoseEstimationOptions() { ransac_options.max_iterations = 50000; }
+  RelativePoseEstimationOptions() { 
+    relpose_options.ransac.max_iterations = 50000; 
+  }
 };
 
 void EstimateRelativePoses(ViewGraph& view_graph,

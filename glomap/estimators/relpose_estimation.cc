@@ -98,13 +98,13 @@ void EstimateRelativePoses(ViewGraph& view_graph,
         }
         inliers.clear();
         poselib::CameraPose pose_rel_calc;
+
         try {
           poselib::estimate_relative_pose(points2D_1,
                                           points2D_2,
                                           camera_poselib1,
                                           camera_poselib2,
-                                          options.ransac_options,
-                                          options.bundle_options,
+                                          options.relpose_options,
                                           &pose_rel_calc,
                                           &inliers);
         } catch (const std::exception& e) {
