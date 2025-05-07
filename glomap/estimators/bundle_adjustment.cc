@@ -208,11 +208,13 @@ void BundleAdjuster::ParameterizeVariables(
     }
   }
 
-  // Set the first camera to be fixed to remove the gauge ambiguity.
-  problem_->SetParameterBlockConstant(
-      images[center].cam_from_world.rotation.coeffs().data());
-  problem_->SetParameterBlockConstant(
-      images[center].cam_from_world.translation.data());
+  if (counter > 0) {
+    // Set the first camera to be fixed to remove the gauge ambiguity.
+    problem_->SetParameterBlockConstant(
+        images[center].cam_from_world.rotation.coeffs().data());
+    problem_->SetParameterBlockConstant(
+        images[center].cam_from_world.translation.data());
+  }
 
   // Parameterize the camera parameters, or set them to be constant if desired
   if (options_.optimize_intrinsics && !options_.optimize_principal_point) {
