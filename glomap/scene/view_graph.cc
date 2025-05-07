@@ -45,6 +45,38 @@ int ViewGraph::KeepLargestConnectedComponents(
   return max_img;
 }
 
+int ViewGraph::KeepLargestConnectedComponents(
+    const std::vector<CameraRig>& camera_rigs,
+    std::unordered_map<image_t, Image>& images) {
+  KeepLargestConnectedComponents(images);
+
+  int num_img = 0;
+  for (size_t idx_rig = 0; idx_rig < camera_rigs.size(); ++idx_rig) {
+    const auto& camera_rig = camera_rigs.at(idx_rig);
+    const size_t num_snapshots = camera_rig.NumSnapshots();
+    for (size_t idx_snapshot = 0; idx_snapshot < num_snapshots;
+         ++idx_snapshot) {
+      const auto& snapshot = camera_rig.Snapshots()[idx_snapshot];
+      bool is_registered = false;
+      for (const auto image_id : snapshot) {
+        if (images.find(image_id) == images.end()) continue;
+        if (!images[image_id].is_registered) continue;
+        is_registered = true;
+        break;
+      }
+      if (is_registered) {
+        for (const auto image_id : snapshot) {
+          if (images.find(image_id) == images.end()) continue;
+          images[image_id].is_registered = true;
+          num_img++;
+        }
+      }
+    }
+  }
+
+  return num_img;
+}
+
 int ViewGraph::FindConnectedComponent() {
   connected_components.clear();
   std::unordered_map<image_t, bool> visited;

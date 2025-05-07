@@ -1,6 +1,7 @@
 #pragma once
 
 #include "glomap/scene/camera.h"
+#include "glomap/scene/camera_rig.h"
 #include "glomap/scene/image.h"
 #include "glomap/scene/image_pair.h"
 #include "glomap/scene/types.h"
@@ -16,6 +17,10 @@ class ViewGraph {
   // Mark the image which is not connected to any other images as not registered
   // Return: the number of images in the largest connected component
   int KeepLargestConnectedComponents(
+      std::unordered_map<image_t, Image>& images);
+
+  int KeepLargestConnectedComponents(
+      const std::vector<CameraRig>& camera_rigs,
       std::unordered_map<image_t, Image>& images);
 
   // Mark the cluster of the cameras (cluster_id sort by the the number of
