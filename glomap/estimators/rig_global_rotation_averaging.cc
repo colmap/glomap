@@ -81,8 +81,11 @@ void RigRotationEstimator::SetupLinearSystem(
       }
       rig_is_registered.emplace_back(is_registered);
 
-      camera_rig.ComputeRigFromWorld(idx_snapshot, images);
       if (is_registered) {
+        Rigid3d rig_from_world =
+            camera_rig.ComputeRigFromWorld(idx_snapshot, images);
+        rotation_estimated_.segment(num_dof, 3) =
+            Rigid3dToAngleAxis(rig_from_world);
         num_dof += 3;
       }
     }

@@ -32,7 +32,7 @@ class RigGlobalPositioner {
   // failure.
   // Assume tracks here are already filtered
   bool Solve(const ViewGraph& view_graph,
-             const std::vector<CameraRig>& camera_rigs,
+             std::vector<CameraRig>& camera_rigs,
              std::unordered_map<camera_t, Camera>& cameras,
              std::unordered_map<image_t, Image>& images,
              std::unordered_map<track_t, Track>& tracks);
@@ -83,7 +83,7 @@ class RigGlobalPositioner {
 
   // During the optimization, the camera translation is set to be the camera
   // center Convert the results back to camera poses
-  void ConvertResults(const std::vector<CameraRig>& camera_rigs,
+  void ConvertResults(std::vector<CameraRig>& camera_rigs,
                       std::unordered_map<image_t, Image>& images);
 
   RigGlobalPositionerOptions options_;

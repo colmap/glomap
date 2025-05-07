@@ -2,6 +2,9 @@
 
 #include "glomap/estimators/cost_function.h"
 
+#include <colmap/util/cuda.h>
+#include <colmap/util/misc.h>
+
 namespace glomap {
 namespace {
 
@@ -23,10 +26,13 @@ RigGlobalPositioner::RigGlobalPositioner(
 }
 
 bool RigGlobalPositioner::Solve(const ViewGraph& view_graph,
-                                const std::vector<CameraRig>& camera_rigs,
+                                std::vector<CameraRig>& camera_rigs,
                                 std::unordered_map<camera_t, Camera>& cameras,
                                 std::unordered_map<image_t, Image>& images,
                                 std::unordered_map<track_t, Track>& tracks) {
+  if (camera_rigs.size() > 1) {
+    LOG(ERROR) << "Number of camera rigs = " << camera_rigs.size();
+  }
   if (images.empty()) {
     LOG(ERROR) << "Number of images = " << images.size();
     return false;
@@ -108,8 +114,6 @@ void RigGlobalPositioner::SetupProblem(
                         return sum + track.second.observations.size();
                       }));
 
-  // // Establish the reconstruction without 3d points for colmap compatibility
-  // ConvertGlomapToColmap(cameras, images, tracks, reconstruction, -1, false);
   ExtractRigsFromWorld(camera_rigs, images);
 
   // Initialize the rig scales to be 1.0.
@@ -129,11 +133,9 @@ void RigGlobalPositioner::ExtractRigsFromWorld(
     for (size_t snapshot_idx = 0; snapshot_idx < num_snapshots;
          ++snapshot_idx) {
       rig_from_world[snapshot_idx] =
-          // camera_rig.ComputeRigFromWorld(snapshot_idx, reconstruction_);
           camera_rig.ComputeRigFromWorld(snapshot_idx, images);
       for (const auto image_id : camera_rig.Snapshots()[snapshot_idx]) {
-        image_id_to_camera_rig_index_
-            .emplace(image_id, idx_rig);
+        image_id_to_camera_rig_index_.emplace(image_id, idx_rig);
         image_id_to_rig_from_world_.emplace(image_id,
                                             &rig_from_world[snapshot_idx]);
       }
@@ -420,10 +422,18 @@ void RigGlobalPositioner::ParameterizeVariables(
   // If do not optimize the scales, set the scales to be constant
   if (!options_.optimize_scales) {
     for (double& scale : scales_) {
-      problem_->SetParameterBlockConstant(&scale);
+      if (problem_->HasParameterBlock(&scale)) {
+        problem_->SetParameterBlockConstant(&scale);
+      }
     }
   }
-
+  // Set the first rig scale to be constant to remove the gauge ambiguity.
+  for (double& scale : scales_) {
+    if (problem_->HasParameterBlock(&scale)) {
+      problem_->SetParameterBlockConstant(&scale);
+      break;
+    }
+  }
   // Set the rig scales to be constant
   // TODO: add a flag to allow the scales to be optimized (if they are not in
   // metric scale)
@@ -432,6 +442,58 @@ void RigGlobalPositioner::ParameterizeVariables(
       problem_->SetParameterBlockConstant(&scale);
     }
   }
+
+  int num_images = images.size();
+#ifdef GLOMAP_CUDA_ENABLED
+  bool cuda_solver_enabled = false;
+
+#if (CERES_VERSION_MAJOR >= 3 ||                                \
+     (CERES_VERSION_MAJOR == 2 && CERES_VERSION_MINOR >= 2)) && \
+    !defined(CERES_NO_CUDA)
+  if (options_.use_gpu && num_images >= options_.min_num_images_gpu_solver) {
+    cuda_solver_enabled = true;
+    options_.solver_options.dense_linear_algebra_library_type = ceres::CUDA;
+  }
+#else
+  if (options_.use_gpu) {
+    LOG_FIRST_N(WARNING, 1)
+        << "Requested to use GPU for bundle adjustment, but Ceres was "
+           "compiled without CUDA support. Falling back to CPU-based dense "
+           "solvers.";
+  }
+#endif
+
+#if (CERES_VERSION_MAJOR >= 3 ||                                \
+     (CERES_VERSION_MAJOR == 2 && CERES_VERSION_MINOR >= 3)) && \
+    !defined(CERES_NO_CUDSS)
+  if (options_.use_gpu && num_images >= options_.min_num_images_gpu_solver) {
+    cuda_solver_enabled = true;
+    options_.solver_options.sparse_linear_algebra_library_type =
+        ceres::CUDA_SPARSE;
+  }
+#else
+  if (options_.use_gpu) {
+    LOG_FIRST_N(WARNING, 1)
+        << "Requested to use GPU for bundle adjustment, but Ceres was "
+           "compiled without cuDSS support. Falling back to CPU-based sparse "
+           "solvers.";
+  }
+#endif
+
+  if (cuda_solver_enabled) {
+    const std::vector<int> gpu_indices =
+        colmap::CSVToVector<int>(options_.gpu_index);
+    THROW_CHECK_GT(gpu_indices.size(), 0);
+    colmap::SetBestCudaDevice(gpu_indices[0]);
+  }
+#else
+  if (options_.use_gpu) {
+    LOG_FIRST_N(WARNING, 1)
+        << "Requested to use GPU for bundle adjustment, but COLMAP was "
+           "compiled without CUDA support. Falling back to CPU-based "
+           "solvers.";
+  }
+#endif  // GLOMAP_CUDA_ENABLED
 
   // Set up the options for the solver
   // Do not use iterative solvers, for its suboptimal performance.
@@ -445,7 +507,7 @@ void RigGlobalPositioner::ParameterizeVariables(
 }
 
 void RigGlobalPositioner::ConvertResults(
-    const std::vector<CameraRig>& camera_rigs,
+    std::vector<CameraRig>& camera_rigs,
     std::unordered_map<image_t, Image>& images) {
   // translation now stores the camera position, needs to convert back
   // First, calculate the camera translations of the rigs
@@ -463,6 +525,17 @@ void RigGlobalPositioner::ConvertResults(
           -(image.cam_from_world.rotation * image.cam_from_world.translation);
     }
   }
+
+  for (size_t idx_rig = 0; idx_rig < camera_rigs.size(); idx_rig++) {
+    CameraRig& camera_rig = camera_rigs.at(idx_rig);
+    const size_t num_snapshots = camera_rig.NumSnapshots();
+    // Go through all images in the rig and rescale the cam_from_rig
+    std::vector<camera_t> cameras_ids = camera_rig.GetCameraIds();
+    for (auto& camera_id : cameras_ids) {
+      camera_rig.CamFromRig(camera_id).translation *= rig_scales_[idx_rig];
+    }
+  }
+
   // For images within rigs, use the chained translation
   for (size_t idx_rig = 0; idx_rig < camera_rigs.size(); idx_rig++) {
     const CameraRig& camera_rig = camera_rigs.at(idx_rig);
@@ -471,9 +544,7 @@ void RigGlobalPositioner::ConvertResults(
          ++snapshot_idx) {
       for (const auto image_id : camera_rig.Snapshots()[snapshot_idx]) {
         camera_t camera_id = images[image_id].camera_id;
-        Rigid3d cam_from_rig = camera_rig.CamFromRig(camera_id);
-        cam_from_rig.translation *= rig_scales_[idx_rig];
-
+        const Rigid3d& cam_from_rig = camera_rig.CamFromRig(camera_id);
         images[image_id].cam_from_world =
             (cam_from_rig * rigs_from_world_[idx_rig][snapshot_idx]);
       }
