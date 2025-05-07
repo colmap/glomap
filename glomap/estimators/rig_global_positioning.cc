@@ -120,7 +120,8 @@ void RigGlobalPositioner::ExtractRigsFromWorld(
     const std::vector<CameraRig>& camera_rigs,
     const std::unordered_map<image_t, Image>& images) {
   rigs_from_world_.reserve(camera_rigs.size());
-  for (const auto& camera_rig : camera_rigs) {
+  for (size_t idx_rig = 0; idx_rig < camera_rigs.size(); ++idx_rig) {
+    const auto& camera_rig = camera_rigs.at(idx_rig);
     rigs_from_world_.emplace_back();
     auto& rig_from_world = rigs_from_world_.back();
     const size_t num_snapshots = camera_rig.NumSnapshots();
@@ -131,6 +132,8 @@ void RigGlobalPositioner::ExtractRigsFromWorld(
           // camera_rig.ComputeRigFromWorld(snapshot_idx, reconstruction_);
           camera_rig.ComputeRigFromWorld(snapshot_idx, images);
       for (const auto image_id : camera_rig.Snapshots()[snapshot_idx]) {
+        image_id_to_camera_rig_index_
+            .emplace(image_id, idx_rig);
         image_id_to_rig_from_world_.emplace(image_id,
                                             &rig_from_world[snapshot_idx]);
       }
