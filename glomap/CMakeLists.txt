@@ -1,6 +1,7 @@
 set(SOURCES
     controllers/global_mapper.cc
     controllers/option_manager.cc
+    controllers/rig_global_mapper.cc
     controllers/rotation_averager.cc
     controllers/track_establishment.cc
     controllers/track_retriangulation.cc
@@ -9,7 +10,9 @@ set(SOURCES
     estimators/global_rotation_averaging.cc
     estimators/gravity_refinement.cc
     estimators/relpose_estimation.cc
+    estimators/rig_bundle_adjustment.cc
     estimators/rig_global_positioning.cc
+    estimators/rig_global_rotation_averaging.cc
     estimators/view_graph_calibration.cc
     io/colmap_converter.cc
     io/colmap_io.cc
@@ -32,6 +35,7 @@ set(SOURCES
 set(HEADERS
     controllers/global_mapper.h
     controllers/option_manager.h
+    controllers/rig_global_mapper.h
     controllers/rotation_averager.h
     controllers/track_establishment.h
     controllers/track_retriangulation.h
@@ -42,7 +46,9 @@ set(HEADERS
     estimators/gravity_refinement.h
     estimators/relpose_estimation.h
     estimators/optimization_base.h
+    estimators/rig_bundle_adjustment.h
     estimators/rig_global_positioning.h
+    estimators/rig_global_rotation_averaging.h
     estimators/view_graph_calibration.h
     io/colmap_converter.h
     io/colmap_io.h

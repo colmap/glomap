@@ -11,8 +11,7 @@ namespace glomap {
 
 struct RigBundleAdjusterOptions : public BundleAdjusterOptions {
  public:
-    RigBundleAdjusterOptions() : BundleAdjusterOptions() {};
-
+  RigBundleAdjusterOptions() : BundleAdjusterOptions() {};
 };
 
 class RigBundleAdjuster {
@@ -33,7 +32,8 @@ class RigBundleAdjuster {
 
  private:
   // Reset the problem
-  void Reset(const std::vector<CameraRig>& camera_rigs, std::unordered_map<image_t, Image>& images);
+  void Reset(const std::vector<CameraRig>& camera_rigs,
+             std::unordered_map<image_t, Image>& images);
 
   void ExtractRigsFromWorld(const std::vector<CameraRig>& camera_rigs,
                             const std::unordered_map<image_t, Image>& images);
@@ -73,7 +73,6 @@ class RigBundleAdjuster {
 
   std::unique_ptr<ceres::Problem> problem_;
   std::shared_ptr<ceres::LossFunction> loss_function_;
-
 };
 
 }  // namespace glomap
