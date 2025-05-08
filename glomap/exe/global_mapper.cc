@@ -2,6 +2,7 @@
 
 #include "glomap/controllers/option_manager.h"
 #include "glomap/io/colmap_io.h"
+#include "glomap/io/pose_io.h"
 #include "glomap/types.h"
 
 #include <colmap/util/file.h>
@@ -148,6 +149,70 @@ int RunMapperResume(int argc, char** argv) {
   WriteGlomapReconstruction(
       output_path, cameras, images, tracks, output_format, image_path);
   LOG(INFO) << "Export to COLMAP reconstruction done";
+
+  return EXIT_SUCCESS;
+}
+
+int RunRelativePoseEstimator(int argc, char** argv) {
+  std::string database_path;
+  std::string output_path;
+
+  std::string image_path = "";
+  std::string constraint_type = "ONLY_POINTS";
+  std::string output_format = "bin";
+
+  OptionManager options;
+  options.AddRequiredOption("database_path", &database_path);
+  options.AddRequiredOption("output_path", &output_path);
+  options.AddRelativePoseEstimationOptions();
+
+  options.Parse(argc, argv);
+
+  if (!colmap::ExistsFile(database_path)) {
+    LOG(ERROR) << "`database_path` is not a file";
+    return EXIT_FAILURE;
+  }
+
+  // Load the database
+  ViewGraph view_graph;
+  std::unordered_map<camera_t, Camera> cameras;
+  std::unordered_map<image_t, Image> images;
+  std::unordered_map<track_t, Track> tracks;
+
+  const colmap::Database database(database_path);
+  ConvertDatabaseToGlomap(database, view_graph, cameras, images);
+
+  if (view_graph.image_pairs.empty()) {
+    LOG(ERROR) << "Can't continue without image pairs";
+    return EXIT_FAILURE;
+  }
+
+  options.mapper->skip_preprocessing = false;
+  options.mapper->skip_view_graph_calibration = false;
+  options.mapper->skip_relative_pose_estimation = false;
+  options.mapper->skip_rotation_averaging = true;
+  options.mapper->skip_track_establishment = true;
+  options.mapper->skip_global_positioning = true;
+  options.mapper->skip_bundle_adjustment = true;
+  options.mapper->skip_retriangulation = true;
+  options.mapper->skip_pruning = true;
+
+  GlobalMapper global_mapper(*options.mapper);
+
+  // Main solver
+  LOG(INFO) << "Loaded database";
+  colmap::Timer run_timer;
+  run_timer.Start();
+  global_mapper.Solve(database, view_graph, cameras, images, tracks);
+  run_timer.Pause();
+
+  LOG(INFO) << "Reconstruction done in " << run_timer.ElapsedSeconds()
+            << " seconds";
+
+  // Write out the relative pose
+  colmap::CreateDirIfNotExists(colmap::GetParentDir(output_path), true);
+  WriteRelPose(output_path, images, view_graph);
+
 
   return EXIT_SUCCESS;
 }
