@@ -6,8 +6,9 @@
 #include "glomap/controllers/rig_global_mapper.h"
 #include "glomap/processors/reconstruction_pruning.h"
 #include "glomap/processors/relpose_filter.h"
+#include "glomap/processors/image_undistorter.h"
+#include "glomap/processors/image_pair_inliers.h"
 #include "glomap/scene/types_sfm.h"
-#include "glomap/test/prepare_experiment.h"
 #include "glomap/types.h"
 
 #include <colmap/util/timer.h>
