@@ -36,7 +36,7 @@ int main(int argc, char** argv) {
   // std::string database_path;
   // database_path = argv[1];
   std::string database_path;
-  database_path = "../../prague/db.db";
+  database_path = "../../prague/db_undistorted.db";
 
   ViewGraph view_graph;
   std::unordered_map<camera_t, Camera> cameras;
@@ -48,11 +48,11 @@ int main(int argc, char** argv) {
   ConvertDatabaseToGlomap(database, view_graph, cameras, images);
   std::cout << "Loaded database" << std::endl;
 
-  ReadRelPose("../../prague/relpoase_glomap.txt", images, view_graph);
+  ReadRelPose("../../prague/relpose_undistorted.txt", images, view_graph);
 
   // // --------------------------------------------------------------
   // // For experiment, keep only 10 images for each sequence
-  // int kept_img = 400;
+  // int kept_img = 10;
   // std::unordered_map<camera_t, std::vector<image_t>> camera_id_to_image_id;
   // for (auto& [camera_id, camera] : cameras) {
   //   camera_id_to_image_id[camera_id] = std::vector<image_t>();
@@ -118,15 +118,40 @@ int main(int argc, char** argv) {
   std::cout << "AddCamera done" << std::endl;
 
   // Add snapshot to the CameraRig
-  std::unordered_map<int, std::vector<image_t>> snapshot_idx_to_image_ids;
-  for (auto& [image_id, image] : images) {
-    int str_len = image.file_name.size();
+  std::unordered_map<std::string, std::array<image_t, 6>> snapshot_key_to_image_ids;
+  for (const auto& [image_id, image] : images) {
+    const std::string& name = image.file_name;
 
-    int sequence_idx = std::stoi(image.file_name.substr(str_len - 4 - 7, 7));
-    snapshot_idx_to_image_ids[sequence_idx].emplace_back(image_id);
+    std::size_t cam_pos = name.rfind("_cam"); //we may have two times _cam in the name :(
+    int cam_idx = name[cam_pos + 4] - '0';
+
+    //handle image names like:
+    //reel_0017_20240117_cam0_0000000.jpg
+    //reel_0049_20231107-121638_courtyard_MX_XVN_warning_cam_is_180_cam3_0000000.jpg
+    //and we want to get a key like:
+    //"reel_0017_20240117_0000000"
+    //"reel_0049_20231107-121638_courtyard_MX_XVN_warning_cam_is_180_0000000"
+
+    std::size_t prefix_end = cam_pos;
+    std::size_t suffix_start = name.find('_', cam_pos + 5);  // after "camN"
+    std::string snapshot_key = name.substr(4, prefix_end) + name.substr(suffix_start);
+
+    snapshot_key_to_image_ids[snapshot_key][cam_idx] = image_id;
   }
 
-  for (const auto& [snapshot_idx, image_ids] : snapshot_idx_to_image_ids) {
+  std::unordered_map<std::string, std::vector<image_t>>
+      snapshot_key_to_image_ids_vector;
+  
+  for (const auto& [snapshot_key, image_ids] : snapshot_key_to_image_ids) {
+    snapshot_key_to_image_ids_vector[snapshot_key].clear();
+    for (int i = 0; i < 6; i++) {
+      if (image_ids[i] != 0) {
+        snapshot_key_to_image_ids_vector[snapshot_key].push_back(image_ids[i]);
+      }
+    }
+  }
+
+  for (const auto& [snapshot_key, image_ids] : snapshot_key_to_image_ids_vector) {
     camera_rig.AddSnapshot(image_ids);
   }
 
@@ -173,7 +198,7 @@ int main(int argc, char** argv) {
       database, view_graph, camera_rigs, cameras, images, tracks);
 
 
-  WriteGlomapReconstruction("test_4", cameras, images, tracks, "bin", "");
+  WriteGlomapReconstruction("../../prague/glomap_undistorted", cameras, images, tracks, "bin", "");
   // // -------------------------------------------------
   // std::ofstream file_rel;
   // file_rel.open("relpose_3dof_trans.txt");
