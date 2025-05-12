@@ -21,7 +21,6 @@ jobs:
             cmakeBuildType: RelWithDebInfo,
             asanEnabled: false,
             cudaEnabled: false,
-            e2eTests: false,
             checkCodeFormat: true,
           },
           {
@@ -29,7 +28,6 @@ jobs:
             cmakeBuildType: Release,
             asanEnabled: false,
             cudaEnabled: false,
-            e2eTests: true,
             checkCodeFormat: true,
           },
           {
@@ -37,7 +35,6 @@ jobs:
             cmakeBuildType: Release,
             asanEnabled: false,
             cudaEnabled: true,
-            e2eTests: false,
             checkCodeFormat: false,
           },
           {
@@ -45,7 +42,6 @@ jobs:
             cmakeBuildType: Release,
             asanEnabled: true,
             cudaEnabled: false,
-            e2eTests: false,
             checkCodeFormat: false,
           },
           {
@@ -53,7 +49,6 @@ jobs:
             cmakeBuildType: ClangTidy,
             asanEnabled: false,
             cudaEnabled: false,
-            e2eTests: false,
             checkCodeFormat: false,
           },
         ]
