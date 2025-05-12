@@ -119,11 +119,12 @@ int main(int argc, char** argv) {
 
   // Add snapshot to the CameraRig
   std::unordered_map<std::string, std::array<image_t, 6>> snapshot_key_to_image_ids;
-  for (const auto& [image_id, image] : images) {
+  for (auto& [image_id, image] : images) {
     const std::string& name = image.file_name;
 
     std::size_t cam_pos = name.rfind("_cam"); //we may have two times _cam in the name :(
     int cam_idx = name[cam_pos + 4] - '0';
+    image.camera_id = cam_idx + 1;
 
     //handle image names like:
     //reel_0017_20240117_cam0_0000000.jpg
@@ -177,8 +178,12 @@ int main(int argc, char** argv) {
 
   options.opt_ba.solver_options.max_num_iterations = 200;
 
-  options.opt_track.min_num_tracks_per_view = 50;
+  options.opt_track.min_num_tracks_per_view = 300;
 
+
+
+  colmap::Timer run_timer;
+  run_timer.Start();
   InlierThresholdOptions inlier_thresholds = options.inlier_thresholds;
   // Undistort the images and filter edges by inlier number
   UndistortImages(cameras, images, true);
@@ -197,6 +202,8 @@ int main(int argc, char** argv) {
   global_mapper.Solve(
       database, view_graph, camera_rigs, cameras, images, tracks);
 
+  LOG(INFO) << "Reconstruction done in " << run_timer.ElapsedSeconds()
+            << " seconds";
 
   WriteGlomapReconstruction("../../prague/glomap_undistorted", cameras, images, tracks, "bin", "");
   // // -------------------------------------------------
