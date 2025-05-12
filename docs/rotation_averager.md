@@ -53,7 +53,7 @@ IMAGE_NAME GX GY GZ
 The gravity direction $g$ should $[0, 1, 0]$ if the image is orthogonal to the ground plane, and the estimated rotation would have the property that $R_i \cdot [0, 1, 0]^\top = g$.
 More explicitly, suppose we can transpose a 3D point from the world coordinate to the image coordinate by RX + t = x, then the gravity direction should be the second column of the R. 
 
-It is acceptable if only a subset of all images have gravity direciton.
+It is acceptable if only a subset of all images have gravity direction.
 If the specified image name does not match any known image name from relative pose, it is ignored.
 
 ### Output
