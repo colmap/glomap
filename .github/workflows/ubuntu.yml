@@ -16,7 +16,13 @@ jobs:
     strategy:
       matrix:
         config: [
-
+          {
+            os: ubuntu-24.04,
+            cmakeBuildType: RelWithDebInfo,
+            asanEnabled: false,
+            cudaEnabled: false,
+            checkCodeFormat: true,
+          },
           {
             os: ubuntu-22.04,
             cmakeBuildType: Release,
@@ -35,7 +41,7 @@ jobs:
             os: ubuntu-22.04,
             cmakeBuildType: Release,
             asanEnabled: true,
-            cudaEnabled: true,
+            cudaEnabled: false,
             checkCodeFormat: false,
           },
           {
@@ -62,14 +68,15 @@ jobs:
           key: v${{ env.COMPILER_CACHE_VERSION }}-${{ matrix.config.os }}-${{ matrix.config.cmakeBuildType }}-${{ matrix.config.asanEnabled }}--${{ matrix.config.cudaEnabled }}-${{ github.run_id }}-${{ github.run_number }}
           restore-keys: v${{ env.COMPILER_CACHE_VERSION }}-${{ matrix.config.os }}-${{ matrix.config.cmakeBuildType }}-${{ matrix.config.asanEnabled }}--${{ matrix.config.cudaEnabled }}
           path: ${{ env.COMPILER_CACHE_DIR }}
-      
       - name: Install compiler cache
         run: |
           mkdir -p "$CCACHE_DIR" "$CTCACHE_DIR"
           echo "$COMPILER_CACHE_DIR/bin" >> $GITHUB_PATH
+
           if [ -f "$COMPILER_CACHE_DIR/bin/ccache" ]; then
             exit 0
           fi
+
           set -x
           wget https://github.com/ccache/ccache/releases/download/v4.8.2/ccache-4.8.2-linux-x86_64.tar.xz
           echo "0b33f39766fe9db67f40418aed6a5b3d7b2f4f7fab025a8213264b77a2d0e1b1  ccache-4.8.2-linux-x86_64.tar.xz" | sha256sum --check
@@ -81,14 +88,16 @@ jobs:
           echo "108b087f156a9fe7da0c796de1ef73f5855d2a33a27983769ea39061359a40fc  ${ctcache_commit_id}.zip" | sha256sum --check
           unzip "${ctcache_commit_id}.zip"
           mv ctcache-${ctcache_commit_id}/clang-tidy* "$COMPILER_CACHE_DIR/bin"
+
       - name: Check code format
         if: matrix.config.checkCodeFormat
         run: |
           set +x -euo pipefail
-          sudo apt-get update && sudo apt-get install -y clang-format-14 black
-          ./scripts/format/clang_format.sh
+          python -m pip install clang-format==19.1.0
+          ./scripts/format/c++.sh
           git diff --name-only
           git diff --exit-code || (echo "Code formatting failed" && exit 1)
+
       - name: Setup Ubuntu
         run: |
           sudo apt-get update && sudo apt-get install -y \
@@ -96,11 +105,9 @@ jobs:
             cmake \
             ninja-build \
             libboost-program-options-dev \
-            libboost-filesystem-dev \
             libboost-graph-dev \
             libboost-system-dev \
             libeigen3-dev \
-            libsuitesparse-dev \
             libceres-dev \
             libflann-dev \
             libfreeimage-dev \
@@ -116,7 +123,9 @@ jobs:
             libcgal-qt5-dev \
             libgl1-mesa-dri \
             libunwind-dev \
+            libcurl4-openssl-dev \
             xvfb
+
           if [ "${{ matrix.config.cudaEnabled }}" == "true" ]; then
             if [ "${{ matrix.config.os }}" == "ubuntu-20.04" ]; then
               sudo apt-get install -y \
@@ -134,16 +143,19 @@ jobs:
               echo "CUDAHOSTCXX=/usr/bin/g++-10" >> $GITHUB_ENV
             fi
           fi
+
           if [ "${{ matrix.config.asanEnabled }}" == "true" ]; then
             sudo apt-get install -y clang-15 libomp-15-dev
             echo "CC=/usr/bin/clang-15" >> $GITHUB_ENV
             echo "CXX=/usr/bin/clang++-15" >> $GITHUB_ENV
           fi
+
           if [ "${{ matrix.config.cmakeBuildType }}" == "ClangTidy" ]; then
             sudo apt-get install -y clang-15 clang-tidy-15 libomp-15-dev
             echo "CC=/usr/bin/clang-15" >> $GITHUB_ENV
             echo "CXX=/usr/bin/clang++-15" >> $GITHUB_ENV
           fi
+
       - name: Upgrade CMake
         run: |
           CMAKE_VERSION=3.28.6
@@ -152,6 +164,7 @@ jobs:
           tar -xzf ${CMAKE_DIR}.tar.gz
           sudo cp -r ${CMAKE_DIR}/* /usr/local/
           rm -rf ${CMAKE_DIR}*
+
       - name: Configure and build
         run: |
           set -x
@@ -167,6 +180,7 @@ jobs:
             -DTESTS_ENABLED=ON \
             -DASAN_ENABLED=${{ matrix.config.asanEnabled }}
           ninja -k 10000
+
       - name: Run tests
         if: ${{ matrix.config.cmakeBuildType != 'ClangTidy' }}
         run: |          
@@ -176,15 +190,17 @@ jobs:
           sleep 3
           cd build
           ctest --output-on-failure -E .+colmap_.*
+
       - name: Cleanup compiler cache
         run: |
           set -x
           ccache --show-stats --verbose
           ccache --evict-older-than 1d
           ccache --show-stats --verbose
+
           echo "Size of ctcache before: $(du -sh $CTCACHE_DIR)"
           echo "Number of ctcache files before: $(find $CTCACHE_DIR | wc -l)"
           # Delete cache older than 10 days.
           find "$CTCACHE_DIR"/*/ -mtime +10 -print0 | xargs -0 rm -rf
           echo "Size of ctcache after:  $(du -sh $CTCACHE_DIR)"
-          echo "Number of ctcache files after: $(find $CTCACHE_DIR | wc -l)"''
+          echo "Number of ctcache files after: $(find $CTCACHE_DIR | wc -l)"
