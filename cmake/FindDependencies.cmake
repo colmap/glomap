@@ -1,7 +1,10 @@
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 find_package(Eigen3 3.4 REQUIRED)
-find_package(SuiteSparse COMPONENTS CHOLMOD REQUIRED)
+find_package(CHOLMOD QUIET)
+if(NOT TARGET SuiteSparse::CHOLMOD)
+    find_package(SuiteSparse COMPONENTS CHOLMOD REQUIRED)
+endif()
 find_package(Ceres REQUIRED COMPONENTS SuiteSparse)
 find_package(Boost REQUIRED)
 
