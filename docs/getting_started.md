@@ -47,6 +47,6 @@ using the `--GlobalPositioning.max_num_iterations` and
 
 #### Enable GPU-based solver
 
-If Ceres 2.3 or above is installed and the cuDSS are installed, GLOMAP supports GPU
+If Ceres 2.3 or above is installed and cuDSS is installed, GLOMAP supports GPU
 accelerated optimization. The process can be largely sped up with flags
 `--GlobalPositioning.use_gpu 1 --BundleAdjustment.use_gpu`.
