@@ -47,6 +47,23 @@ message(STATUS "Configuring COLMAP...")
 set(UNINSTALL_ENABLED OFF CACHE INTERNAL "")
 if (FETCH_COLMAP)
     FetchContent_MakeAvailable(COLMAP)
+
+    # Define where to store the patch
+    set(COLMAP_PATCH_PATH ${CMAKE_BINARY_DIR}/fix_poisson.patch)
+
+    # Download the patch from GitHub
+    file(DOWNLOAD
+        https://github.com/colmap/colmap/commit/a586e7cb223cc86c609105246ecd3a10e0c55131.patch
+        ${COLMAP_PATCH_PATH}
+        SHOW_PROGRESS
+        STATUS PATCH_DOWNLOAD_STATUS
+    )
+    # Apply the patch
+    execute_process(
+        COMMAND git apply ${COLMAP_PATCH_PATH}
+        WORKING_DIRECTORY ${colmap_SOURCE_DIR}
+        RESULT_VARIABLE PATCH_RESULT
+    )
 else()
     find_package(COLMAP REQUIRED)
 endif()
