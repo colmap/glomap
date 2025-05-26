@@ -27,9 +27,11 @@ To use the seperate rotation averaging module, refer to [this README](docs/rotat
 To build GLOMAP, first install [COLMAP](https://colmap.github.io/install.html#build-from-source)
 dependencies and then build GLOMAP using the following commands: 
 ```shell
+git checkout thuan/pose_prior_mapper
 mkdir build
 cd build
-cmake .. -GNinja
+cmake -DCOLMAP_CUDA_ENABLED=OFF -DSIFTGPU_ENABLED=OFF \
+  -DCUDA_ENABLED=OFF -DCOLMAP_OPENGL_ENABLED=OFF .. -GNinja 
 ninja && ninja install
 ```
 Pre-compiled Windows binaries can be downloaded from the official

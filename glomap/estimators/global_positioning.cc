@@ -7,16 +7,39 @@
 
 namespace glomap {
 namespace {
-
 Eigen::Vector3d RandVector3d(std::mt19937& random_generator,
-                             double low,
-                             double high) {
-  std::uniform_real_distribution<double> distribution(low, high);
-  return Eigen::Vector3d(distribution(random_generator),
-                         distribution(random_generator),
-                         distribution(random_generator));
+                             const Eigen::Vector3d& min_corner,
+                             const Eigen::Vector3d& max_corner) {
+  std::uniform_real_distribution<double> dist_x(min_corner[0], max_corner[0]);
+  std::uniform_real_distribution<double> dist_y(min_corner[1], max_corner[1]);
+  std::uniform_real_distribution<double> dist_z(min_corner[2], max_corner[2]);
+
+  return Eigen::Vector3d(dist_x(random_generator),
+                         dist_y(random_generator),
+                         dist_z(random_generator));
 }
 
+using Sim3d = colmap::Sim3d;
+using AxisAlignedBoundingBox = GlobalPositionerOptions::AxisAlignedBoundingBox;
+Sim3d AlignPointsToBoundingBox(std::vector<Eigen::Vector3d>& points,
+                               const AxisAlignedBoundingBox& bounding_box) {
+  AxisAlignedBoundingBox points_bbox{points[0], points[0]};
+  for (const Eigen::Vector3d& point : points) {
+    points_bbox.first = points_bbox.first.cwiseMin(point);
+    points_bbox.second = points_bbox.second.cwiseMax(point);
+  }
+
+  double scale = (bounding_box.second - bounding_box.first).norm() /
+                 ((points_bbox.second - points_bbox.first).norm() + 1e-5);
+  Eigen::Vector3d translation = (bounding_box.first + bounding_box.second) / 2 -
+                                (points_bbox.first + points_bbox.second) / 2;
+
+  Sim3d tform(scale, Eigen::Quaterniond::Identity(), scale * translation);
+  for (Eigen::Vector3d& point : points) {
+    point = tform * point;
+  }
+  return tform;
+}
 }  // namespace
 
 GlobalPositioner::GlobalPositioner(const GlobalPositionerOptions& options)
@@ -80,7 +103,7 @@ bool GlobalPositioner::Solve(const ViewGraph& view_graph,
     LOG(INFO) << summary.BriefReport();
   }
 
-  ConvertResults(images);
+  ConvertResults(images, tracks);
   return summary.IsSolutionUsable();
 }
 
@@ -132,9 +155,18 @@ void GlobalPositioner::InitializeRandomPositions(
   }
 
   if (!options_.generate_random_positions || !options_.optimize_positions) {
-    for (auto& [image_id, image] : images) {
-      image.cam_from_world.translation = image.Center();
+    std::vector<Eigen::Vector3d> images_center;
+    images_center.reserve(images.size());
+    for (const auto& [_, image] : images) {
+      images_center.emplace_back(image.Center());
     }
+    cameras_bbox_from_prior_frame_ =
+        AlignPointsToBoundingBox(images_center, options_.cameras_bbox);
+    for (auto& [_, image] : images) {
+      image.cam_from_world.translation =
+          cameras_bbox_from_prior_frame_ * image.Center();
+    }
+
     return;
   }
 
@@ -143,7 +175,9 @@ void GlobalPositioner::InitializeRandomPositions(
     // Only set the cameras to be random if they are needed to be optimized
     if (constrained_positions.find(image_id) != constrained_positions.end())
       image.cam_from_world.translation =
-          100.0 * RandVector3d(random_generator_, -1, 1);
+          RandVector3d(random_generator_,
+                       options_.cameras_bbox.first,
+                       options_.cameras_bbox.second);
     else
       image.cam_from_world.translation = image.Center();
   }
@@ -235,7 +269,9 @@ void GlobalPositioner::AddPointToCameraConstraints(
 
     // Only set the points to be random if they are needed to be optimized
     if (options_.optimize_points && options_.generate_random_points) {
-      track.xyz = 100.0 * RandVector3d(random_generator_, -1, 1);
+      track.xyz = RandVector3d(random_generator_,
+                               options_.points_bbox.first,
+                               options_.points_bbox.second);
       track.is_initialized = true;
     }
 
@@ -428,12 +464,21 @@ void GlobalPositioner::ParameterizeVariables(
 }
 
 void GlobalPositioner::ConvertResults(
-    std::unordered_map<image_t, Image>& images) {
+    std::unordered_map<image_t, Image>& images,
+    std::unordered_map<track_t, Track>& tracks) {
+  Sim3d prior_frame_from_cameras_bbox =
+      colmap::Inverse(cameras_bbox_from_prior_frame_);
   // translation now stores the camera position, needs to convert back to
   // translation
-  for (auto& [image_id, image] : images) {
+  for (auto& [_, image] : images) {
+    image.cam_from_world.translation =
+        prior_frame_from_cameras_bbox * image.cam_from_world.translation;
     image.cam_from_world.translation =
         -(image.cam_from_world.rotation * image.cam_from_world.translation);
+  }
+
+  for (auto& [_, track] : tracks) {
+    track.xyz = prior_frame_from_cameras_bbox * track.xyz;
   }
 }
 

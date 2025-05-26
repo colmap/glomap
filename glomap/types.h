@@ -32,4 +32,34 @@ struct InlierThresholdOptions {
   double max_rotation_error = 10.;  // in degree, for rotation averaging
 };
 
+struct PosePriorOptions {
+  // Whether to use pose prior constraints.
+  bool use_pose_position_prior = false;  // now only support position prior
+
+  // Settings for pose prior covariance, takes effect only when the option
+  // `overwrite_position_priors_covariance` is true.
+  double prior_position_std_x = 1.;
+  double prior_position_std_y = 1.;
+  double prior_position_std_z = 1.;
+
+  // Now colmap may not have a logic for position priors covariance, make
+  // overwrite as a choice.
+  bool overwrite_position_priors_covariance = false;
+
+  // Settings for loss function in BA.
+  bool use_robust_loss_on_prior_position = false;
+  // The threshold for robust loss function (e.g. CauchyLoss scaling parameter)
+  // to handle large residuals. This determines the point at which the loss
+  // becomes less sensitive to outliers.
+  double prior_position_loss_threshold = 7.815;
+  // The factor used by ceres::ScaledLoss to scale the loss function applied to
+  // prior position residuals. This controls the overall scaling of the loss
+  // applied to the residuals.
+  // Note: This factor works in conjunction with the covariance matrix to
+  // jointly influence the residual weights.
+  double prior_position_scaled_loss_factor = 1.;
+
+  // Settings for alignment with pose priors.
+  double alignment_ransac_max_error = 0.;
+};
 }  // namespace glomap

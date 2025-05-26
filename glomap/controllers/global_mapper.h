@@ -26,6 +26,9 @@ struct GlobalMapperOptions {
   // Inlier thresholds for each component
   InlierThresholdOptions inlier_thresholds;
 
+  // Options for pose prior usage.
+  PosePriorOptions opt_pose_prior;
+
   // Control the number of iterations for each component
   int num_iteration_bundle_adjustment = 3;
   int num_iteration_retriangulation = 1;

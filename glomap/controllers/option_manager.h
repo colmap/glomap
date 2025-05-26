@@ -18,6 +18,7 @@ struct GlobalPositionerOptions;
 struct BundleAdjusterOptions;
 struct TriangulatorOptions;
 struct InlierThresholdOptions;
+struct PosePriorOptions;
 struct GravityRefinerOptions;
 
 class OptionManager {
@@ -38,6 +39,7 @@ class OptionManager {
   void AddBundleAdjusterOptions();
   void AddTriangulatorOptions();
   void AddInlierThresholdOptions();
+  void AddPosePriorOptions();
   void AddGravityRefinerOptions();
 
   template <typename T>
@@ -91,6 +93,7 @@ class OptionManager {
   bool added_bundle_adjustment_options_ = false;
   bool added_triangulation_options_ = false;
   bool added_inliers_options_ = false;
+  bool added_pose_prior_options_ = false;
   bool added_gravity_refiner_options_ = false;
 };
 

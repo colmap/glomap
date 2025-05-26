@@ -36,6 +36,7 @@ void OptionManager::AddAllOptions() {
   AddGlobalPositionerOptions();
   AddBundleAdjusterOptions();
   AddTriangulatorOptions();
+  AddPosePriorOptions();
 }
 
 void OptionManager::AddDatabaseOptions() {
@@ -94,6 +95,7 @@ void OptionManager::AddGlobalMapperFullOptions() {
   AddBundleAdjusterOptions();
   AddTriangulatorOptions();
   AddInlierThresholdOptions();
+  AddPosePriorOptions();
 }
 
 void OptionManager::AddGlobalMapperResumeOptions() {
@@ -129,6 +131,7 @@ void OptionManager::AddGlobalMapperResumeFullOptions() {
   AddBundleAdjusterOptions();
   AddTriangulatorOptions();
   AddInlierThresholdOptions();
+  AddPosePriorOptions();
 }
 
 void OptionManager::AddViewGraphCalibrationOptions() {
@@ -266,6 +269,36 @@ void OptionManager::AddInlierThresholdOptions() {
                               &mapper->inlier_thresholds.min_inlier_ratio);
   AddAndRegisterDefaultOption("Thresholds.max_rotation_error",
                               &mapper->inlier_thresholds.max_rotation_error);
+}
+
+void OptionManager::AddPosePriorOptions() {
+  if (added_pose_prior_options_) {
+    return;
+  }
+  added_pose_prior_options_ = true;
+  AddAndRegisterDefaultOption("PosePrior.use_pose_position_prior",
+                              &mapper->opt_pose_prior.use_pose_position_prior);
+  AddAndRegisterDefaultOption("PosePrior.prior_position_std_x",
+                              &mapper->opt_pose_prior.prior_position_std_x);
+  AddAndRegisterDefaultOption("PosePrior.prior_position_std_y",
+                              &mapper->opt_pose_prior.prior_position_std_y);
+  AddAndRegisterDefaultOption("PosePrior.prior_position_std_z",
+                              &mapper->opt_pose_prior.prior_position_std_z);
+  AddAndRegisterDefaultOption(
+      "PosePrior.overwrite_priors_covariance",
+      &mapper->opt_pose_prior.overwrite_position_priors_covariance);
+  AddAndRegisterDefaultOption(
+      "PosePrior.use_robust_loss_on_prior_position",
+      &mapper->opt_pose_prior.use_robust_loss_on_prior_position);
+  AddAndRegisterDefaultOption(
+      "PosePrior.prior_position_loss_threshold",
+      &mapper->opt_pose_prior.prior_position_loss_threshold);
+  AddAndRegisterDefaultOption(
+      "PosePrior.prior_position_scaled_loss_factor",
+      &mapper->opt_pose_prior.prior_position_scaled_loss_factor);
+  AddAndRegisterDefaultOption(
+      "PosePrior.alignment_ransac_max_error",
+      &mapper->opt_pose_prior.alignment_ransac_max_error);
 }
 
 void OptionManager::AddGravityRefinerOptions() {
