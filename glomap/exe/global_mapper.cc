@@ -102,6 +102,11 @@ int RunMapper(int argc, char** argv) {
             .cwiseAbs2()
             .asDiagonal();
     UpdateDatabasePosePriorsCovariance(database, covariance);
+    LOG(INFO) << "Updated database pose priors covariance with std_x: "
+              << options.mapper->opt_pose_prior.prior_position_std_x
+              << ", std_y: " << options.mapper->opt_pose_prior.prior_position_std_y
+              << ", std_z: "
+              << options.mapper->opt_pose_prior.prior_position_std_z;
   }
 
   if (view_graph.image_pairs.empty()) {

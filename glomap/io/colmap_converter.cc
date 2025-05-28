@@ -184,6 +184,41 @@ void ConvertDatabaseToGlomap(const colmap::Database& database,
   // Add the images
   const std::vector<colmap::Image> images_colmap = database.ReadAllImages();
 
+  // First pass: compute the mean / centre of all valid pose prior positions
+  Eigen::Vector3d mean_prior_position = Eigen::Vector3d::Zero();
+  size_t num_valid_priors = 0;
+  if (extract_pose_priors) {
+    for (const auto& image : images_colmap) {
+      const image_t image_id = image.ImageId();
+      if (image_id == colmap::kInvalidImageId) continue;
+
+      colmap::PosePrior prior = database.ReadPosePrior(image_id);
+
+      if (!prior.IsValid()) {
+        continue;
+      }
+
+      // Transform prior position to XYZ if needed (duplicate of logic below, but
+      // lightweight compared to restructuring the entire function).
+      if (prior.coordinate_system == colmap::PosePrior::CoordinateSystem::WGS84) {
+        colmap::GPSTransform gps_transform(colmap::GPSTransform::WGS84);
+        prior.position =
+            gps_transform.EllToXYZ(std::vector<Eigen::Vector3d>{prior.position}).front();
+      }
+
+      mean_prior_position += prior.position;
+      num_valid_priors++;
+    }
+
+    if (num_valid_priors > 0) {
+      mean_prior_position /= static_cast<double>(num_valid_priors);
+      LOG(INFO) << "Computed mean prior position from " << num_valid_priors
+                << " images: " << mean_prior_position.transpose();
+    } else {
+      mean_prior_position.setZero();
+    }
+  }
+
   image_t counter = 0;
   for (auto& image : images_colmap) {
     std::cout << "\r Loading Images " << counter + 1 << " / "
@@ -210,13 +245,16 @@ void ConvertDatabaseToGlomap(const colmap::Database& database,
         prior.position =
             gps_transform.EllToXYZ(std::vector<Eigen::Vector3d>{prior.position})
                 .front();
-        prior.coordinate_system =
-            colmap::PosePrior::CoordinateSystem::CARTESIAN;
+        // Continue processing below.
       } else if (prior.coordinate_system ==
                  colmap::PosePrior::CoordinateSystem::UNDEFINED) {
         LOG(WARNING) << "Unknown coordinate system for image " << image_id
                      << ", assuming cartesian.";
       }
+
+      // Subtract the mean prior position so that the positions are centred.
+      prior.position -= mean_prior_position;
+      LOG(INFO) << "Prior position: " << prior.position.transpose();
 
       const colmap::Rigid3d world_from_cam_prior(Eigen::Quaterniond::Identity(),
                                                  prior.position);

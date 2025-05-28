@@ -403,7 +403,8 @@ bool PosePriorBundleAdjuster::AlignReconstruction(
     // Set max error at the 3 sigma confidence interval. Assumes no outliers.
     max_error = 3 * max_stddev_sum / num_valid_covs;
   }
-
+  LOG(INFO) << "AlignReconstruction to pose position priors with max error: "
+            << max_error;
   return AlignReconstructionToPosePositionPriors(
       pose_priors, images, tracks, max_error);
   ;
