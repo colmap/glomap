@@ -1,6 +1,7 @@
 #include "glomap/io/colmap_converter.h"
 
 #include "glomap/math/two_view_geometry.h"
+#include <cmath>  // For trigonometric functions and M_PI
 
 namespace glomap {
 
@@ -185,8 +186,13 @@ void ConvertDatabaseToGlomap(const colmap::Database& database,
   const std::vector<colmap::Image> images_colmap = database.ReadAllImages();
 
   // First pass: compute the mean / centre of all valid pose prior positions
+  colmap::GPSTransform gps_transform(colmap::GPSTransform::WGS84);
   Eigen::Vector3d mean_prior_position = Eigen::Vector3d::Zero();
   size_t num_valid_priors = 0;
+  // Rotation from ECEF to local ENU centred at the mean location. Will be
+  // initialised once the statistics of the first pass are available.
+  Eigen::Matrix3d R_ecef_to_enu = Eigen::Matrix3d::Identity();
+  bool enu_transform_valid = false;
   if (extract_pose_priors) {
     for (const auto& image : images_colmap) {
       const image_t image_id = image.ImageId();
@@ -201,7 +207,6 @@ void ConvertDatabaseToGlomap(const colmap::Database& database,
       // Transform prior position to XYZ if needed (duplicate of logic below, but
       // lightweight compared to restructuring the entire function).
       if (prior.coordinate_system == colmap::PosePrior::CoordinateSystem::WGS84) {
-        colmap::GPSTransform gps_transform(colmap::GPSTransform::WGS84);
         prior.position =
             gps_transform.EllToXYZ(std::vector<Eigen::Vector3d>{prior.position}).front();
       }
@@ -212,6 +217,31 @@ void ConvertDatabaseToGlomap(const colmap::Database& database,
 
     if (num_valid_priors > 0) {
       mean_prior_position /= static_cast<double>(num_valid_priors);
+
+      // Compute the reference latitude / longitude from the mean Cartesian
+      // coordinates. These will be used to define the local ENU frame so that
+      // the Z axis coincides with the Up direction (i.e. altitude).
+      Eigen::Vector3d mean_ell =
+          gps_transform
+              .XYZToEll(std::vector<Eigen::Vector3d>{mean_prior_position})
+              .front();
+
+      const double lat0_rad = mean_ell(0) * M_PI / 180.0;
+      const double lon0_rad = mean_ell(1) * M_PI / 180.0;
+
+      const double sin_lat0 = std::sin(lat0_rad);
+      const double cos_lat0 = std::cos(lat0_rad);
+      const double sin_lon0 = std::sin(lon0_rad);
+      const double cos_lon0 = std::cos(lon0_rad);
+
+      // Rotation from ECEF to local ENU frame centred at the mean location.
+      R_ecef_to_enu << -sin_lon0, cos_lon0, 0.,
+          -sin_lat0 * cos_lon0, -sin_lat0 * sin_lon0, cos_lat0,
+          cos_lat0 * cos_lon0, cos_lat0 * sin_lon0, sin_lat0;
+
+      // Mark the ENU transform as valid for use in the subsequent pass.
+      enu_transform_valid = true;
+
       LOG(INFO) << "Computed mean prior position from " << num_valid_priors
                 << " images: " << mean_prior_position.transpose();
     } else {
@@ -240,8 +270,6 @@ void ConvertDatabaseToGlomap(const colmap::Database& database,
       // Thransform prior position to XYZ if needed.
       if (prior.coordinate_system ==
           colmap::PosePrior::CoordinateSystem::WGS84) {
-        colmap::GPSTransform gps_transform(colmap::GPSTransform::WGS84);
-        // Convert WGS84 ellipsoidal coordinates to Cartesian XYZ.
         prior.position =
             gps_transform.EllToXYZ(std::vector<Eigen::Vector3d>{prior.position})
                 .front();
@@ -252,9 +280,18 @@ void ConvertDatabaseToGlomap(const colmap::Database& database,
                      << ", assuming cartesian.";
       }
 
+      // Convert the Cartesian position to local ENU coordinates so that the Z
+      // axis matches the altitude (Up) direction.
+      if (enu_transform_valid) {
+        prior.position = R_ecef_to_enu * (prior.position - mean_prior_position);
+        prior.coordinate_system = colmap::PosePrior::CoordinateSystem::CARTESIAN;
+      } else {
+        // Fallback: just centre the coordinates without rotation.
+        prior.position -= mean_prior_position;
+      }
+
       // Subtract the mean prior position so that the positions are centred.
-      prior.position -= mean_prior_position;
-      LOG(INFO) << "Prior position: " << prior.position.transpose();
+      LOG(INFO) << "Prior position (ENU): " << prior.position.transpose();
 
       const colmap::Rigid3d world_from_cam_prior(Eigen::Quaterniond::Identity(),
                                                  prior.position);
