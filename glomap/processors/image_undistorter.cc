@@ -31,8 +31,12 @@ void UndistortImages(std::unordered_map<camera_t, Camera>& cameras,
       image.features_undist.clear();
       image.features_undist.reserve(num_points);
       for (int i = 0; i < num_points; i++) {
-        image.features_undist.emplace_back(
-            camera.CamFromImg(image.features[i]).homogeneous().normalized());
+        std::optional<Eigen::Vector2d> feat_undist = 
+            camera.CamFromImg(image.features[i]);
+            
+        if (feat_undist) image.features_undist.emplace_back(
+          feat_undist.value().homogeneous().normalized()
+        );
       }
     });
   }

@@ -5,7 +5,7 @@
 #include <colmap/scene/camera.h>
 #include <colmap/sensor/models.h>
 
-#include <PoseLib/misc/colmap_models.h>
+#include <PoseLib/misc/camera_models.h>
 
 namespace glomap {
 
