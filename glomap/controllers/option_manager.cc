@@ -82,6 +82,11 @@ void OptionManager::AddGlobalMapperOptions() {
   AddAndRegisterDefaultOption("skip_retriangulation",
                               &mapper->skip_retriangulation);
   AddAndRegisterDefaultOption("skip_pruning", &mapper->skip_pruning);
+
+  // Whether to align the reconstruction to pose position priors after bundle
+  // adjustment (for metric scale) even if pose priors are not used as hard
+  // constraints.
+  AddAndRegisterDefaultOption("transform_to_meter", &mapper->transform_to_meter);
 }
 
 void OptionManager::AddGlobalMapperFullOptions() {
@@ -122,6 +127,11 @@ void OptionManager::AddGlobalMapperResumeOptions() {
   AddAndRegisterDefaultOption("skip_bundle_adjustment",
                               &mapper->skip_bundle_adjustment);
   AddAndRegisterDefaultOption("skip_pruning", &mapper->skip_pruning);
+
+  // Whether to align reconstruction to pose position priors after bundle
+  // adjustment (for metric scale) even if pose priors are not used as
+  // constraints.
+  AddAndRegisterDefaultOption("transform_to_meter", &mapper->transform_to_meter);
 }
 
 void OptionManager::AddGlobalMapperResumeFullOptions() {

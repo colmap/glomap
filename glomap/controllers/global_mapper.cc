@@ -6,12 +6,15 @@
 #include "glomap/processors/image_undistorter.h"
 #include "glomap/processors/reconstruction_normalizer.h"
 #include "glomap/processors/reconstruction_pruning.h"
+#include "glomap/processors/reconstruction_aligner.h"
 #include "glomap/processors/relpose_filter.h"
 #include "glomap/processors/track_filter.h"
 #include "glomap/processors/view_graph_manipulation.h"
 
 #include <colmap/util/file.h>
 #include <colmap/util/timer.h>
+#include <colmap/estimators/similarity_transform.h>
+#include <colmap/geometry/sim3.h>
 
 #include <memory>
 
@@ -221,6 +224,44 @@ bool GlobalMapper::Solve(const colmap::Database& database,
     colmap::Timer run_timer;
     run_timer.Start();
 
+    // -------------------------------------------------------------------
+    // Record the initial Z value (camera center altitude) of every image
+    // before any bundle-adjustment takes place. We use the image centre in
+    // world coordinates, i.e. `Image::Center()`, instead of the raw
+    // translation element, because the centre is invariant to the
+    // parameterisation of the pose (t depends on R).
+    // -------------------------------------------------------------------
+    std::unordered_map<image_t, double> initial_center_zs;
+    initial_center_zs.reserve(images.size());
+    for (const auto& [img_id, img] : images) {
+      initial_center_zs[img_id] = img.Center()(2);
+    }
+
+    // -------------------------------------------------------------------
+    // Compute mean absolute Z error to pose priors BEFORE bundle adjustment
+    // This shows how far camera heights deviate from their priors initially.
+    // -------------------------------------------------------------------
+    double sum_abs_z_err_prior_before = 0.0;
+    size_t num_prior_z = 0;
+    for (const auto& [img_id, img] : images) {
+      if (img.pose_prior.has_value() &&
+          img.pose_prior->coordinate_system ==
+              colmap::PosePrior::CoordinateSystem::CARTESIAN) {
+        sum_abs_z_err_prior_before += std::abs(img.Center()(2) -
+                                              img.pose_prior->position(2));
+        ++num_prior_z;
+      }
+    }
+    const double mean_abs_z_err_prior_before = (num_prior_z == 0)
+                                                   ? 0.0
+                                                   : sum_abs_z_err_prior_before /
+                                                         static_cast<double>(num_prior_z);
+
+    std::cout << "Mean absolute Z error to priors BEFORE bundle adjustment: "
+              << mean_abs_z_err_prior_before << std::endl;
+    LOG(INFO) << "Mean absolute Z error to priors BEFORE bundle adjustment: "
+              << mean_abs_z_err_prior_before;
+
     for (int ite = 0; ite < options_.num_iteration_bundle_adjustment; ite++) {
       std::unique_ptr<BundleAdjuster> ba_engine;
 
@@ -308,6 +349,104 @@ bool GlobalMapper::Solve(const colmap::Database& database,
         tracks,
         options_.inlier_thresholds.min_triangulation_angle);
 
+    // -------------------------------------------------------------------
+    // Compute and report the mean absolute change in Z after bundle-adjustment.
+    // -------------------------------------------------------------------
+    // 1. Change relative to initial reconstruction
+    double sum_abs_z_error = 0.0;
+    for (const auto& [img_id, img] : images) {
+      const auto it = initial_center_zs.find(img_id);
+      if (it != initial_center_zs.end()) {
+        sum_abs_z_error += std::abs(img.Center()(2) - it->second);
+      }
+    }
+    const double mean_abs_z_error = images.empty()
+                                     ? 0.0
+                                     : sum_abs_z_error / static_cast<double>(images.size());
+
+    std::cout << "Mean absolute Z change after bundle adjustment: "
+              << mean_abs_z_error << std::endl;
+    LOG(INFO) << "Mean absolute Z change after bundle adjustment: "
+              << mean_abs_z_error;
+
+    // 2. Error to priors AFTER bundle adjustment
+    double sum_abs_z_err_prior_after = 0.0;
+    for (const auto& [img_id, img] : images) {
+      if (img.pose_prior.has_value() &&
+          img.pose_prior->coordinate_system ==
+              colmap::PosePrior::CoordinateSystem::CARTESIAN) {
+        sum_abs_z_err_prior_after += std::abs(img.Center()(2) -
+                                             img.pose_prior->position(2));
+      }
+    }
+    const double mean_abs_z_err_prior_after = (num_prior_z == 0)
+                                                   ? 0.0
+                                                   : sum_abs_z_err_prior_after /
+                                                         static_cast<double>(num_prior_z);
+
+    std::cout << "Mean absolute Z error to priors AFTER bundle adjustment: "
+              << mean_abs_z_err_prior_after << std::endl;
+    LOG(INFO) << "Mean absolute Z error to priors AFTER bundle adjustment: "
+              << mean_abs_z_err_prior_after;
+
+    // -------------------------------------------------------------------
+    // (Optional) Align reconstruction to pose priors for evaluation only
+    // if pose priors were NOT used during optimisation. This provides an
+    // apples-to-apples Z-error measure even when the reconstruction coordinate
+    // frame differs from the prior frame.
+    // -------------------------------------------------------------------
+    if (!options_.opt_pose_prior.use_pose_position_prior && num_prior_z > 0) {
+      // Build point correspondences: reconstruction centres -> prior positions
+      std::vector<Eigen::Vector3d> src_locations;
+      std::vector<Eigen::Vector3d> tgt_locations;
+      src_locations.reserve(num_prior_z);
+      tgt_locations.reserve(num_prior_z);
+      for (const auto& [img_id, img] : images) {
+        if (img.pose_prior.has_value() &&
+            img.pose_prior->coordinate_system ==
+                colmap::PosePrior::CoordinateSystem::CARTESIAN) {
+          src_locations.emplace_back(img.Center());
+          tgt_locations.emplace_back(img.pose_prior->position);
+        }
+      }
+
+      if (!src_locations.empty()) {
+        colmap::Sim3d tform;
+        bool align_success = false;
+        const double max_error = (options_.opt_pose_prior.alignment_ransac_max_error > 0)
+                                     ? options_.opt_pose_prior.alignment_ransac_max_error
+                                     : -1.0;
+        if (max_error > 0) {
+          colmap::RANSACOptions ransac_opt;
+          ransac_opt.max_error = max_error;
+          auto report = colmap::EstimateSim3dRobust(
+              src_locations, tgt_locations, ransac_opt, tform);
+          align_success = report.success;
+        } else {
+          align_success = colmap::EstimateSim3d(src_locations, tgt_locations, tform);
+        }
+
+        if (align_success) {
+          double sum_abs_z_err_aligned = 0.0;
+          for (size_t i = 0; i < src_locations.size(); ++i) {
+            const double z_est = (tform * src_locations[i])(2);
+            const double z_true = tgt_locations[i](2);
+            sum_abs_z_err_aligned += std::abs(z_est - z_true);
+          }
+          const double mean_abs_z_err_aligned =
+              sum_abs_z_err_aligned / static_cast<double>(src_locations.size());
+
+          std::cout << "Mean absolute Z error to priors AFTER alignment (evaluation only): "
+                    << mean_abs_z_err_aligned << std::endl;
+          LOG(INFO) << "Mean absolute Z error to priors AFTER alignment (evaluation only): "
+                    << mean_abs_z_err_aligned;
+        } else {
+          std::cout << "Could not align reconstruction to pose priors for evaluation." << std::endl;
+          LOG(WARNING) << "Could not align reconstruction to pose priors for evaluation.";
+        }
+      }
+    }
+
     run_timer.PrintSeconds();
   }
 
@@ -377,6 +516,38 @@ bool GlobalMapper::Solve(const colmap::Database& database,
         images,
         tracks,
         options_.inlier_thresholds.min_triangulation_angle);
+
+    // -------------------------------------------------------------------
+    // Optionally align the reconstruction into metric scale (meters) using
+    // pose position priors, but only for evaluation / export. This is
+    // controlled by `transform_to_meter`. It is skipped if priors are not
+    // loaded or if pose priors were already used during optimisation (since
+    // the reconstruction should already be in metric scale in that case).
+    // -------------------------------------------------------------------
+    if (options_.transform_to_meter &&
+        !options_.opt_pose_prior.use_pose_position_prior) {
+      std::cout << "-------------------------------------" << std::endl;
+      std::cout << "Aligning reconstruction to meter-scale ..." << std::endl;
+      std::cout << "-------------------------------------" << std::endl;
+      std::unordered_map<image_t, colmap::PosePrior> priors;
+      for (const auto& [img_id, img] : images) {
+        if (img.pose_prior.has_value()) {
+          priors[img_id] = img.pose_prior.value();
+        }
+      }
+
+      if (!priors.empty()) {
+        LOG(INFO) << "Aligning reconstruction to pose priors for meter-scale export.";
+
+        if (AlignReconstructionToPosePositionPriors(priors, images, tracks)) {
+          LOG(INFO) << "Alignment to priors successful. Reconstruction now in meter scale.";
+        } else {
+          LOG(WARNING) << "Alignment to priors failed. Keeping original scale.";
+        }
+      } else {
+        LOG(INFO) << "No pose priors available; metric transform skipped.";
+      }
+    }
   }
 
   // 8. Reconstruction pruning

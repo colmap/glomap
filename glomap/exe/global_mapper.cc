@@ -87,12 +87,19 @@ int RunMapper(int argc, char** argv) {
   std::unordered_map<track_t, Track> tracks;
 
   colmap::Database database(database_path);
-  ConvertDatabaseToGlomap(
+  // ConvertDatabaseToGlomap(
+  //     database,
+  //     view_graph,
+  //     cameras,
+  //     images,
+  //     options.mapper->opt_pose_prior.use_pose_position_prior);
+  // TODO: will need to add an auto check if pose priors are in database and do loading
+   ConvertDatabaseToGlomap(
       database,
       view_graph,
       cameras,
       images,
-      options.mapper->opt_pose_prior.use_pose_position_prior);
+      true);
 
   if (options.mapper->opt_pose_prior.overwrite_position_priors_covariance) {
     const Eigen::Matrix3d covariance =

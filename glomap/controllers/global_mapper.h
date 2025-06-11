@@ -43,6 +43,11 @@ struct GlobalMapperOptions {
   bool skip_bundle_adjustment = false;
   bool skip_retriangulation = false;
   bool skip_pruning = true;
+
+  // Align reconstruction to pose position priors (if loaded) after bundle
+  // adjustment to obtain metric (meter) scale, while still keeping priors
+  // unused during optimisation when `use_pose_position_prior` is false.
+  bool transform_to_meter = false;
 };
 
 class GlobalMapper {

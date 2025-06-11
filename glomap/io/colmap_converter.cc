@@ -2,6 +2,8 @@
 
 #include "glomap/math/two_view_geometry.h"
 #include <cmath>  // For trigonometric functions and M_PI
+#include <limits>
+#include <algorithm>
 
 namespace glomap {
 
@@ -193,6 +195,12 @@ void ConvertDatabaseToGlomap(const colmap::Database& database,
   // initialised once the statistics of the first pass are available.
   Eigen::Matrix3d R_ecef_to_enu = Eigen::Matrix3d::Identity();
   bool enu_transform_valid = false;
+  // Variables to accumulate the bounding box of all valid prior positions (ENU coordinates)
+  double min_east = std::numeric_limits<double>::max();
+  double max_east = std::numeric_limits<double>::lowest();
+  double min_north = std::numeric_limits<double>::max();
+  double max_north = std::numeric_limits<double>::lowest();
+  bool have_prior_area = false;
   if (extract_pose_priors) {
     for (const auto& image : images_colmap) {
       const image_t image_id = image.ImageId();
@@ -290,8 +298,15 @@ void ConvertDatabaseToGlomap(const colmap::Database& database,
         prior.position -= mean_prior_position;
       }
 
+      // Update bounding box extents (E, N components)
+      min_east = std::min(min_east, prior.position.x());
+      max_east = std::max(max_east, prior.position.x());
+      min_north = std::min(min_north, prior.position.y());
+      max_north = std::max(max_north, prior.position.y());
+      have_prior_area = true;
+
       // Subtract the mean prior position so that the positions are centred.
-      LOG(INFO) << "Prior position (ENU): " << prior.position.transpose();
+      // LOG(INFO) << "Prior position (ENU): " << prior.position.transpose();
 
       const colmap::Rigid3d world_from_cam_prior(Eigen::Quaterniond::Identity(),
                                                  prior.position);
@@ -303,6 +318,15 @@ void ConvertDatabaseToGlomap(const colmap::Database& database,
     }
   }
   std::cout << std::endl;
+
+  // Compute and report approximate site area (axis-aligned bounding box)
+  if (have_prior_area) {
+    const double width_east  = max_east  - min_east;
+    const double height_north = max_north - min_north;
+    const double site_area_sqm = width_east * height_north;
+    LOG(INFO) << "Site bounding box (E,N) size: " << width_east << " m x " << height_north << " m";
+    LOG(INFO) << "Approximate site area: " << site_area_sqm << " square meters.";
+  }
 
   // Read keypoints
   for (auto& [image_id, image] : images) {
