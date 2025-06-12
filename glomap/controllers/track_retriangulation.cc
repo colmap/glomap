@@ -12,7 +12,9 @@ namespace glomap {
 
 bool RetriangulateTracks(const TriangulatorOptions& options,
                          const colmap::Database& database,
+                         std::unordered_map<rig_t, Rig>& rigs,
                          std::unordered_map<camera_t, Camera>& cameras,
+                         std::unordered_map<frame_t, Frame>& frames,
                          std::unordered_map<image_t, Image>& images,
                          std::unordered_map<track_t, Track>& tracks) {
   // Following code adapted from COLMAP
@@ -37,7 +39,9 @@ bool RetriangulateTracks(const TriangulatorOptions& options,
   // Convert the glomap data structures to colmap data structures
   std::shared_ptr<colmap::Reconstruction> reconstruction_ptr =
       std::make_shared<colmap::Reconstruction>();
-  ConvertGlomapToColmap(cameras,
+  ConvertGlomapToColmap(rigs,
+                        cameras,
+                        frames,
                         images,
                         std::unordered_map<track_t, Track>(),
                         *reconstruction_ptr);
@@ -59,7 +63,7 @@ bool RetriangulateTracks(const TriangulatorOptions& options,
   const auto tri_options = options_colmap.Triangulation();
   const auto mapper_options = options_colmap.Mapper();
 
-  const std::set<image_t>& reg_image_ids = reconstruction_ptr->RegImageIds();
+  const std::vector<image_t> reg_image_ids = reconstruction_ptr->RegImageIds();
 
   size_t image_idx = 0;
   for (const image_t image_id : reg_image_ids) {
@@ -79,7 +83,8 @@ bool RetriangulateTracks(const TriangulatorOptions& options,
   ba_options.refine_focal_length = false;
   ba_options.refine_principal_point = false;
   ba_options.refine_extra_params = false;
-  ba_options.refine_extrinsics = false;
+  ba_options.refine_sensor_from_rig = false;
+  ba_options.refine_rig_from_world = false;
 
   // Configure bundle adjustment.
   colmap::BundleAdjustmentConfig ba_config;
@@ -125,7 +130,7 @@ bool RetriangulateTracks(const TriangulatorOptions& options,
   }
 
   // Convert the colmap data structures back to glomap data structures
-  ConvertColmapToGlomap(*reconstruction_ptr, cameras, images, tracks);
+  ConvertColmapToGlomap(*reconstruction_ptr, rigs, cameras, frames, images, tracks);
 
   return true;
 }

@@ -19,7 +19,7 @@ void RelPoseFilter::FilterRotations(
       continue;
     }
 
-    Rigid3d pose_calc = image2.cam_from_world * Inverse(image1.cam_from_world);
+    Rigid3d pose_calc = image2.CamFromWorld() * Inverse(image1.CamFromWorld());
 
     double angle = CalcAngle(pose_calc, image_pair.cam2_from_cam1);
     if (angle > max_angle) {

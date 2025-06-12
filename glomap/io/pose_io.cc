@@ -129,6 +129,7 @@ void ReadRelWeight(const std::string& file_path,
   LOG(INFO) << counter << " weights are used are loaded" << std::endl;
 }
 
+// TODO: now, it does not care about the frames
 void ReadGravity(const std::string& gravity_path,
                  std::unordered_map<image_t, Image>& images) {
   std::unordered_map<std::string, image_t> name_idx;
@@ -160,9 +161,10 @@ void ReadGravity(const std::string& gravity_path,
     if (ite != name_idx.end()) {
       counter++;
       images[ite->second].gravity_info.SetGravity(gravity);
+      // TODO: add the check for the gravity information
       // Make sure the initialization is aligned with the gravity
-      images[ite->second].cam_from_world.rotation =
-          images[ite->second].gravity_info.GetRAlign().transpose();
+      // images[ite->second].cam_from_world.rotation =
+      //     images[ite->second].gravity_info.GetRAlign().transpose();
     }
   }
   LOG(INFO) << counter << " images are loaded with gravity" << std::endl;
@@ -182,7 +184,7 @@ void WriteGlobalRotation(const std::string& file_path,
     if (!image.is_registered) continue;
     file << image.file_name;
     for (int i = 0; i < 4; i++) {
-      file << " " << image.cam_from_world.rotation.coeffs()[(i + 3) % 4];
+      file << " " << image.CamFromWorld().rotation.coeffs()[(i + 3) % 4];
     }
     file << "\n";
   }

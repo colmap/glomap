@@ -38,11 +38,15 @@ struct Image {
   camera_t camera_id;
 
   // whether the image is within the largest connected component
+  // TODO: change this potentially to be automatically determined by the
+  // frame info
   bool is_registered = false;
   int cluster_id = -1;
 
-  // The pose of the image, defined as the transformation from world to camera.
-  Rigid3d cam_from_world;
+  // // The pose of the image, defined as the transformation from world to
+  // camera. Rigid3d cam_from_world;
+  frame_t frame_id;
+  struct Frame* frame_ptr = nullptr;
 
   // Gravity information
   GravityInfo gravity_info;
@@ -54,10 +58,33 @@ struct Image {
 
   // Methods
   inline Eigen::Vector3d Center() const;
+
+  // Methods to access the camera pose
+  inline Rigid3d CamFromWorld() const;
+
+  // Check if cam_from_world needs to be composed with sensor_from_rig pose.
+  inline bool HasTrivialFrame() const;
+
+  inline data_t DataId() const;
 };
 
 Eigen::Vector3d Image::Center() const {
-  return cam_from_world.rotation.inverse() * -cam_from_world.translation;
+  return CamFromWorld().rotation.inverse() * -CamFromWorld().translation;
+}
+
+// Concrete implementation of the methods
+Rigid3d Image::CamFromWorld() const {
+  return THROW_CHECK_NOTNULL(frame_ptr)->SensorFromWorld(
+      sensor_t(SensorType::CAMERA, camera_id));
+}
+
+bool Image::HasTrivialFrame() const {
+  return THROW_CHECK_NOTNULL(frame_ptr)->RigPtr()->IsRefSensor(
+      sensor_t(SensorType::CAMERA, camera_id));
+}
+
+data_t Image::DataId() const {
+  return data_t(sensor_t(SensorType::CAMERA, camera_id), image_id);
 }
 
 void GravityInfo::SetGravity(const Eigen::Vector3d& g) {

@@ -9,13 +9,13 @@
 
 namespace glomap {
 
-struct GlobalMapperOptions;
+struct RigGlobalMapperOptions;
 struct ViewGraphCalibratorOptions;
 struct RelativePoseEstimationOptions;
-struct RotationEstimatorOptions;
+struct RigRotationEstimatorOptions;
 struct TrackEstablishmentOptions;
-struct GlobalPositionerOptions;
-struct BundleAdjusterOptions;
+struct RigGlobalPositionerOptions;
+struct RigBundleAdjusterOptions;
 struct TriangulatorOptions;
 struct InlierThresholdOptions;
 struct GravityRefinerOptions;
@@ -57,7 +57,7 @@ class OptionManager {
   std::shared_ptr<std::string> database_path;
   std::shared_ptr<std::string> image_path;
 
-  std::shared_ptr<GlobalMapperOptions> mapper;
+  std::shared_ptr<RigGlobalMapperOptions> mapper;
   std::shared_ptr<GravityRefinerOptions> gravity_refiner;
 
  private:

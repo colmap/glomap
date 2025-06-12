@@ -20,7 +20,7 @@ class ViewGraph {
       std::unordered_map<image_t, Image>& images);
 
   int KeepLargestConnectedComponents(
-      const std::vector<CameraRig>& camera_rigs,
+      std::unordered_map<frame_t, Frame>& frames,
       std::unordered_map<image_t, Image>& images);
 
   // Mark the cluster of the cameras (cluster_id sort by the the number of

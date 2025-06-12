@@ -68,6 +68,24 @@ int RunRotationAverager(int argc, char** argv) {
 
   ReadRelPose(relpose_path, images, view_graph);
 
+  // TODO: initialize the null frame for the images
+  std::unordered_map<rig_t, Rig> rigs;
+  std::unordered_map<camera_t, Camera> cameras;
+  std::unordered_map<frame_t, Frame> frames;
+
+  for (auto& [image_id, image] : images) {
+    image.camera_id = image.image_id;
+    cameras[image.camera_id] = Camera();
+  }
+
+  CreateOneRigPerCamera(cameras, rigs);
+
+  // For frames that are not in any rig, add camera rigs
+  // For images without frames, initialize trivial frames
+  for (auto& [image_id, image] : images) {
+    CreateFrameForImage(Rigid3d(), image, frames);
+  }
+
   if (gravity_path != "") {
     ReadGravity(gravity_path, images);
   }
@@ -87,7 +105,7 @@ int RunRotationAverager(int argc, char** argv) {
 
   colmap::Timer run_timer;
   run_timer.Start();
-  if (!SolveRotationAveraging(view_graph, images, rotation_averager_options)) {
+  if (!SolveRotationAveraging(view_graph, rigs, frames, images, rotation_averager_options)) {
     LOG(ERROR) << "Failed to solve global rotation averaging";
     return EXIT_FAILURE;
   }

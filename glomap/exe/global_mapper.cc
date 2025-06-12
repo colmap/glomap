@@ -1,6 +1,5 @@
-#include "glomap/controllers/global_mapper.h"
-
 #include "glomap/controllers/option_manager.h"
+#include "glomap/controllers/rig_global_mapper.h"
 #include "glomap/io/colmap_io.h"
 #include "glomap/io/pose_io.h"
 #include "glomap/types.h"
@@ -41,16 +40,16 @@ int RunMapper(int argc, char** argv) {
 
   if (constraint_type == "ONLY_POINTS") {
     options.mapper->opt_gp.constraint_type =
-        GlobalPositionerOptions::ONLY_POINTS;
+        RigGlobalPositionerOptions::ONLY_POINTS;
   } else if (constraint_type == "ONLY_CAMERAS") {
     options.mapper->opt_gp.constraint_type =
-        GlobalPositionerOptions::ONLY_CAMERAS;
+        RigGlobalPositionerOptions::ONLY_CAMERAS;
   } else if (constraint_type == "POINTS_AND_CAMERAS_BALANCED") {
     options.mapper->opt_gp.constraint_type =
-        GlobalPositionerOptions::POINTS_AND_CAMERAS_BALANCED;
+        RigGlobalPositionerOptions::POINTS_AND_CAMERAS_BALANCED;
   } else if (constraint_type == "POINTS_AND_CAMERAS") {
     options.mapper->opt_gp.constraint_type =
-        GlobalPositionerOptions::POINTS_AND_CAMERAS;
+        RigGlobalPositionerOptions::POINTS_AND_CAMERAS;
   } else {
     LOG(ERROR) << "Invalid constriant type";
     return EXIT_FAILURE;
@@ -64,32 +63,41 @@ int RunMapper(int argc, char** argv) {
 
   // Load the database
   ViewGraph view_graph;
+  std::unordered_map<rig_t, Rig> rigs;
   std::unordered_map<camera_t, Camera> cameras;
+  std::unordered_map<frame_t, Frame> frames;
   std::unordered_map<image_t, Image> images;
   std::unordered_map<track_t, Track> tracks;
 
   const colmap::Database database(database_path);
-  ConvertDatabaseToGlomap(database, view_graph, cameras, images);
+  ConvertDatabaseToGlomap(database, view_graph, rigs, cameras, frames, images);
 
   if (view_graph.image_pairs.empty()) {
     LOG(ERROR) << "Can't continue without image pairs";
     return EXIT_FAILURE;
   }
 
-  GlobalMapper global_mapper(*options.mapper);
+  RigGlobalMapper global_mapper(*options.mapper);
 
   // Main solver
   LOG(INFO) << "Loaded database";
   colmap::Timer run_timer;
   run_timer.Start();
-  global_mapper.Solve(database, view_graph, cameras, images, tracks);
+  global_mapper.Solve(
+      database, view_graph, rigs, cameras, frames, images, tracks);
   run_timer.Pause();
 
   LOG(INFO) << "Reconstruction done in " << run_timer.ElapsedSeconds()
             << " seconds";
 
-  WriteGlomapReconstruction(
-      output_path, cameras, images, tracks, output_format, image_path);
+  WriteGlomapReconstruction(output_path,
+                            rigs,
+                            cameras,
+                            frames,
+                            images,
+                            tracks,
+                            output_format,
+                            image_path);
   LOG(INFO) << "Export to COLMAP reconstruction done";
 
   return EXIT_SUCCESS;
@@ -128,26 +136,35 @@ int RunMapperResume(int argc, char** argv) {
   ViewGraph view_graph;       // dummy variable
   colmap::Database database;  // dummy variable
 
+  std::unordered_map<rig_t, Rig> rigs;
   std::unordered_map<camera_t, Camera> cameras;
+  std::unordered_map<frame_t, Frame> frames;
   std::unordered_map<image_t, Image> images;
   std::unordered_map<track_t, Track> tracks;
   colmap::Reconstruction reconstruction;
   reconstruction.Read(input_path);
-  ConvertColmapToGlomap(reconstruction, cameras, images, tracks);
+  ConvertColmapToGlomap(reconstruction, rigs, cameras, frames, images, tracks);
 
-  GlobalMapper global_mapper(*options.mapper);
+  RigGlobalMapper global_mapper(*options.mapper);
 
   // Main solver
   colmap::Timer run_timer;
   run_timer.Start();
-  global_mapper.Solve(database, view_graph, cameras, images, tracks);
+  global_mapper.Solve(
+      database, view_graph, rigs, cameras, frames, images, tracks);
   run_timer.Pause();
 
   LOG(INFO) << "Reconstruction done in " << run_timer.ElapsedSeconds()
             << " seconds";
 
-  WriteGlomapReconstruction(
-      output_path, cameras, images, tracks, output_format, image_path);
+  WriteGlomapReconstruction(output_path,
+                            rigs,
+                            cameras,
+                            frames,
+                            images,
+                            tracks,
+                            output_format,
+                            image_path);
   LOG(INFO) << "Export to COLMAP reconstruction done";
 
   return EXIT_SUCCESS;
@@ -175,12 +192,14 @@ int RunRelativePoseEstimator(int argc, char** argv) {
 
   // Load the database
   ViewGraph view_graph;
+  std::unordered_map<rig_t, Rig> rigs;
   std::unordered_map<camera_t, Camera> cameras;
+  std::unordered_map<frame_t, Frame> frames;
   std::unordered_map<image_t, Image> images;
   std::unordered_map<track_t, Track> tracks;
 
   const colmap::Database database(database_path);
-  ConvertDatabaseToGlomap(database, view_graph, cameras, images);
+  ConvertDatabaseToGlomap(database, view_graph, rigs, cameras, frames, images);
 
   if (view_graph.image_pairs.empty()) {
     LOG(ERROR) << "Can't continue without image pairs";
@@ -197,13 +216,14 @@ int RunRelativePoseEstimator(int argc, char** argv) {
   options.mapper->skip_retriangulation = true;
   options.mapper->skip_pruning = true;
 
-  GlobalMapper global_mapper(*options.mapper);
+  RigGlobalMapper global_mapper(*options.mapper);
 
   // Main solver
   LOG(INFO) << "Loaded database";
   colmap::Timer run_timer;
   run_timer.Start();
-  global_mapper.Solve(database, view_graph, cameras, images, tracks);
+  global_mapper.Solve(
+      database, view_graph, rigs, cameras, frames, images, tracks);
   run_timer.Pause();
 
   LOG(INFO) << "Reconstruction done in " << run_timer.ElapsedSeconds()
@@ -212,7 +232,6 @@ int RunRelativePoseEstimator(int argc, char** argv) {
   // Write out the relative pose
   colmap::CreateDirIfNotExists(colmap::GetParentDir(output_path), true);
   WriteRelPose(output_path, images, view_graph);
-
 
   return EXIT_SUCCESS;
 }

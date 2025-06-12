@@ -3,9 +3,11 @@
 namespace glomap {
 
 bool SolveRotationAveraging(ViewGraph& view_graph,
+                            std::unordered_map<rig_t, Rig>& rigs,
+                            std::unordered_map<frame_t, Frame>& frames,
                             std::unordered_map<image_t, Image>& images,
                             const RotationAveragerOptions& options) {
-  view_graph.KeepLargestConnectedComponents(images);
+  view_graph.KeepLargestConnectedComponents(frames, images);
 
   bool solve_1dof_system = options.use_gravity && options.use_stratified;
 
@@ -46,16 +48,16 @@ bool SolveRotationAveraging(ViewGraph& view_graph,
     // Run the 1dof optimization
     LOG(INFO) << "Solving subset 1DoF rotation averaging problem in the mixed "
                  "prior system";
-    int num_img_grv = view_graph_grav.KeepLargestConnectedComponents(images);
-    RotationEstimator rotation_estimator_grav(options);
-    if (!rotation_estimator_grav.EstimateRotations(view_graph_grav, images)) {
+    int num_img_grv = view_graph_grav.KeepLargestConnectedComponents(frames, images);
+    RigRotationEstimator rotation_estimator_grav(options);
+    if (!rotation_estimator_grav.EstimateRotations(view_graph_grav, rigs, frames, images)) {
       return false;
     }
-    view_graph.KeepLargestConnectedComponents(images);
+    view_graph.KeepLargestConnectedComponents(frames, images);
   }
 
-  RotationEstimator rotation_estimator(options);
-  return rotation_estimator.EstimateRotations(view_graph, images);
+  RigRotationEstimator rotation_estimator(options);
+  return rotation_estimator.EstimateRotations(view_graph, rigs, frames, images);
 }
 
 }  // namespace glomap
