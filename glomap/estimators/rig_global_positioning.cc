@@ -280,7 +280,7 @@ void RigGlobalPositioner::AddTrackToProblem(
                        translation.dot(trans_calc) / trans_calc.squaredNorm());
     }
 
-    CHECK_GT(scales_.capacity(), scales_.size())
+    CHECK_GE(scales_.capacity(), scales_.size())
         << "Not enough capacity was reserved for the scales.";
 
     // If the image is not part of a camera rig, use the standard BATA error

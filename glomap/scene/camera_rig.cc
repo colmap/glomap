@@ -118,16 +118,25 @@ Rigid3d CameraRig::ComputeRigFromWorld(
   rig_from_world_rotations.reserve(snapshot.size());
   Eigen::Vector3d rig_from_world_translations = Eigen::Vector3d::Zero();
   for (const auto image_id : snapshot) {
+    if (images.find(image_id) == images.end()) {
+      continue;
+    }
     const auto& image = images.at(image_id);
+    if (!image.is_registered) continue;
     const Rigid3d rig_from_world =
         colmap::Inverse(CamFromRig(image.camera_id)) * image.cam_from_world;
     rig_from_world_rotations.push_back(rig_from_world.rotation);
     rig_from_world_translations += rig_from_world.translation;
   }
 
-  const std::vector<double> rotation_weights(snapshot.size(), 1);
+  if (rig_from_world_rotations.empty()) {
+    return Rigid3d();
+  }
+
+  const std::vector<double> rotation_weights(rig_from_world_rotations.size(),
+                                             1);
   return Rigid3d(
       colmap::AverageQuaternions(rig_from_world_rotations, rotation_weights),
-      rig_from_world_translations /= snapshot.size());
+      rig_from_world_translations /= rig_from_world_rotations.size());
 }
 }  // namespace glomap
