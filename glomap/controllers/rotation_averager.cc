@@ -57,7 +57,9 @@ bool SolveRotationAveraging(ViewGraph& view_graph,
   }
 
   RigRotationEstimator rotation_estimator(options);
-  return rotation_estimator.EstimateRotations(view_graph, rigs, frames, images);
+  bool status_ra = rotation_estimator.EstimateRotations(view_graph, rigs, frames, images);
+  view_graph.KeepLargestConnectedComponents(frames, images);
+  return status_ra;
 }
 
 }  // namespace glomap

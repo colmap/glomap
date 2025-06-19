@@ -7,7 +7,7 @@ set(SOURCES
     controllers/track_retriangulation.cc
     # estimators/bundle_adjustment.cc
     # estimators/global_positioning.cc
-    estimators/global_rotation_averaging.cc
+    # estimators/global_rotation_averaging.cc
     estimators/gravity_refinement.cc
     estimators/relpose_estimation.cc
     estimators/rig_bundle_adjustment.cc
@@ -42,7 +42,7 @@ set(HEADERS
     # estimators/bundle_adjustment.h
     estimators/cost_function.h
     # estimators/global_positioning.h
-    estimators/global_rotation_averaging.h
+    # estimators/global_rotation_averaging.h
     estimators/gravity_refinement.h
     estimators/relpose_estimation.h
     estimators/optimization_base.h
@@ -70,7 +70,6 @@ set(HEADERS
     scene/camera.h
     scene/image_pair.h
     scene/image.h
-    scene/frame.h
     scene/track.h
     scene/types_sfm.h
     scene/types.h
