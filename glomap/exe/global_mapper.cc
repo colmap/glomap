@@ -68,11 +68,13 @@ int RunMapper(int argc, char** argv) {
     return EXIT_FAILURE;
   }
 
+  std::unordered_set<std::string> image_filenames;
   if (image_list_path != "") {
     if (!colmap::ExistsFile(image_list_path)) {
       LOG(ERROR) << "`image_list_path` is not a file";
       return EXIT_FAILURE;
     }
+    ReadImageList(image_list_path, image_filenames);
   }
 
   // Load the database
@@ -82,7 +84,7 @@ int RunMapper(int argc, char** argv) {
   std::unordered_map<track_t, Track> tracks;
 
   const colmap::Database database(database_path);
-  ConvertDatabaseToGlomap(database, view_graph, cameras, images);
+  ConvertDatabaseToGlomap(database, view_graph, cameras, images, &image_filenames);
 
   if (view_graph.image_pairs.empty()) {
     LOG(ERROR) << "Can't continue without image pairs";
