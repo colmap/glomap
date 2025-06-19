@@ -75,10 +75,17 @@ void ReadRelPose(const std::string& file_path,
       pose_rel.translation[i] = std::stod(item);
     }
     if (!add_image) continue;
-
+    
+    counter++;
+    if (view_graph.image_pairs.find(pair_id) !=
+        view_graph.image_pairs.end()) {
+      // If the pair already exists, update the relative pose
+      view_graph.image_pairs[pair_id].cam2_from_cam1 = pose_rel;
+      view_graph.image_pairs[pair_id].is_valid = true;
+      continue;
+    }
     view_graph.image_pairs.insert(
         std::make_pair(pair_id, ImagePair(index1, index2, pose_rel)));
-    counter++;
   }
   LOG(INFO) << counter << " relpose are loaded" << std::endl;
 }
