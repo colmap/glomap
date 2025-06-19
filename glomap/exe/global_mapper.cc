@@ -2,6 +2,8 @@
 
 #include "glomap/controllers/option_manager.h"
 #include "glomap/io/colmap_io.h"
+#include "glomap/io/pose_io.h"
+#include "glomap/io/utils.h"
 #include "glomap/types.h"
 
 #include <colmap/util/file.h>
@@ -19,11 +21,16 @@ int RunMapper(int argc, char** argv) {
   std::string image_path = "";
   std::string constraint_type = "ONLY_POINTS";
   std::string output_format = "bin";
+  std::string image_list_path = "";
 
   OptionManager options;
   options.AddRequiredOption("database_path", &database_path);
   options.AddRequiredOption("output_path", &output_path);
   options.AddDefaultOption("image_path", &image_path);
+  options.AddDefaultOption("image_list_path",
+                           &image_list_path,
+                           "Path to the image list file, if not provided, "
+                           "all images in the database will be used");
   options.AddDefaultOption("constraint_type",
                            &constraint_type,
                            "{ONLY_POINTS, ONLY_CAMERAS, "
@@ -59,6 +66,13 @@ int RunMapper(int argc, char** argv) {
   if (output_format != "bin" && output_format != "txt") {
     LOG(ERROR) << "Invalid output format";
     return EXIT_FAILURE;
+  }
+
+  if (image_list_path != "") {
+    if (!colmap::ExistsFile(image_list_path)) {
+      LOG(ERROR) << "`image_list_path` is not a file";
+      return EXIT_FAILURE;
+    }
   }
 
   // Load the database
