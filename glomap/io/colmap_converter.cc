@@ -176,10 +176,12 @@ void ConvertColmapPoints3DToGlomapTracks(
 
 // For ease of debug, go through the database twice: first extract the available
 // pairs, then read matches from pairs.
-void ConvertDatabaseToGlomap(const colmap::Database& database,
-                             ViewGraph& view_graph,
-                             std::unordered_map<camera_t, Camera>& cameras,
-                             std::unordered_map<image_t, Image>& images) {
+void ConvertDatabaseToGlomap(
+    const colmap::Database& database,
+    ViewGraph& view_graph,
+    std::unordered_map<camera_t, Camera>& cameras,
+    std::unordered_map<image_t, Image>& images,
+    const std::unordered_set<std::string>* image_filenames) {
   // Add the images
   std::vector<colmap::Image> images_colmap = database.ReadAllImages();
   image_t counter = 0;
@@ -190,6 +192,10 @@ void ConvertDatabaseToGlomap(const colmap::Database& database,
 
     const image_t image_id = image.ImageId();
     if (image_id == colmap::kInvalidImageId) continue;
+    if (image_filenames &&
+        image_filenames->find(image.Name()) == image_filenames->end()) {
+      continue;  // Skip images not in the specified set
+    }
     auto ite = images.insert(std::make_pair(
         image_id, Image(image_id, image.CameraId(), image.Name())));
     const colmap::PosePrior prior = database.ReadPosePrior(image_id);
@@ -238,6 +244,12 @@ void ConvertDatabaseToGlomap(const colmap::Database& database,
         database.PairIdToImagePair(pair_id);
     colmap::image_t image_id1 = image_pair_colmap.first;
     colmap::image_t image_id2 = image_pair_colmap.second;
+
+    // Only read the pairs that are in the images
+    if (images.find(image_id1) == images.end() ||
+        images.find(image_id2) == images.end()) {
+      continue;
+    }
 
     colmap::FeatureMatches& feature_matches = all_matches[match_idx].second;
 
