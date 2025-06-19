@@ -7,7 +7,8 @@
 namespace glomap {
 void ReadRelPose(const std::string& file_path,
                  std::unordered_map<image_t, Image>& images,
-                 ViewGraph& view_graph) {
+                 ViewGraph& view_graph,
+                 bool editable_images) {
   std::unordered_map<std::string, image_t> name_idx;
   image_t max_image_id = 0;
   for (const auto& [image_id, image] : images) {
@@ -35,21 +36,28 @@ void ReadRelPose(const std::string& file_path,
     std::getline(line_stream, item, ' ');
     file2 = item;
 
+    bool add_image = true;
     if (name_idx.find(file1) == name_idx.end()) {
+      if (!editable_images) {
+        add_image = false;
+      }
       max_image_id += 1;
       images.insert(
           std::make_pair(max_image_id, Image(max_image_id, -1, file1)));
       name_idx[file1] = max_image_id;
     }
     if (name_idx.find(file2) == name_idx.end()) {
+      if (!editable_images) {
+        add_image = false;
+      }
       max_image_id += 1;
       images.insert(
           std::make_pair(max_image_id, Image(max_image_id, -1, file2)));
       name_idx[file2] = max_image_id;
     }
 
-    image_t index1 = name_idx[file1];
-    image_t index2 = name_idx[file2];
+    image_t index1 = add_image ? name_idx[file1] : -1;
+    image_t index2 = add_image ? name_idx[file2] : -1;
 
     image_pair_t pair_id = ImagePair::ImagePairToPairId(index1, index2);
 
@@ -65,10 +73,9 @@ void ReadRelPose(const std::string& file_path,
       pose_rel.translation[i] = std::stod(item);
     }
     if (!add_image) continue;
-    
+
     counter++;
-    if (view_graph.image_pairs.find(pair_id) !=
-        view_graph.image_pairs.end()) {
+    if (view_graph.image_pairs.find(pair_id) != view_graph.image_pairs.end()) {
       // If the pair already exists, update the relative pose
       view_graph.image_pairs[pair_id].cam2_from_cam1 = pose_rel;
       view_graph.image_pairs[pair_id].is_valid = true;
