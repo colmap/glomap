@@ -543,6 +543,8 @@ void RigGlobalPositioner::ConvertResults(
     for (size_t snapshot_idx = 0; snapshot_idx < num_snapshots;
          ++snapshot_idx) {
       for (const auto image_id : camera_rig.Snapshots()[snapshot_idx]) {
+        if (images.find(image_id) == images.end()) continue;
+        if (images[image_id].is_registered == false) continue;
         camera_t camera_id = images[image_id].camera_id;
         const Rigid3d& cam_from_rig = camera_rig.CamFromRig(camera_id);
         images[image_id].cam_from_world =

@@ -1,13 +1,14 @@
 
 
+#include "glomap/controllers/rig_global_mapper.h"
 #include "glomap/io/colmap_converter.h"
 #include "glomap/io/colmap_io.h"
 #include "glomap/io/pose_io.h"
-#include "glomap/controllers/rig_global_mapper.h"
+#include "glomap/json.h"
+#include "glomap/processors/image_pair_inliers.h"
+#include "glomap/processors/image_undistorter.h"
 #include "glomap/processors/reconstruction_pruning.h"
 #include "glomap/processors/relpose_filter.h"
-#include "glomap/processors/image_undistorter.h"
-#include "glomap/processors/image_pair_inliers.h"
 #include "glomap/scene/types_sfm.h"
 #include "glomap/types.h"
 
@@ -19,10 +20,6 @@
 #include <fstream>
 #include <string>
 
-#include "glomap/json.h"
-
-#include <fstream>
-
 using json = nlohmann::json;
 
 using namespace glomap;
@@ -30,6 +27,15 @@ int main(int argc, char** argv) {
   colmap::InitializeGlog(argv);
   FLAGS_alsologtostderr = true;
   FLAGS_v = 2;
+
+  // staring_pose:
+  //    - 0: from relative pose
+  //    - 1: from global rotation + established tracks
+  //    - 2: from global positioning result
+  // TODO: need to specify the resume_path if we start from the middle of the
+  // process
+  int staring_pos = 0;
+  std::string resume_path = "../../prague/after_gp/0";
 
   // LOG(INFO) << "argc: " << argc << std::endl;
 
@@ -42,13 +48,19 @@ int main(int argc, char** argv) {
   std::unordered_map<camera_t, Camera> cameras;
   std::unordered_map<image_t, Image> images;
   std::unordered_map<track_t, Track> tracks;
+  colmap::Database database(database_path);
 
   // Load the database
-  colmap::Database database(database_path);
-  ConvertDatabaseToGlomap(database, view_graph, cameras, images);
-  std::cout << "Loaded database" << std::endl;
-
-  ReadRelPose("../../prague/relpose_undistorted.txt", images, view_graph);
+  if (staring_pos == 0) {
+    ConvertDatabaseToGlomap(database, view_graph, cameras, images);
+    std::cout << "Loaded database" << std::endl;
+    ReadRelPose("../../prague/relpose_undistorted.txt", images, view_graph);
+  } else {
+    view_graph.image_pairs.clear();
+    colmap::Reconstruction reconstruction;
+    reconstruction.Read(resume_path);
+    ConvertColmapToGlomap(reconstruction, cameras, images, tracks);
+  }
 
   // // --------------------------------------------------------------
   // // For experiment, keep only 10 images for each sequence
@@ -59,6 +71,7 @@ int main(int argc, char** argv) {
   // }
 
   // for (auto& [image_id, image] : images) {
+  //   if (image.is_registered == false) continue;
   //   camera_id_to_image_id[image.camera_id].emplace_back(image_id);
   // }
 
@@ -79,9 +92,11 @@ int main(int argc, char** argv) {
   // }
   // // --------------------------------------------------------------
 
-  int num_img = view_graph.KeepLargestConnectedComponents(images);
-  std::cout << "KeepLargestConnectedComponents done" << std::endl;
-  std::cout << "num_img: " << num_img << std::endl;
+  if (staring_pos == 0) {
+    int num_img = view_graph.KeepLargestConnectedComponents(images);
+    std::cout << "KeepLargestConnectedComponents done" << std::endl;
+    std::cout << "num_img: " << num_img << std::endl;
+  }
 
   // --------------------------------------------------------------
   // Set up camera rigs
@@ -118,31 +133,34 @@ int main(int argc, char** argv) {
   std::cout << "AddCamera done" << std::endl;
 
   // Add snapshot to the CameraRig
-  std::unordered_map<std::string, std::array<image_t, 6>> snapshot_key_to_image_ids;
+  std::unordered_map<std::string, std::array<image_t, 6>>
+      snapshot_key_to_image_ids;
   for (auto& [image_id, image] : images) {
     const std::string& name = image.file_name;
 
-    std::size_t cam_pos = name.rfind("_cam"); //we may have two times _cam in the name :(
+    std::size_t cam_pos =
+        name.rfind("_cam");  // we may have two times _cam in the name :(
     int cam_idx = name[cam_pos + 4] - '0';
     image.camera_id = cam_idx + 1;
 
-    //handle image names like:
-    //reel_0017_20240117_cam0_0000000.jpg
-    //reel_0049_20231107-121638_courtyard_MX_XVN_warning_cam_is_180_cam3_0000000.jpg
-    //and we want to get a key like:
+    // handle image names like:
+    // reel_0017_20240117_cam0_0000000.jpg
+    // reel_0049_20231107-121638_courtyard_MX_XVN_warning_cam_is_180_cam3_0000000.jpg
+    // and we want to get a key like:
     //"reel_0017_20240117_0000000"
     //"reel_0049_20231107-121638_courtyard_MX_XVN_warning_cam_is_180_0000000"
 
     std::size_t prefix_end = cam_pos;
     std::size_t suffix_start = name.find('_', cam_pos + 5);  // after "camN"
-    std::string snapshot_key = name.substr(4, prefix_end) + name.substr(suffix_start);
+    std::string snapshot_key =
+        name.substr(4, prefix_end) + name.substr(suffix_start);
 
     snapshot_key_to_image_ids[snapshot_key][cam_idx] = image_id;
   }
 
   std::unordered_map<std::string, std::vector<image_t>>
       snapshot_key_to_image_ids_vector;
-  
+
   for (const auto& [snapshot_key, image_ids] : snapshot_key_to_image_ids) {
     snapshot_key_to_image_ids_vector[snapshot_key].clear();
     for (int i = 0; i < 6; i++) {
@@ -152,7 +170,8 @@ int main(int argc, char** argv) {
     }
   }
 
-  for (const auto& [snapshot_key, image_ids] : snapshot_key_to_image_ids_vector) {
+  for (const auto& [snapshot_key, image_ids] :
+       snapshot_key_to_image_ids_vector) {
     camera_rig.AddSnapshot(image_ids);
   }
 
@@ -168,8 +187,8 @@ int main(int argc, char** argv) {
   options.skip_rotation_averaging = false;
   options.skip_track_establishment = false;
 
-  options.skip_global_positioning = false;
-  options.skip_bundle_adjustment = false;
+  options.skip_global_positioning = true;
+  options.skip_bundle_adjustment = true;
   options.skip_retriangulation = true;
   options.skip_pruning = true;
 
@@ -180,32 +199,64 @@ int main(int argc, char** argv) {
 
   options.opt_track.min_num_tracks_per_view = 300;
 
-
+  // for (auto &[image_id, image] : images) {
+  //   if (image.is_registered) continue;
+  //   std::cout << image.camera_id << " " << image.file_name << std::endl;
+  // }
 
   colmap::Timer run_timer;
   run_timer.Start();
-  InlierThresholdOptions inlier_thresholds = options.inlier_thresholds;
-  // Undistort the images and filter edges by inlier number
-  UndistortImages(cameras, images, true);
-  ImagePairsInlierCount(view_graph, cameras, images, inlier_thresholds, true);
-
-  RelPoseFilter::FilterInlierNum(view_graph,
-                                 options.inlier_thresholds.min_inlier_num);
-  RelPoseFilter::FilterInlierRatio(view_graph,
-                                   options.inlier_thresholds.min_inlier_ratio);
-
   options.opt_gp.use_gpu = false;
 
   options.opt_ba.use_gpu = false;
 
-  RigGlobalMapper global_mapper(options);
-  global_mapper.Solve(
+  if (staring_pos == 0) {
+    InlierThresholdOptions inlier_thresholds = options.inlier_thresholds;
+    // Undistort the images and filter edges by inlier number
+    UndistortImages(cameras, images, true);
+    ImagePairsInlierCount(view_graph, cameras, images, inlier_thresholds, true);
+
+    RelPoseFilter::FilterInlierNum(view_graph,
+                                   options.inlier_thresholds.min_inlier_num);
+    RelPoseFilter::FilterInlierRatio(
+        view_graph, options.inlier_thresholds.min_inlier_ratio);
+
+    // Run the RA and establish tracks
+    RigGlobalMapper global_mapper_track(options);
+    global_mapper_track.Solve(
+        database, view_graph, camera_rigs, cameras, images, tracks);
+
+    WriteGlomapReconstruction(
+        "../../prague/after_track", cameras, images, tracks, "bin", "");
+  }
+
+  if (staring_pos <= 1) {
+    options.skip_rotation_averaging = true;
+    options.skip_track_establishment = true;
+    options.skip_global_positioning = false;
+
+    RigGlobalMapper global_mapper_gp(options);
+    global_mapper_gp.Solve(
+        database, view_graph, camera_rigs, cameras, images, tracks);
+
+    WriteGlomapReconstruction(
+        "../../prague/after_gp", cameras, images, tracks, "bin", "");
+  }
+
+  options.skip_rotation_averaging = true;
+  options.skip_track_establishment = true;
+  options.skip_global_positioning = true;
+  options.skip_bundle_adjustment = false;
+
+  RigGlobalMapper global_mapper_ba(options);
+  global_mapper_ba.Solve(
       database, view_graph, camera_rigs, cameras, images, tracks);
 
   LOG(INFO) << "Reconstruction done in " << run_timer.ElapsedSeconds()
             << " seconds";
 
-  WriteGlomapReconstruction("../../prague/glomap_undistorted", cameras, images, tracks, "bin", "");
+  WriteGlomapReconstruction(
+      "../../prague/glomap_undistorted", cameras, images, tracks, "bin", "");
   // // -------------------------------------------------
   // std::ofstream file_rel;
   // file_rel.open("relpose_3dof_trans.txt");
