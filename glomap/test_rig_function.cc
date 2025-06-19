@@ -12,6 +12,7 @@
 #include "glomap/scene/types_sfm.h"
 #include "glomap/types.h"
 
+#include <colmap/util/string.h>
 #include <colmap/util/timer.h>
 
 #include <algorithm>
@@ -44,6 +45,26 @@ int main(int argc, char** argv) {
   std::string database_path;
   database_path = "../../prague/db_undistorted.db";
 
+  std::string image_list_path = "../../prague/image_list.txt";
+
+  std::unordered_set<std::string> image_filenames;
+  if (image_list_path != "") {
+    std::ifstream image_list_file(image_list_path);
+    if (!image_list_file.is_open()) {
+      std::cerr << "Failed to open image list file: " << image_list_path
+                << std::endl;
+      return 1;
+    }
+    std::string line;
+    while (std::getline(image_list_file, line)) {
+      if (!line.empty()) {
+        colmap::StringTrim(&line);
+        image_filenames.insert(line);
+      }
+    }
+    image_list_file.close();
+  }
+
   ViewGraph view_graph;
   std::unordered_map<camera_t, Camera> cameras;
   std::unordered_map<image_t, Image> images;
@@ -52,9 +73,11 @@ int main(int argc, char** argv) {
 
   // Load the database
   if (staring_pos == 0) {
-    ConvertDatabaseToGlomap(database, view_graph, cameras, images);
+    ConvertDatabaseToGlomap(
+        database, view_graph, cameras, images, &image_filenames);
     std::cout << "Loaded database" << std::endl;
-    ReadRelPose("../../prague/relpose_undistorted.txt", images, view_graph);
+    ReadRelPose(
+        "../../prague/relpose_undistorted.txt", images, view_graph, false);
   } else {
     view_graph.image_pairs.clear();
     colmap::Reconstruction reconstruction;
