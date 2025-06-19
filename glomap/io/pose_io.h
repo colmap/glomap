@@ -7,9 +7,11 @@
 namespace glomap {
 // Required data structures
 // IMAGE_NAME_1 IMAGE_NAME_2 QW QX QY QZ TX TY TZ
+// editable_images: whether allow to add new images if not found
 void ReadRelPose(const std::string& file_path,
                  std::unordered_map<image_t, Image>& images,
-                 ViewGraph& view_graph);
+                 ViewGraph& view_graph,
+                 bool editable_images = true);
 
 // Required data structures
 // IMAGE_NAME_1 IMAGE_NAME_2 weight

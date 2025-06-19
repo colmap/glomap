@@ -7,18 +7,14 @@
 namespace glomap {
 void ReadRelPose(const std::string& file_path,
                  std::unordered_map<image_t, Image>& images,
-                 ViewGraph& view_graph) {
+                 ViewGraph& view_graph,
+                 bool editable_images) {
   std::unordered_map<std::string, image_t> name_idx;
   image_t max_image_id = 0;
   for (const auto& [image_id, image] : images) {
     name_idx[image.file_name] = image_id;
 
     max_image_id = std::max(max_image_id, image_id);
-  }
-
-  // Mark every edge in te view graph as invalid
-  for (auto& [pair_id, image_pair] : view_graph.image_pairs) {
-    image_pair.is_valid = false;
   }
 
   std::ifstream file(file_path);
@@ -40,21 +36,30 @@ void ReadRelPose(const std::string& file_path,
     std::getline(line_stream, item, ' ');
     file2 = item;
 
+    bool add_image = true;
     if (name_idx.find(file1) == name_idx.end()) {
+      if (!editable_images) {
+        add_image = false;
+        continue;
+      }
       max_image_id += 1;
       images.insert(
           std::make_pair(max_image_id, Image(max_image_id, -1, file1)));
       name_idx[file1] = max_image_id;
     }
     if (name_idx.find(file2) == name_idx.end()) {
+      if (!editable_images) {
+        add_image = false;
+        continue;
+      }
       max_image_id += 1;
       images.insert(
           std::make_pair(max_image_id, Image(max_image_id, -1, file2)));
       name_idx[file2] = max_image_id;
     }
 
-    image_t index1 = name_idx[file1];
-    image_t index2 = name_idx[file2];
+    image_t index1 = add_image ? name_idx[file1] : 0;
+    image_t index2 = add_image ? name_idx[file2] : 0;
 
     image_pair_t pair_id = ImagePair::ImagePairToPairId(index1, index2);
 
@@ -69,15 +74,10 @@ void ReadRelPose(const std::string& file_path,
       std::getline(line_stream, item, ' ');
       pose_rel.translation[i] = std::stod(item);
     }
+    if (!add_image) continue;
 
-    if (view_graph.image_pairs.find(pair_id) == view_graph.image_pairs.end()) {
-      view_graph.image_pairs.insert(
-          std::make_pair(pair_id, ImagePair(index1, index2, pose_rel)));
-    } else {
-      view_graph.image_pairs[pair_id].cam2_from_cam1 = pose_rel;
-      view_graph.image_pairs[pair_id].is_valid = true;
-      view_graph.image_pairs[pair_id].config = colmap::TwoViewGeometry::CALIBRATED;
-    }
+    view_graph.image_pairs.insert(
+        std::make_pair(pair_id, ImagePair(index1, index2, pose_rel)));
     counter++;
   }
   LOG(INFO) << counter << " relpose are loaded" << std::endl;
