@@ -9,8 +9,6 @@ void ReadRelPose(const std::string& file_path,
                  std::unordered_map<image_t, Image>& images,
                  ViewGraph& view_graph,
                  bool editable_images) {
-                 ViewGraph& view_graph,
-                 bool editable_images) {
   std::unordered_map<std::string, image_t> name_idx;
   image_t max_image_id = 0;
   for (const auto& [image_id, image] : images) {
@@ -42,6 +40,7 @@ void ReadRelPose(const std::string& file_path,
     if (name_idx.find(file1) == name_idx.end()) {
       if (!editable_images) {
         add_image = false;
+        continue;
       }
       max_image_id += 1;
       images.insert(
@@ -51,6 +50,7 @@ void ReadRelPose(const std::string& file_path,
     if (name_idx.find(file2) == name_idx.end()) {
       if (!editable_images) {
         add_image = false;
+        continue;
       }
       max_image_id += 1;
       images.insert(

@@ -4,6 +4,7 @@
 #include "glomap/io/colmap_converter.h"
 #include "glomap/io/colmap_io.h"
 #include "glomap/io/pose_io.h"
+#include "glomap/io/utils.h"
 #include "glomap/json.h"
 #include "glomap/processors/image_pair_inliers.h"
 #include "glomap/processors/image_undistorter.h"
@@ -46,24 +47,9 @@ int main(int argc, char** argv) {
   database_path = "../../prague/db_undistorted.db";
 
   std::string image_list_path = "../../prague/image_list.txt";
-
   std::unordered_set<std::string> image_filenames;
-  if (image_list_path != "") {
-    std::ifstream image_list_file(image_list_path);
-    if (!image_list_file.is_open()) {
-      std::cerr << "Failed to open image list file: " << image_list_path
-                << std::endl;
-      return 1;
-    }
-    std::string line;
-    while (std::getline(image_list_file, line)) {
-      if (!line.empty()) {
-        colmap::StringTrim(&line);
-        image_filenames.insert(line);
-      }
-    }
-    image_list_file.close();
-  }
+
+  ReadImageList(image_list_path, image_filenames);
 
   ViewGraph view_graph;
   std::unordered_map<camera_t, Camera> cameras;

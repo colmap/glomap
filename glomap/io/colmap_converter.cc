@@ -182,12 +182,6 @@ void ConvertDatabaseToGlomap(
     std::unordered_map<camera_t, Camera>& cameras,
     std::unordered_map<image_t, Image>& images,
     const std::unordered_set<std::string>* image_filenames) {
-void ConvertDatabaseToGlomap(
-    const colmap::Database& database,
-    ViewGraph& view_graph,
-    std::unordered_map<camera_t, Camera>& cameras,
-    std::unordered_map<image_t, Image>& images,
-    const std::unordered_set<std::string>* image_filenames) {
   // Add the images
   std::vector<colmap::Image> images_colmap = database.ReadAllImages();
   image_t counter = 0;
