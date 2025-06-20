@@ -1,7 +1,8 @@
 #include "glomap/io/utils.h"
-#include "colmap/util/string.h"
 
 #include <fstream>
+
+#include "colmap/util/string.h"
 
 namespace glomap {
 void ReadImageList(const std::string& file_path,

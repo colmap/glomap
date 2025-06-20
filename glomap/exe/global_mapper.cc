@@ -84,7 +84,8 @@ int RunMapper(int argc, char** argv) {
   std::unordered_map<track_t, Track> tracks;
 
   const colmap::Database database(database_path);
-  ConvertDatabaseToGlomap(database, view_graph, cameras, images, &image_filenames);
+  ConvertDatabaseToGlomap(
+      database, view_graph, cameras, images, &image_filenames);
 
   if (view_graph.image_pairs.empty()) {
     LOG(ERROR) << "Can't continue without image pairs";
