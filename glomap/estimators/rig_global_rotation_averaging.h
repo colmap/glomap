@@ -91,6 +91,14 @@ class RigRotationEstimator {
                          std::unordered_map<image_t, Image>& images);
 
  protected:
+  // Initialize the rotation from the maximum spanning tree
+  // Number of inliers serve as weights
+  void InitializeFromMaximumSpanningTree(
+      const ViewGraph& view_graph,
+      std::unordered_map<rig_t, Rig>& rigs,
+      std::unordered_map<frame_t, Frame>& frames,
+      std::unordered_map<image_t, Image>& images);
+
   // Sets up the sparse linear system such that dR_ij = dR_j - dR_i. This is the
   // first-order approximation of the angle-axis rotations. This should only be
   // called once.
@@ -101,14 +109,17 @@ class RigRotationEstimator {
 
   // Performs the L1 robust loss minimization.
   bool SolveL1Regression(const ViewGraph& view_graph,
+                         std::unordered_map<frame_t, Frame>& frames,
                          std::unordered_map<image_t, Image>& images);
 
   // Performs the iteratively reweighted least squares.
   bool SolveIRLS(const ViewGraph& view_graph,
+                 std::unordered_map<frame_t, Frame>& frames,
                  std::unordered_map<image_t, Image>& images);
 
   // Updates the global rotations based on the current rotation change.
   void UpdateGlobalRotations(const ViewGraph& view_graph,
+                             std::unordered_map<frame_t, Frame>& frames,
                              std::unordered_map<image_t, Image>& images);
 
   // Computes the relative rotation (tangent space) residuals based on the
@@ -146,6 +157,7 @@ class RigRotationEstimator {
 
   // Varaibles for intermidiate results
   std::unordered_map<image_t, int> image_id_to_idx_;
+  std::unordered_map<frame_t, int> frame_id_to_idx_;
   std::unordered_map<camera_t, int>
       camera_id_to_idx_;  // Note: for reference cameras, it does not have this
   std::unordered_map<image_pair_t, ImagePairTempInfo> rel_temp_info_;
