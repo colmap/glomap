@@ -71,7 +71,10 @@ image_t ViewGraphManipulater::EstablishStrongClusters(
     StrongClusterCriteria criteria,
     double min_thres,
     int min_num_images) {
-  image_t num_img_before = view_graph.KeepLargestConnectedComponents(images);
+  // Mark all images as registered
+  for (auto& [image_id, image] : images) {
+    image.is_registered = true;
+  }
 
   // Construct the initial cluster by keeping the pairs with weight > min_thres
   UnionFind<image_pair_t> uf;
