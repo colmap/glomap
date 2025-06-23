@@ -182,6 +182,7 @@ void ConvertDatabaseToGlomap(
     std::unordered_map<camera_t, Camera>& cameras,
     std::unordered_map<image_t, Image>& images,
     const std::unordered_set<std::string>* image_filenames) {
+  bool has_image_filenames = image_filenames && !image_filenames->empty();
   // Add the images
   std::vector<colmap::Image> images_colmap = database.ReadAllImages();
   image_t counter = 0;
@@ -190,7 +191,7 @@ void ConvertDatabaseToGlomap(
               << images_colmap.size() << std::flush;
     counter++;
 
-    if (image_filenames &&
+    if (has_image_filenames &&
         image_filenames->find(image.Name()) == image_filenames->end()) {
       continue;  // Skip images not in the specified set
     }
