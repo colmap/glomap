@@ -44,3 +44,9 @@ retriangulation should already been performed.
 The number of global positioning and bundle adjustment iterations can be limited
 using the `--GlobalPositioning.max_num_iterations` and
 `--BundleAdjustment.max_num_iterations` options. 
+
+#### Enable GPU-based solver
+
+If Ceres 2.3 or above is installed and cuDSS is installed, GLOMAP supports GPU
+accelerated optimization. The process can be largely sped up with flags
+`--GlobalPositioning.use_gpu 1 --BundleAdjustment.use_gpu`.

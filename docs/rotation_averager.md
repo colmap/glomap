@@ -50,8 +50,15 @@ The gravity direction file is expected to be of the following format
 ```
 IMAGE_NAME GX GY GZ
 ```
-The gravity direction $g$ should $[0, 1, 0]$ if the image is parallel to the ground plane, and the estimated rotation would have the property that $R_i \cdot [0, 1, 0]^\top = g$.
-If is acceptable if only a subset of all images have gravity direciton.
+The gravity direction $g$ should $[0, 1, 0]$ if the image is orthogonal to the ground plane, and the estimated rotation would have the property that $R_i \cdot [0, 1, 0]^\top = g$.
+More explicitly, suppose we can transpose a 3D point from the world coordinate to the image coordinate by RX + t = x. Here:
+- `R` is a 3x3 rotation matrix that aligns the world coordinate system with the image coordinate system.
+- `X` is a 3D point in the world coordinate system.
+- `t` is a 3x1 translation vector that shifts the world coordinate system to the image coordinate system.
+- `x` is the corresponding 3D point in the image coordinate system.
+The gravity direction should be the second column of the rotation matrix `R`.
+
+It is acceptable if only a subset of all images have gravity direction.
 If the specified image name does not match any known image name from relative pose, it is ignored.
 
 ### Output
