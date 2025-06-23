@@ -30,7 +30,8 @@ double RelAngleError(double angle_12, double angle_1, double angle_2) {
 }  // namespace
 
 // bool RotationEstimator::EstimateRotations(
-//     const ViewGraph& view_graph, std::unordered_map<image_t, Image>& images) {
+//     const ViewGraph& view_graph, std::unordered_map<image_t, Image>& images)
+//     {
 //   // // Initialize the rotation from maximum spanning tree
 //   // if (!options_.skip_initialization && !options_.use_gravity) {
 //   //   InitializeFromMaximumSpanningTree(view_graph, images);
@@ -62,23 +63,29 @@ double RelAngleError(double angle_12, double angle_1, double angle_2) {
 //   //         image.gravity_info.GetRAlign() *
 //   //         AngleToRotUp(rotation_estimated_[image_id_to_idx_[image_id]]));
 //   //   } else {
-//   //     image.cam_from_world.rotation = Eigen::Quaterniond(AngleAxisToRotation(
+//   //     image.cam_from_world.rotation =
+//   Eigen::Quaterniond(AngleAxisToRotation(
 //   //         rotation_estimated_.segment(image_id_to_idx_[image_id], 3)));
 //   //   }
-//   //   // Restore the prior position (t = -Rc = R * R_ori * t_ori = R * t_ori)
+//   //   // Restore the prior position (t = -Rc = R * R_ori * t_ori = R *
+//   t_ori)
 //   //   image.cam_from_world.translation =
-//   //       (image.cam_from_world.rotation * image.cam_from_world.translation);
+//   //       (image.cam_from_world.rotation *
+//   image.cam_from_world.translation);
 //   // }
 
 //   return true;
 // }
 
 // void RotationEstimator::InitializeFromMaximumSpanningTree(
-//     const ViewGraph& view_graph, std::unordered_map<image_t, Image>& images) {
-//   // Here, we assume that largest connected component is already retrieved, so
+//     const ViewGraph& view_graph, std::unordered_map<image_t, Image>& images)
+//     {
+//   // Here, we assume that largest connected component is already retrieved,
+//   so
 //   // we do not need to do that again compute maximum spanning tree.
 //   std::unordered_map<image_t, image_t> parents;
-//   image_t root = MaximumSpanningTree(view_graph, images, parents, INLIER_NUM);
+//   image_t root = MaximumSpanningTree(view_graph, images, parents,
+//   INLIER_NUM);
 
 //   // Iterate through the tree to initialize the rotation
 //   // Establish child info
@@ -123,7 +130,8 @@ double RelAngleError(double angle_12, double angle_1, double angle_2) {
 // }
 
 // void RotationEstimator::SetupLinearSystem(
-//     const ViewGraph& view_graph, std::unordered_map<image_t, Image>& images) {
+//     const ViewGraph& view_graph, std::unordered_map<image_t, Image>& images)
+//     {
 //   // Clear all the structures
 //   sparse_matrix_.resize(0, 0);
 //   tangent_space_step_.resize(0);
@@ -199,10 +207,12 @@ double RelAngleError(double angle_12, double angle_1, double angle_2) {
 //     if (options_.use_gravity && images[image_id1].gravity_info.has_gravity &&
 //         images[image_id2].gravity_info.has_gravity) {
 //       counter++;
-//       Eigen::Vector3d aa = RotationToAngleAxis(rel_temp_info_[pair_id].R_rel);
-//       double error = aa[0] * aa[0] + aa[2] * aa[2];
+//       Eigen::Vector3d aa =
+//       RotationToAngleAxis(rel_temp_info_[pair_id].R_rel); double error =
+//       aa[0] * aa[0] + aa[2] * aa[2];
 
-//       // Keep track of the error for x and z axis for gravity-aligned relative
+//       // Keep track of the error for x and z axis for gravity-aligned
+//       relative
 //       // pose
 //       rel_temp_info_[pair_id].xz_error = error;
 //       rel_temp_info_[pair_id].has_gravity = true;
