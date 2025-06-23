@@ -13,6 +13,7 @@ set(SOURCES
     estimators/rig_bundle_adjustment.cc
     estimators/rig_global_positioning.cc
     estimators/rig_global_rotation_averaging.cc
+    estimators/rotation_initializer.cc
     estimators/view_graph_calibration.cc
     io/colmap_converter.cc
     io/colmap_io.cc
@@ -49,6 +50,7 @@ set(HEADERS
     estimators/rig_bundle_adjustment.h
     estimators/rig_global_positioning.h
     estimators/rig_global_rotation_averaging.h
+    estimators/rotation_initializer.h
     estimators/view_graph_calibration.h
     io/colmap_converter.h
     io/colmap_io.h

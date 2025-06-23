@@ -43,7 +43,9 @@ void CreateOneRigPerCamera(const std::unordered_map<camera_t, Camera>& cameras,
 
 void CreateFrameForImage(const Rigid3d& cam_from_world,
                          Image& image,
+                         std::unordered_map<rig_t, Rig>& rigs,
                          std::unordered_map<frame_t, Frame>& frames,
+                         rig_t rig_id = -1,
                          frame_t frame_id = -1);
 
 }  // namespace glomap

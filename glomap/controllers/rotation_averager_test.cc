@@ -71,8 +71,7 @@ RigGlobalMapperOptions CreateMapperTestOptions() {
 
 RotationAveragerOptions CreateRATestOptions(bool use_gravity = false) {
   RotationAveragerOptions options;
-  // options.skip_initialization = true;
-  options.skip_initialization = false;
+  options.skip_initialization = true;
   options.use_gravity = use_gravity;
   // options.l1_step_convergence_threshold = 1e-5;
   // options.max_num_l1_iterations = 40;
@@ -130,6 +129,7 @@ TEST(RotationEstimator, WithoutNoise) {
   synthetic_dataset_options.num_frames_per_rig = 3;
   synthetic_dataset_options.num_points3D = 50;
   synthetic_dataset_options.point2D_stddev = 0;
+  synthetic_dataset_options.sensor_from_rig_rotation_stddev = 20.;
   colmap::SynthesizeDataset(
       synthetic_dataset_options, &gt_reconstruction, &database);
 

@@ -277,6 +277,7 @@ void ConvertDatabaseToGlomap(const colmap::Database& database,
     frame_t frame_id = frame.FrameId();
     if (frame_id == colmap::kInvalidFrameId) continue;
     frames[frame_id] = Frame(frame);
+    frames[frame_id].SetRigId(frame.RigId());
     frames[frame_id].SetRigPtr(rigs.find(frame.RigId()) != rigs.end()
                                    ? &rigs[frame.RigId()]
                                    : nullptr);
@@ -304,7 +305,7 @@ void ConvertDatabaseToGlomap(const colmap::Database& database,
     const std::map<sensor_t, std::optional<Rigid3d>>& sensors = rig.Sensors();
     for (const auto& [sensor_id, sensor_pose] : sensors) {
       if (sensor_id.type == SensorType::CAMERA) {
-        cameras_id_to_rig_id[rig.RefSensorId().id] = rig_id;
+        cameras_id_to_rig_id[sensor_id.id] = rig_id;
       }
     }
   }
@@ -332,7 +333,12 @@ void ConvertDatabaseToGlomap(const colmap::Database& database,
     if (image.frame_id == colmap::kInvalidFrameId) {
       frame_t frame_id = ++max_frame_id;
 
-      CreateFrameForImage(Rigid3d(), image, frames, frame_id);
+      CreateFrameForImage(Rigid3d(),
+                          image,
+                          rigs,
+                          frames,
+                          cameras_id_to_rig_id[image.camera_id],
+                          frame_id);
     }
   }
 
@@ -435,14 +441,20 @@ void CreateOneRigPerCamera(const std::unordered_map<camera_t, Camera>& cameras,
 
 void CreateFrameForImage(const Rigid3d& cam_from_world,
                          Image& image,
+                         std::unordered_map<rig_t, Rig>& rigs,
                          std::unordered_map<frame_t, Frame>& frames,
+                         rig_t rig_id,
                          frame_t frame_id) {
   Frame frame;
   if (frame_id == colmap::kInvalidFrameId) {
     frame_id = image.image_id;
   }
+  if (rig_id == colmap::kInvalidRigId) {
+    rig_id = image.camera_id;
+  }
   frame.SetFrameId(frame_id);
-  frame.SetRigId(image.camera_id);
+  frame.SetRigId(rig_id);
+  frame.SetRigPtr(rigs.find(rig_id) != rigs.end() ? &rigs[rig_id] : nullptr);
   frame.AddDataId(image.DataId());
   frame.SetRigFromWorld(cam_from_world);
   frames[frame_id] = frame;

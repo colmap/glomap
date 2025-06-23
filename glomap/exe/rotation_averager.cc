@@ -83,7 +83,7 @@ int RunRotationAverager(int argc, char** argv) {
   // For frames that are not in any rig, add camera rigs
   // For images without frames, initialize trivial frames
   for (auto& [image_id, image] : images) {
-    CreateFrameForImage(Rigid3d(), image, frames);
+    CreateFrameForImage(Rigid3d(), image, rigs, frames);
   }
 
   if (gravity_path != "") {

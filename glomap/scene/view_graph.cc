@@ -50,8 +50,6 @@ int ViewGraph::KeepLargestConnectedComponents(
     std::unordered_map<image_t, Image>& images) {
   int num_img_ori = KeepLargestConnectedComponents(images);
 
-  std::cout << "Number of images before: " << num_img_ori << std::endl;
-
   int num_img = 0;
   for (auto& [frame_id, frame] : frames) {
     bool is_registered = false;

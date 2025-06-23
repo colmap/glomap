@@ -1,5 +1,6 @@
 #include "rig_global_mapper.h"
 
+#include "glomap/controllers/rotation_averager.h"
 #include "glomap/io/colmap_converter.h"
 #include "glomap/processors/image_pair_inliers.h"
 #include "glomap/processors/image_undistorter.h"
@@ -86,9 +87,8 @@ bool RigGlobalMapper::Solve(const colmap::Database& database,
     colmap::Timer run_timer;
     run_timer.Start();
 
-    RigRotationEstimator ra_engine(options_.opt_ra);
     // The first run is for filtering
-    ra_engine.EstimateRotations(view_graph, rigs, frames, images);
+    SolveRotationAveraging(view_graph, rigs, frames, images, options_.opt_ra);
 
     // TODO: figure out a better way to keep connected components, taking into
     // account the camera rig
@@ -100,7 +100,8 @@ bool RigGlobalMapper::Solve(const colmap::Database& database,
     }
 
     // The second run is for final estimation
-    if (!ra_engine.EstimateRotations(view_graph, rigs, frames, images)) {
+    if (!SolveRotationAveraging(
+            view_graph, rigs, frames, images, options_.opt_ra)) {
       return false;
     }
     RelPoseFilter::FilterRotations(
