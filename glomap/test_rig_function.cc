@@ -13,6 +13,7 @@
 #include "glomap/scene/types_sfm.h"
 #include "glomap/types.h"
 
+#include <colmap/util/file.h>
 #include <colmap/util/string.h>
 #include <colmap/util/timer.h>
 
@@ -46,10 +47,17 @@ int main(int argc, char** argv) {
   std::string database_path;
   database_path = "../../prague/db_undistorted.db";
 
-  std::string image_list_path = "../../prague/image_list.txt";
+  // std::string image_list_path = "../../prague/image_list.txt";
+  std::string image_list_path = "";
   std::unordered_set<std::string> image_filenames;
 
-  ReadImageList(image_list_path, image_filenames);
+  if (image_list_path != "") {
+    if (!colmap::ExistsFile(image_list_path)) {
+      LOG(ERROR) << "`image_list_path` is not a file";
+      return EXIT_FAILURE;
+    }
+    ReadImageList(image_list_path, image_filenames);
+  }
 
   ViewGraph view_graph;
   std::unordered_map<camera_t, Camera> cameras;
