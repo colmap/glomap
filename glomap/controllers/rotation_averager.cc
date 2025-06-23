@@ -48,16 +48,19 @@ bool SolveRotationAveraging(ViewGraph& view_graph,
     // Run the 1dof optimization
     LOG(INFO) << "Solving subset 1DoF rotation averaging problem in the mixed "
                  "prior system";
-    int num_img_grv = view_graph_grav.KeepLargestConnectedComponents(frames, images);
+    int num_img_grv =
+        view_graph_grav.KeepLargestConnectedComponents(frames, images);
     RigRotationEstimator rotation_estimator_grav(options);
-    if (!rotation_estimator_grav.EstimateRotations(view_graph_grav, rigs, frames, images)) {
+    if (!rotation_estimator_grav.EstimateRotations(
+            view_graph_grav, rigs, frames, images)) {
       return false;
     }
     view_graph.KeepLargestConnectedComponents(frames, images);
   }
 
   RigRotationEstimator rotation_estimator(options);
-  bool status_ra = rotation_estimator.EstimateRotations(view_graph, rigs, frames, images);
+  bool status_ra =
+      rotation_estimator.EstimateRotations(view_graph, rigs, frames, images);
   view_graph.KeepLargestConnectedComponents(frames, images);
   return status_ra;
 }

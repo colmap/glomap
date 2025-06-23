@@ -59,11 +59,12 @@ colmap::Sim3d NormalizeReconstruction(
   colmap::Sim3d tform(
       scale, Eigen::Quaterniond::Identity(), -scale * mean_coord);
 
-  for (auto& [_, image] : images) {
-    if (image.is_registered) {
-      image.cam_from_world = TransformCameraWorld(tform, image.cam_from_world);
-    }
-  }
+  // for (auto& [_, image] : images) {
+  //   if (image.is_registered) {
+  //     image.cam_from_world = TransformCameraWorld(tform,
+  //     image.cam_from_world);
+  //   }
+  // }
 
   for (auto& [_, track] : tracks) {
     track.xyz = tform * track.xyz;

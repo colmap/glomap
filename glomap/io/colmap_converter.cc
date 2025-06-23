@@ -155,8 +155,9 @@ void ConvertColmapToGlomap(const colmap::Reconstruction& reconstruction,
   // Add frames
   for (const auto& [frame_id, frame] : reconstruction.Frames()) {
     frames[frame_id] = frame;
-    frames[frame_id].SetRigPtr(
-        rigs.find(frame.RigId()) != rigs.end() ? &rigs[frame.RigId()] : nullptr);
+    frames[frame_id].SetRigPtr(rigs.find(frame.RigId()) != rigs.end()
+                                   ? &rigs[frame.RigId()]
+                                   : nullptr);
   }
 
   for (auto& [image_id, image_colmap] : reconstruction.Images()) {
@@ -276,10 +277,11 @@ void ConvertDatabaseToGlomap(const colmap::Database& database,
     frame_t frame_id = frame.FrameId();
     if (frame_id == colmap::kInvalidFrameId) continue;
     frames[frame_id] = Frame(frame);
-    frames[frame_id].SetRigPtr(
-        rigs.find(frame.RigId()) != rigs.end() ? &rigs[frame.RigId()] : nullptr);
+    frames[frame_id].SetRigPtr(rigs.find(frame.RigId()) != rigs.end()
+                                   ? &rigs[frame.RigId()]
+                                   : nullptr);
     frames[frame_id].SetRigFromWorld(Rigid3d());
-    
+
     for (auto data_id : frame.ImageIds()) {
       image_t image_id = data_id.id;
       if (images.find(image_id) != images.end()) {

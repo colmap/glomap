@@ -76,7 +76,8 @@ void ReadRelPose(const std::string& file_path,
     } else {
       view_graph.image_pairs[pair_id].cam2_from_cam1 = pose_rel;
       view_graph.image_pairs[pair_id].is_valid = true;
-      view_graph.image_pairs[pair_id].config = colmap::TwoViewGeometry::CALIBRATED;
+      view_graph.image_pairs[pair_id].config =
+          colmap::TwoViewGeometry::CALIBRATED;
     }
     counter++;
   }

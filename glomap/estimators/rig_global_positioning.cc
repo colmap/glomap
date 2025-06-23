@@ -70,11 +70,11 @@ bool RigGlobalPositioner::Solve(const ViewGraph& view_graph,
   // }
   AddPointToCameraConstraints(rigs, cameras, frames, images, tracks);
 
-  AddCamerasAndPointsToParameterGroups(frames, tracks);
+  AddCamerasAndPointsToParameterGroups(rigs, frames, tracks);
 
   // Parameterize the variables, set image poses / tracks / scales to be
   // constant if desired
-  ParameterizeVariables(frames, tracks);
+  ParameterizeVariables(rigs, frames, tracks);
 
   LOG(INFO) << "Solving the global positioner problem";
 
@@ -217,7 +217,7 @@ void RigGlobalPositioner::InitializeRandomPositions(
 }
 
 void RigGlobalPositioner::AddPointToCameraConstraints(
-    const std::unordered_map<rig_t, Rig>& rigs,
+    std::unordered_map<rig_t, Rig>& rigs,
     std::unordered_map<camera_t, Camera>& cameras,
     std::unordered_map<frame_t, Frame>& frames,
     std::unordered_map<image_t, Image>& images,
@@ -261,7 +261,7 @@ void RigGlobalPositioner::AddPointToCameraConstraints(
 
 void RigGlobalPositioner::AddTrackToProblem(
     track_t track_id,
-    const std::unordered_map<rig_t, Rig>& rigs,
+    std::unordered_map<rig_t, Rig>& rigs,
     std::unordered_map<camera_t, Camera>& cameras,
     std::unordered_map<frame_t, Frame>& frames,
     std::unordered_map<image_t, Image>& images,
@@ -296,8 +296,16 @@ void RigGlobalPositioner::AddTrackToProblem(
                        translation.dot(trans_calc) / trans_calc.squaredNorm());
     }
 
-    CHECK_GT(scales_.capacity(), scales_.size())
+    CHECK_GE(scales_.capacity(), scales_.size())
         << "Not enough capacity was reserved for the scales.";
+
+    // For calibrated and uncalibrated cameras, use different loss
+    // functions
+    // Down weight the uncalibrated cameras
+    ceres::LossFunction* loss_function =
+        (cameras[image.camera_id].has_prior_focal_length)
+            ? loss_function_ptcam_calibrated_.get()
+            : loss_function_ptcam_uncalibrated_.get();
 
     // If the image is not part of a camera rig, use the standard BATA error
     // if (image_id_to_rig_from_world_.find(observation.first) ==
@@ -306,66 +314,59 @@ void RigGlobalPositioner::AddTrackToProblem(
       ceres::CostFunction* cost_function =
           BATAPairwiseDirectionError::Create(translation);
 
-      // For calibrated and uncalibrated cameras, use different loss
-      // functions
-      // Down weight the uncalibrated cameras
-      if (cameras[image.camera_id].has_prior_focal_length) {
-        problem_->AddResidualBlock(
-            cost_function,
-            loss_function_ptcam_calibrated_.get(),
-            image.frame_ptr->RigFromWorld().translation.data(),
-            tracks[track_id].xyz.data(),
-            &scale);
-      } else {
-        problem_->AddResidualBlock(
-            cost_function,
-            loss_function_ptcam_uncalibrated_.get(),
-            image.frame_ptr->RigFromWorld().translation.data(),
-            tracks[track_id].xyz.data(),
-            &scale);
-      }
+      problem_->AddResidualBlock(
+          cost_function,
+          loss_function,
+          image.frame_ptr->RigFromWorld().translation.data(),
+          tracks[track_id].xyz.data(),
+          &scale);
       // If the image is part of a camera rig, use the RigBATA error
     } else {
       rig_t rig_id = image.frame_ptr->RigId();
-      Eigen::Vector3d cam_from_rig_translation;
-      if (image.HasTrivialFrame()) {
-        // If the image has a trivial frame, use the camera rig translation
-        // directly
-        cam_from_rig_translation = Eigen::Vector3d::Zero();
-      } else {
-        // Otherwise, use the camera rig translation from the frame
-        const Rigid3d& cam_from_rig = rigs.at(rig_id).SensorFromRig(
-            sensor_t(SensorType::CAMERA, image.camera_id));
+      // Otherwise, use the camera rig translation from the frame
+      Rigid3d& cam_from_rig = rigs.at(rig_id).SensorFromRig(
+          sensor_t(SensorType::CAMERA, image.camera_id));
 
-        cam_from_rig_translation = image.frame_ptr->RigFromWorld().translation;
-      }
-      const Eigen::Vector3d translation_rig =
-          // image.cam_from_world.rotation.inverse() * cam_from_rig.translation;
-          image.CamFromWorld().rotation.inverse() * cam_from_rig_translation;
+      Eigen::Vector3d cam_from_rig_translation = cam_from_rig.translation;
 
-      ceres::CostFunction* cost_function =
-          RigBATAPairwiseDirectionError::Create(translation, translation_rig);
+      if (!cam_from_rig_translation.hasNaN()) {
+        const Eigen::Vector3d translation_rig =
+            // image.cam_from_world.rotation.inverse() *
+            // cam_from_rig.translation;
+            image.CamFromWorld().rotation.inverse() * cam_from_rig_translation;
 
-      // For calibrated and uncalibrated cameras, use different loss functions
-      // Down weight the uncalibrated cameras
-      if (cameras[image.camera_id].has_prior_focal_length) {
+        ceres::CostFunction* cost_function =
+            RigBATAPairwiseDirectionError::Create(translation, translation_rig);
+
         problem_->AddResidualBlock(
             cost_function,
-            loss_function_ptcam_calibrated_.get(),
-            // image_id_to_rig_from_world_[observation.first]->translation.data(),
+            loss_function,
             image.frame_ptr->RigFromWorld().translation.data(),
             tracks[track_id].xyz.data(),
             &scale,
             &rig_scales_[rig_id]);
       } else {
+        // If the cam_from_rig contains nan values, it means that it needs to be
+        // re-estimated In this case, use the rigged cost NOTE: the scale for
+        // the rig is not needed, as it would natrually be consistent with the
+        // global one
+
+        // const Eigen::Vector3d translation_rig =
+        //     // image.cam_from_world.rotation.inverse() *
+        //     cam_from_rig.translation; image.CamFromWorld().rotation.inverse()
+        //     * cam_from_rig_translation;
+
+        ceres::CostFunction* cost_function =
+            RigUnknownBATAPairwiseDirectionError::Create(translation,
+                                                         image.frame_ptr->RigFromWorld().rotation);
+
         problem_->AddResidualBlock(
             cost_function,
-            loss_function_ptcam_uncalibrated_.get(),
-            // image_id_to_rig_from_world_[observation.first]->translation.data(),
-            image.frame_ptr->RigFromWorld().translation.data(),
+            loss_function,
             tracks[track_id].xyz.data(),
-            &scale,
-            &rig_scales_[rig_id]);
+            image.frame_ptr->RigFromWorld().translation.data(),
+            cam_from_rig.translation.data(),
+            &scale);
       }
     }
 
@@ -375,6 +376,7 @@ void RigGlobalPositioner::AddTrackToProblem(
 
 void RigGlobalPositioner::AddCamerasAndPointsToParameterGroups(
     // std::unordered_map<image_t, Image>& images,
+    std::unordered_map<rig_t, Rig>& rigs,
     std::unordered_map<frame_t, Frame>& frames,
     std::unordered_map<track_t, Track>& tracks) {
   // Create a custom ordering for Schur-based problems.
@@ -422,6 +424,19 @@ void RigGlobalPositioner::AddCamerasAndPointsToParameterGroups(
     }
   }
 
+  // Add the cam_from_rigs to be estimated into the parameter group
+  for (auto& [rig_id, rig] : rigs) {
+    for (const auto& [sensor_id, sensor] : rig.Sensors()) {
+      if (rig.IsRefSensor(sensor_id)) continue;
+      if (sensor_id.type == SensorType::CAMERA) {
+        Eigen::Vector3d& translation = rig.SensorFromRig(sensor_id).translation;
+        if (problem_->HasParameterBlock(translation.data())) {
+          parameter_ordering->AddElementToGroup(translation.data(), group_id);
+        }
+      }
+    }
+  }
+
   group_id++;
 
   // Also add the scales to the group
@@ -433,10 +448,28 @@ void RigGlobalPositioner::AddCamerasAndPointsToParameterGroups(
 
 void RigGlobalPositioner::ParameterizeVariables(
     // std::unordered_map<image_t, Image>& images,
+    std::unordered_map<rig_t, Rig>& rigs,
     std::unordered_map<frame_t, Frame>& frames,
     std::unordered_map<track_t, Track>& tracks) {
   // For the global positioning, do not set any camera to be constant for easier
   // convergence
+
+  // First, for cam_from_rig that needs to be estimated, we need to initialize
+  // the center
+  if (options_.optimize_positions) {
+    for (auto& [rig_id, rig] : rigs) {
+      for (const auto& [sensor_id, sensor] : rig.Sensors()) {
+        if (rig.IsRefSensor(sensor_id)) continue;
+        if (sensor_id.type == SensorType::CAMERA) {
+          Eigen::Vector3d& translation =
+              rig.SensorFromRig(sensor_id).translation;
+          if (problem_->HasParameterBlock(translation.data())) {
+            translation = RandVector3d(random_generator_, -1, 1);
+          }
+        }
+      }
+    }
+  }
 
   // If do not optimize the positions, set the camera positions to be constant
   if (!options_.optimize_positions) {
@@ -575,7 +608,14 @@ void RigGlobalPositioner::ConvertResults(
     std::map<sensor_t, std::optional<Rigid3d>>& sensors = rig.Sensors();
     for (auto& [sensor_id, cam_from_rig] : sensors) {
       if (cam_from_rig.has_value()) {
-        cam_from_rig->translation *= rig_scales_[rig_id];
+        if (problem_->HasParameterBlock(rig.SensorFromRig(sensor_id).translation.data())) {
+          cam_from_rig->translation =
+              -(cam_from_rig->rotation * cam_from_rig->translation);
+        } else {
+          // If the camera is part of a rig, then scale the translation
+          // by the rig scale
+          cam_from_rig->translation *= rig_scales_[rig_id];
+        }
       }
     }
   }

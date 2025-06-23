@@ -1,5 +1,4 @@
 #include "glomap/controllers/rig_global_mapper.h"
-
 #include "glomap/io/colmap_io.h"
 #include "glomap/types.h"
 
@@ -57,10 +56,11 @@ TEST(RigGlobalMapper, WithoutNoise) {
   colmap::Reconstruction gt_reconstruction;
   colmap::SyntheticDatasetOptions synthetic_dataset_options;
   synthetic_dataset_options.num_rigs = 2;
-  synthetic_dataset_options.num_cameras_per_rig = 1;
+  synthetic_dataset_options.num_cameras_per_rig = 2;
   synthetic_dataset_options.num_frames_per_rig = 7;
   synthetic_dataset_options.num_points3D = 50;
   synthetic_dataset_options.point2D_stddev = 0;
+  synthetic_dataset_options.sensor_from_rig_translation_stddev = 0.1;  // No noise
   colmap::SynthesizeDataset(
       synthetic_dataset_options, &gt_reconstruction, &database);
 
@@ -73,8 +73,18 @@ TEST(RigGlobalMapper, WithoutNoise) {
 
   ConvertDatabaseToGlomap(database, view_graph, rigs, cameras, frames, images);
 
+  for (auto& [rig_id, rig] : rigs) {
+    for (auto& [sensor_id, sensor] : rig.Sensors()) {
+      if (rig.IsRefSensor(sensor_id)) continue;  // Skip reference sensor
+      if (sensor.has_value()) {
+        rig.ResetSensorFromRig(sensor_id);
+      }
+    }
+  }
+
   RigGlobalMapper global_mapper(CreateTestOptions());
-  global_mapper.Solve(database, view_graph, rigs, cameras, frames, images, tracks);
+  global_mapper.Solve(
+      database, view_graph, rigs, cameras, frames, images, tracks);
 
   colmap::Reconstruction reconstruction;
   ConvertGlomapToColmap(rigs, cameras, frames, images, tracks, reconstruction);
@@ -111,7 +121,8 @@ TEST(RigGlobalMapper, WithNoiseAndOutliers) {
   ConvertDatabaseToGlomap(database, view_graph, rigs, cameras, frames, images);
 
   RigGlobalMapper global_mapper(CreateTestOptions());
-  global_mapper.Solve(database, view_graph, rigs, cameras, frames, images, tracks);
+  global_mapper.Solve(
+      database, view_graph, rigs, cameras, frames, images, tracks);
 
   colmap::Reconstruction reconstruction;
   ConvertGlomapToColmap(rigs, cameras, frames, images, tracks, reconstruction);

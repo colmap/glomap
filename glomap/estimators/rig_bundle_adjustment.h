@@ -90,12 +90,12 @@ class RigBundleAdjuster {
   //   void ConvertResults(const std::unordered_map<rig_t, Rig>& rigs,
   //                       std::unordered_map<image_t, Image>& images);
 
-//   // Mapping from images to camera rigs.
-//   std::unordered_map<image_t, int> image_id_to_camera_rig_index_;
-//   std::unordered_map<image_t, Rigid3d*> image_id_to_rig_from_world_;
+  //   // Mapping from images to camera rigs.
+  //   std::unordered_map<image_t, int> image_id_to_camera_rig_index_;
+  //   std::unordered_map<image_t, Rigid3d*> image_id_to_rig_from_world_;
 
-//   // For each camera rig, the absolute camera rig poses for all snapshots.
-//   std::vector<std::vector<Rigid3d>> rigs_from_world_;
+  //   // For each camera rig, the absolute camera rig poses for all snapshots.
+  //   std::vector<std::vector<Rigid3d>> rigs_from_world_;
 
   RigBundleAdjusterOptions options_;
 

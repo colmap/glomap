@@ -46,7 +46,6 @@ int main(int argc, char** argv) {
   commands.emplace_back("mapper", &glomap::RunMapper);
   commands.emplace_back("mapper_resume", &glomap::RunMapperResume);
   commands.emplace_back("rotation_averager", &glomap::RunRotationAverager);
-  commands.emplace_back("relative_pose_estimator", &glomap::RunRelativePoseEstimator);
 
   if (argc == 1) {
     return ShowHelp(commands);

@@ -110,7 +110,7 @@ class RigGlobalPositioner {
 
   // Add tracks to the problem
   void AddPointToCameraConstraints(
-      const std::unordered_map<rig_t, Rig>& rigs,
+      std::unordered_map<rig_t, Rig>& rigs,
       std::unordered_map<camera_t, Camera>& cameras,
       std::unordered_map<frame_t, Frame>& frames,
       std::unordered_map<image_t, Image>& images,
@@ -118,7 +118,7 @@ class RigGlobalPositioner {
 
   // Add a single track to the problem
   void AddTrackToProblem(track_t track_id,
-                         const std::unordered_map<rig_t, Rig>& rigs,
+                         std::unordered_map<rig_t, Rig>& rigs,
                          std::unordered_map<camera_t, Camera>& cameras,
                          std::unordered_map<frame_t, Frame>& frames,
                          std::unordered_map<image_t, Image>& images,
@@ -126,11 +126,13 @@ class RigGlobalPositioner {
 
   // Set the parameter groups
   void AddCamerasAndPointsToParameterGroups(
+      std::unordered_map<rig_t, Rig>& rigs,
       std::unordered_map<frame_t, Frame>& frames,
       std::unordered_map<track_t, Track>& tracks);
 
   // Parameterize the variables, set some variables to be constant if desired
-  void ParameterizeVariables(std::unordered_map<frame_t, Frame>& frames,
+  void ParameterizeVariables(std::unordered_map<rig_t, Rig>& rigs,
+                             std::unordered_map<frame_t, Frame>& frames,
                              std::unordered_map<track_t, Track>& tracks);
 
   // During the optimization, the camera translation is set to be the camera

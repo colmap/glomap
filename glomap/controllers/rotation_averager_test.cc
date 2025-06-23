@@ -133,7 +133,6 @@ TEST(RotationEstimator, WithoutNoise) {
   colmap::SynthesizeDataset(
       synthetic_dataset_options, &gt_reconstruction, &database);
 
-
   FLAGS_v = 2;
   ViewGraph view_graph;
   std::unordered_map<rig_t, Rig> rigs;
@@ -164,44 +163,46 @@ TEST(RotationEstimator, WithoutNoise) {
     SolveRotationAveraging(
         view_graph, rigs, frames, images, CreateRATestOptions(use_gravity));
 
-
     colmap::Reconstruction reconstruction;
     ConvertGlomapToColmap(
         rigs, cameras, frames, images, tracks, reconstruction);
-  //   std::cout << "Converted reconstruction" << std::endl;
-  //   for (auto& [image_id, image] : reconstruction.Images()) {
-  //     std::cout << "Image ID: " << image_id
-  //               << ", Camera ID: " << image.CameraId()
-  //               << ", Frame ID: " << image.FrameId()
-  //               << ", cam_from_world: " << image.CamFromWorld() << std::endl;
-  //   }
+    //   std::cout << "Converted reconstruction" << std::endl;
+    //   for (auto& [image_id, image] : reconstruction.Images()) {
+    //     std::cout << "Image ID: " << image_id
+    //               << ", Camera ID: " << image.CameraId()
+    //               << ", Frame ID: " << image.FrameId()
+    //               << ", cam_from_world: " << image.CamFromWorld() <<
+    //               std::endl;
+    //   }
 
-
-  //   std::cout << "Ground truth reconstruction:" << std::endl;
-  //   for (auto& [image_id, image] : gt_reconstruction.Images()) {
-  //     std::cout << "Image ID: " << image_id
-  //               << ", Camera ID: " << image.CameraId()
-  //               << ", Frame ID: " << image.FrameId()
-  //               << ", cam_from_world: " << image.CamFromWorld() << std::endl;
-  //   }
-  // for (auto& [rig_id, rig] : gt_reconstruction.Rigs()) {
-  //   for (auto& [sensor_id, sensor] : rig.Sensors()) {
-  //     if (rig.IsRefSensor(sensor_id)) continue;  // Skip reference sensor
-  //     if (sensor.has_value()) {
-  //       std::cout << "Rig ID: " << rig_id << ", Sensor ID: " << sensor_id.id
-  //                 << ", Sensor From Rig: " << sensor.value() << std::endl;
-  //     }
-  //   }
-  // }
-  // for (auto& [rig_id, rig] : reconstruction.Rigs()) {
-  //   for (auto& [sensor_id, sensor] : rig.Sensors()) {
-  //     if (rig.IsRefSensor(sensor_id)) continue;  // Skip reference sensor
-  //     if (sensor.has_value()) {
-  //       std::cout << "Rig ID: " << rig_id << ", Sensor ID: " << sensor_id.id
-  //                 << ", Sensor From Rig: " << sensor.value() << std::endl;
-  //     }
-  //   }
-  // }
+    //   std::cout << "Ground truth reconstruction:" << std::endl;
+    //   for (auto& [image_id, image] : gt_reconstruction.Images()) {
+    //     std::cout << "Image ID: " << image_id
+    //               << ", Camera ID: " << image.CameraId()
+    //               << ", Frame ID: " << image.FrameId()
+    //               << ", cam_from_world: " << image.CamFromWorld() <<
+    //               std::endl;
+    //   }
+    // for (auto& [rig_id, rig] : gt_reconstruction.Rigs()) {
+    //   for (auto& [sensor_id, sensor] : rig.Sensors()) {
+    //     if (rig.IsRefSensor(sensor_id)) continue;  // Skip reference sensor
+    //     if (sensor.has_value()) {
+    //       std::cout << "Rig ID: " << rig_id << ", Sensor ID: " <<
+    //       sensor_id.id
+    //                 << ", Sensor From Rig: " << sensor.value() << std::endl;
+    //     }
+    //   }
+    // }
+    // for (auto& [rig_id, rig] : reconstruction.Rigs()) {
+    //   for (auto& [sensor_id, sensor] : rig.Sensors()) {
+    //     if (rig.IsRefSensor(sensor_id)) continue;  // Skip reference sensor
+    //     if (sensor.has_value()) {
+    //       std::cout << "Rig ID: " << rig_id << ", Sensor ID: " <<
+    //       sensor_id.id
+    //                 << ", Sensor From Rig: " << sensor.value() << std::endl;
+    //     }
+    //   }
+    // }
     ExpectEqualRotations(
         gt_reconstruction, reconstruction, /*max_rotation_error_deg=*/1e-2);
   }
