@@ -198,10 +198,6 @@ void ConvertDatabaseToGlomap(
 
     const image_t image_id = image.ImageId();
     if (image_id == colmap::kInvalidImageId) continue;
-    if (image_filenames &&
-        image_filenames->find(image.Name()) == image_filenames->end()) {
-      continue;  // Skip images not in the specified set
-    }
     auto ite = images.insert(std::make_pair(
         image_id, Image(image_id, image.CameraId(), image.Name())));
     const colmap::PosePrior prior = database.ReadPosePrior(image_id);
@@ -251,9 +247,9 @@ void ConvertDatabaseToGlomap(
     colmap::image_t image_id1 = image_pair_colmap.first;
     colmap::image_t image_id2 = image_pair_colmap.second;
 
-    // Only read the pairs that are in the images
     if (images.find(image_id1) == images.end() ||
         images.find(image_id2) == images.end()) {
+      // If the image is not added to the images map, then skip
       continue;
     }
 
