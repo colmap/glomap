@@ -26,9 +26,9 @@ struct Image {
   bool is_registered = false;
   int cluster_id = -1;
 
-  // // The pose of the image, defined as the transformation from world to
-  // camera. Rigid3d cam_from_world;
-  frame_t frame_id;
+  // Frame info
+  // By default, set it to be invalid index
+  frame_t frame_id = -1;
   struct Frame* frame_ptr = nullptr;
 
   // Distorted feature points in pixels.

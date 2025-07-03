@@ -20,10 +20,10 @@ struct GravityInfo {
 
  private:
   // Direction of the gravity
-  Eigen::Vector3d gravity_;
+  Eigen::Vector3d gravity_ = Eigen::Vector3d::Zero();
 
   // Alignment matrix, the second column is the gravity direction
-  Eigen::Matrix3d R_align_;
+  Eigen::Matrix3d R_align_ = Eigen::Matrix3d::Identity();
 };
 
 struct Frame : public colmap::Frame {
