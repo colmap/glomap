@@ -1,5 +1,5 @@
 #include "glomap/controllers/option_manager.h"
-#include "glomap/controllers/rig_global_mapper.h"
+#include "glomap/controllers/global_mapper.h"
 #include "glomap/io/colmap_io.h"
 #include "glomap/io/pose_io.h"
 #include "glomap/types.h"
@@ -40,16 +40,16 @@ int RunMapper(int argc, char** argv) {
 
   if (constraint_type == "ONLY_POINTS") {
     options.mapper->opt_gp.constraint_type =
-        RigGlobalPositionerOptions::ONLY_POINTS;
+        GlobalPositionerOptions::ONLY_POINTS;
   } else if (constraint_type == "ONLY_CAMERAS") {
     options.mapper->opt_gp.constraint_type =
-        RigGlobalPositionerOptions::ONLY_CAMERAS;
+        GlobalPositionerOptions::ONLY_CAMERAS;
   } else if (constraint_type == "POINTS_AND_CAMERAS_BALANCED") {
     options.mapper->opt_gp.constraint_type =
-        RigGlobalPositionerOptions::POINTS_AND_CAMERAS_BALANCED;
+        GlobalPositionerOptions::POINTS_AND_CAMERAS_BALANCED;
   } else if (constraint_type == "POINTS_AND_CAMERAS") {
     options.mapper->opt_gp.constraint_type =
-        RigGlobalPositionerOptions::POINTS_AND_CAMERAS;
+        GlobalPositionerOptions::POINTS_AND_CAMERAS;
   } else {
     LOG(ERROR) << "Invalid constriant type";
     return EXIT_FAILURE;
@@ -77,7 +77,7 @@ int RunMapper(int argc, char** argv) {
     return EXIT_FAILURE;
   }
 
-  RigGlobalMapper global_mapper(*options.mapper);
+  GlobalMapper global_mapper(*options.mapper);
 
   // Main solver
   LOG(INFO) << "Loaded database";
@@ -145,7 +145,7 @@ int RunMapperResume(int argc, char** argv) {
   reconstruction.Read(input_path);
   ConvertColmapToGlomap(reconstruction, rigs, cameras, frames, images, tracks);
 
-  RigGlobalMapper global_mapper(*options.mapper);
+  GlobalMapper global_mapper(*options.mapper);
 
   // Main solver
   colmap::Timer run_timer;

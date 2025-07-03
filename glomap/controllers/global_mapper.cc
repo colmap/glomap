@@ -16,7 +16,7 @@
 namespace glomap {
 
 // TODO: Rig normalizaiton has not be done
-bool RigGlobalMapper::Solve(const colmap::Database& database,
+bool GlobalMapper::Solve(const colmap::Database& database,
                             ViewGraph& view_graph,
                             std::unordered_map<rig_t, Rig>& rigs,
                             std::unordered_map<camera_t, Camera>& cameras,
@@ -145,7 +145,7 @@ bool RigGlobalMapper::Solve(const colmap::Database& database,
     std::cout << "-------------------------------------" << std::endl;
 
     if (options_.opt_gp.constraint_type !=
-        RigGlobalPositionerOptions::ConstraintType::ONLY_POINTS) {
+        GlobalPositionerOptions::ConstraintType::ONLY_POINTS) {
       LOG(ERROR) << "Only points are used for solving camera positions";
       return false;
     }
@@ -156,7 +156,7 @@ bool RigGlobalMapper::Solve(const colmap::Database& database,
     // Skip images where an undistortion already been done
     UndistortImages(cameras, images, false);
 
-    RigGlobalPositioner gp_engine(options_.opt_gp);
+    GlobalPositioner gp_engine(options_.opt_gp);
 
     // TODO: consider to support other modes as well
     if (!gp_engine.Solve(view_graph, rigs, cameras, frames, images, tracks)) {
@@ -190,9 +190,9 @@ bool RigGlobalMapper::Solve(const colmap::Database& database,
     run_timer.Start();
 
     for (int ite = 0; ite < options_.num_iteration_bundle_adjustment; ite++) {
-      RigBundleAdjuster ba_engine(options_.opt_ba);
+      BundleAdjuster ba_engine(options_.opt_ba);
 
-      RigBundleAdjusterOptions& ba_engine_options_inner =
+      BundleAdjusterOptions& ba_engine_options_inner =
           ba_engine.GetOptions();
 
       // Staged bundle adjustment
@@ -292,7 +292,7 @@ bool RigGlobalMapper::Solve(const colmap::Database& database,
       std::cout << "Running bundle adjustment ..." << std::endl;
       std::cout << "-------------------------------------" << std::endl;
       LOG(INFO) << "Bundle adjustment start" << std::endl;
-      RigBundleAdjuster ba_engine(options_.opt_ba);
+      BundleAdjuster ba_engine(options_.opt_ba);
       if (!ba_engine.Solve(rigs, cameras, frames, images, tracks)) {
         return false;
       }

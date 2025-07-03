@@ -35,7 +35,7 @@ struct ImagePairTempInfo {
   int idx_cam2 = -1;  // index of the second camera in the rig
 };
 
-struct RigRotationEstimatorOptions {
+struct RotationEstimatorOptions {
   // Maximum number of times to run L1 minimization.
   int max_num_l1_iterations = 5;
 
@@ -75,9 +75,9 @@ struct RigRotationEstimatorOptions {
 
 // TODO: Implement the stratified camera rotation estimation
 // TODO: Implement the HALF_NORM loss for IRLS
-class RigRotationEstimator {
+class RotationEstimator {
  public:
-  explicit RigRotationEstimator(const RigRotationEstimatorOptions& options)
+  explicit RotationEstimator(const RotationEstimatorOptions& options)
       : options_(options) {}
 
   // Estimates the global orientations of all views based on an initial
@@ -138,7 +138,7 @@ class RigRotationEstimator {
 
   // Data
   // Options for the solver.
-  const RigRotationEstimatorOptions& options_;
+  const RotationEstimatorOptions& options_;
 
   // The sparse matrix used to maintain the linear system. This is matrix A in
   // Ax = b.

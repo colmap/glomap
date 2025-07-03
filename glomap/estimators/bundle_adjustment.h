@@ -9,7 +9,7 @@
 
 namespace glomap {
 
-struct RigBundleAdjusterOptions : public OptimizationBaseOptions {
+struct BundleAdjusterOptions : public OptimizationBaseOptions {
  public:
   // Flags for which parameters to optimize
   bool optimize_rig_poses = false;  // Whether to optimize the rig poses
@@ -26,7 +26,7 @@ struct RigBundleAdjusterOptions : public OptimizationBaseOptions {
   // Constrain the minimum number of views per track
   int min_num_view_per_track = 3;
 
-  RigBundleAdjusterOptions() : OptimizationBaseOptions() {
+  BundleAdjusterOptions() : OptimizationBaseOptions() {
     thres_loss_function = 1.;
     solver_options.max_num_iterations = 200;
   }
@@ -35,15 +35,15 @@ struct RigBundleAdjusterOptions : public OptimizationBaseOptions {
     return std::make_shared<ceres::HuberLoss>(thres_loss_function);
   }
 };
-// struct RigBundleAdjusterOptions : public BundleAdjusterOptions {
+// struct BundleAdjusterOptions : public BundleAdjusterOptions {
 //  public:
 //   bool optimize_rig_poses = true;  // Whether to optimize the rig poses
-//   RigBundleAdjusterOptions() : BundleAdjusterOptions() {};
+//   BundleAdjusterOptions() : BundleAdjusterOptions() {};
 // };
 
-class RigBundleAdjuster {
+class BundleAdjuster {
  public:
-  RigBundleAdjuster(const RigBundleAdjusterOptions& options)
+  BundleAdjuster(const BundleAdjusterOptions& options)
       : options_(options) {}
 
   // Returns true if the optimization was a success, false if there was a
@@ -55,7 +55,7 @@ class RigBundleAdjuster {
              std::unordered_map<image_t, Image>& images,
              std::unordered_map<track_t, Track>& tracks);
 
-  RigBundleAdjusterOptions& GetOptions() { return options_; }
+  BundleAdjusterOptions& GetOptions() { return options_; }
 
  private:
   // Reset the problem
@@ -97,7 +97,7 @@ class RigBundleAdjuster {
   //   // For each camera rig, the absolute camera rig poses for all snapshots.
   //   std::vector<std::vector<Rigid3d>> rigs_from_world_;
 
-  RigBundleAdjusterOptions options_;
+  BundleAdjusterOptions options_;
 
   std::unique_ptr<ceres::Problem> problem_;
   std::shared_ptr<ceres::LossFunction> loss_function_;

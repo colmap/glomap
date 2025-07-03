@@ -1,6 +1,6 @@
 #include "option_manager.h"
 
-#include "glomap/controllers/rig_global_mapper.h"
+#include "glomap/controllers/global_mapper.h"
 #include "glomap/estimators/gravity_refinement.h"
 
 #include <boost/filesystem/operations.hpp>
@@ -14,7 +14,7 @@ OptionManager::OptionManager(bool add_project_options) {
   database_path = std::make_shared<std::string>();
   image_path = std::make_shared<std::string>();
 
-  mapper = std::make_shared<RigGlobalMapperOptions>();
+  mapper = std::make_shared<GlobalMapperOptions>();
   gravity_refiner = std::make_shared<GravityRefinerOptions>();
   Reset();
 
@@ -307,7 +307,7 @@ void OptionManager::ResetOptions(const bool reset_paths) {
     *database_path = "";
     *image_path = "";
   }
-  *mapper = RigGlobalMapperOptions();
+  *mapper = GlobalMapperOptions();
   *gravity_refiner = GravityRefinerOptions();
 }
 

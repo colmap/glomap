@@ -12,16 +12,16 @@
 
 namespace glomap {
 
-struct RigGlobalMapperOptions {
+struct GlobalMapperOptions {
   // Options for each component
 
   // Options for each component
   ViewGraphCalibratorOptions opt_vgcalib;
   RelativePoseEstimationOptions opt_relpose;
-  RigRotationEstimatorOptions opt_ra;
+  RotationEstimatorOptions opt_ra;
   TrackEstablishmentOptions opt_track;
-  RigGlobalPositionerOptions opt_gp;
-  RigBundleAdjusterOptions opt_ba;
+  GlobalPositionerOptions opt_gp;
+  BundleAdjusterOptions opt_ba;
   TriangulatorOptions opt_triangulator;
 
   // Inlier thresholds for each component
@@ -44,9 +44,9 @@ struct RigGlobalMapperOptions {
 };
 
 // TODO: Refactor the code to reuse the pipeline code more
-class RigGlobalMapper {
+class GlobalMapper {
  public:
-  RigGlobalMapper(const RigGlobalMapperOptions& options) : options_(options) {}
+  GlobalMapper(const GlobalMapperOptions& options) : options_(options) {}
 
   bool Solve(const colmap::Database& database,
              ViewGraph& view_graph,
@@ -57,7 +57,7 @@ class RigGlobalMapper {
              std::unordered_map<track_t, Track>& tracks);
 
  private:
-  const RigGlobalMapperOptions options_;
+  const GlobalMapperOptions options_;
 };
 
 }  // namespace glomap

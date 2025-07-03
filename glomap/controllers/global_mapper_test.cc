@@ -1,4 +1,4 @@
-#include "glomap/controllers/rig_global_mapper.h"
+#include "glomap/controllers/global_mapper.h"
 #include "glomap/io/colmap_io.h"
 #include "glomap/types.h"
 
@@ -37,8 +37,8 @@ void ExpectEqualReconstructions(const colmap::Reconstruction& gt,
   }
 }
 
-RigGlobalMapperOptions CreateTestOptions() {
-  RigGlobalMapperOptions options;
+GlobalMapperOptions CreateTestOptions() {
+  GlobalMapperOptions options;
   options.skip_view_graph_calibration = false;
   options.skip_relative_pose_estimation = false;
   options.skip_rotation_averaging = false;
@@ -49,7 +49,7 @@ RigGlobalMapperOptions CreateTestOptions() {
   return options;
 }
 
-TEST(RigGlobalMapper, WithoutNoise) {
+TEST(GlobalMapper, WithoutNoise) {
   const std::string database_path = colmap::CreateTestDir() + "/database.db";
 
   colmap::Database database(database_path);
@@ -72,7 +72,7 @@ TEST(RigGlobalMapper, WithoutNoise) {
 
   ConvertDatabaseToGlomap(database, view_graph, rigs, cameras, frames, images);
 
-  RigGlobalMapper global_mapper(CreateTestOptions());
+  GlobalMapper global_mapper(CreateTestOptions());
   global_mapper.Solve(
       database, view_graph, rigs, cameras, frames, images, tracks);
 
@@ -86,7 +86,7 @@ TEST(RigGlobalMapper, WithoutNoise) {
                              /*num_obs_tolerance=*/0);
 }
 
-TEST(RigGlobalMapper, WithoutNoiseWithNonTrivialKnownRig) {
+TEST(GlobalMapper, WithoutNoiseWithNonTrivialKnownRig) {
   const std::string database_path = colmap::CreateTestDir() + "/database.db";
 
   colmap::Database database(database_path);
@@ -111,7 +111,7 @@ TEST(RigGlobalMapper, WithoutNoiseWithNonTrivialKnownRig) {
 
   ConvertDatabaseToGlomap(database, view_graph, rigs, cameras, frames, images);
 
-  RigGlobalMapper global_mapper(CreateTestOptions());
+  GlobalMapper global_mapper(CreateTestOptions());
   global_mapper.Solve(
       database, view_graph, rigs, cameras, frames, images, tracks);
 
@@ -125,7 +125,7 @@ TEST(RigGlobalMapper, WithoutNoiseWithNonTrivialKnownRig) {
                              /*num_obs_tolerance=*/0);
 }
 
-TEST(RigGlobalMapper, WithoutNoiseWithNonTrivialUnknownRig) {
+TEST(GlobalMapper, WithoutNoiseWithNonTrivialUnknownRig) {
   const std::string database_path = colmap::CreateTestDir() + "/database.db";
 
   colmap::Database database(database_path);
@@ -161,7 +161,7 @@ TEST(RigGlobalMapper, WithoutNoiseWithNonTrivialUnknownRig) {
     }
   }
 
-  RigGlobalMapper global_mapper(CreateTestOptions());
+  GlobalMapper global_mapper(CreateTestOptions());
   global_mapper.Solve(
       database, view_graph, rigs, cameras, frames, images, tracks);
 
@@ -175,7 +175,7 @@ TEST(RigGlobalMapper, WithoutNoiseWithNonTrivialUnknownRig) {
                              /*num_obs_tolerance=*/0);
 }
 
-TEST(RigGlobalMapper, WithNoiseAndOutliers) {
+TEST(GlobalMapper, WithNoiseAndOutliers) {
   const std::string database_path = colmap::CreateTestDir() + "/database.db";
 
   colmap::Database database(database_path);
@@ -199,7 +199,7 @@ TEST(RigGlobalMapper, WithNoiseAndOutliers) {
 
   ConvertDatabaseToGlomap(database, view_graph, rigs, cameras, frames, images);
 
-  RigGlobalMapper global_mapper(CreateTestOptions());
+  GlobalMapper global_mapper(CreateTestOptions());
   global_mapper.Solve(
       database, view_graph, rigs, cameras, frames, images, tracks);
 

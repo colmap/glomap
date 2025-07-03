@@ -1,13 +1,13 @@
 #pragma once
 
-#include "glomap/estimators/rig_global_rotation_averaging.h"
+#include "glomap/estimators/global_rotation_averaging.h"
 
 namespace glomap {
 
-struct RotationAveragerOptions : public RigRotationEstimatorOptions {
+struct RotationAveragerOptions : public RotationEstimatorOptions {
   RotationAveragerOptions() = default;
-  RotationAveragerOptions(const RigRotationEstimatorOptions& options)
-      : RigRotationEstimatorOptions(options) {}
+  RotationAveragerOptions(const RotationEstimatorOptions& options)
+      : RotationEstimatorOptions(options) {}
   bool use_stratified = true;
 };
 

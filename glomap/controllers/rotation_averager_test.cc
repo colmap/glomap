@@ -1,6 +1,6 @@
 #include "glomap/controllers/rotation_averager.h"
 
-#include "glomap/controllers/rig_global_mapper.h"
+#include "glomap/controllers/global_mapper.h"
 #include "glomap/estimators/gravity_refinement.h"
 #include "glomap/io/colmap_io.h"
 #include "glomap/math/rigid3d.h"
@@ -58,8 +58,8 @@ void PrepareGravity(const colmap::Reconstruction& gt,
   }
 }
 
-RigGlobalMapperOptions CreateMapperTestOptions() {
-  RigGlobalMapperOptions options;
+GlobalMapperOptions CreateMapperTestOptions() {
+  GlobalMapperOptions options;
   options.skip_view_graph_calibration = false;
   options.skip_relative_pose_estimation = false;
   options.skip_rotation_averaging = true;
@@ -149,7 +149,7 @@ TEST(RotationEstimator, WithoutNoise) {
 
   PrepareGravity(gt_reconstruction, frames);
 
-  RigGlobalMapper global_mapper(CreateMapperTestOptions());
+  GlobalMapper global_mapper(CreateMapperTestOptions());
   global_mapper.Solve(
       database, view_graph, rigs, cameras, frames, images, tracks);
 
@@ -193,7 +193,7 @@ TEST(RotationEstimator, WithoutNoiseWithNoneTrivialKnownRig) {
 
   PrepareGravity(gt_reconstruction, frames);
 
-  RigGlobalMapper global_mapper(CreateMapperTestOptions());
+  GlobalMapper global_mapper(CreateMapperTestOptions());
   global_mapper.Solve(
       database, view_graph, rigs, cameras, frames, images, tracks);
 
@@ -245,7 +245,7 @@ TEST(RotationEstimator, WithoutNoiseWithNoneTrivialUnknownRig) {
   }
   PrepareGravity(gt_reconstruction, frames);
 
-  RigGlobalMapper global_mapper(CreateMapperTestOptions());
+  GlobalMapper global_mapper(CreateMapperTestOptions());
   global_mapper.Solve(
       database, view_graph, rigs, cameras, frames, images, tracks);
 
@@ -289,7 +289,7 @@ TEST(RotationEstimator, WithNoiseAndOutliers) {
 
   PrepareGravity(gt_reconstruction, frames, /*stddev_gravity=*/3e-1);
 
-  RigGlobalMapper global_mapper(CreateMapperTestOptions());
+  GlobalMapper global_mapper(CreateMapperTestOptions());
   global_mapper.Solve(
       database, view_graph, rigs, cameras, frames, images, tracks);
 
@@ -335,7 +335,7 @@ TEST(RotationEstimator, WithNoiseAndOutliersWithNonTrivialKnownRigs) {
   ConvertDatabaseToGlomap(database, view_graph, rigs, cameras, frames, images);
   PrepareGravity(gt_reconstruction, frames, /*stddev_gravity=*/3e-1);
 
-  RigGlobalMapper global_mapper(CreateMapperTestOptions());
+  GlobalMapper global_mapper(CreateMapperTestOptions());
   global_mapper.Solve(
       database, view_graph, rigs, cameras, frames, images, tracks);
 
@@ -384,7 +384,7 @@ TEST(RotationEstimator, RefineGravity) {
                  /*stddev_gravity=*/0.,
                  /*outlier_ratio=*/0.3);
 
-  RigGlobalMapper global_mapper(CreateMapperTestOptions());
+  GlobalMapper global_mapper(CreateMapperTestOptions());
   global_mapper.Solve(
       database, view_graph, rigs, cameras, frames, images, tracks);
 
@@ -427,7 +427,7 @@ TEST(RotationEstimator, RefineGravityWithNontrivialRigs) {
                  /*stddev_gravity=*/0.,
                  /*outlier_ratio=*/0.3);
 
-  RigGlobalMapper global_mapper(CreateMapperTestOptions());
+  GlobalMapper global_mapper(CreateMapperTestOptions());
   global_mapper.Solve(
       database, view_graph, rigs, cameras, frames, images, tracks);
 

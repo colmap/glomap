@@ -1,4 +1,3 @@
-
 #include "glomap/controllers/rotation_averager.h"
 
 #include "glomap/controllers/option_manager.h"
@@ -100,7 +99,7 @@ int RunRotationAverager(int argc, char** argv) {
 
   if (refine_gravity && gravity_path != "") {
     GravityRefiner grav_refiner(*options.gravity_refiner);
-    grav_refiner.RefineGravity(view_graph, images);
+    grav_refiner.RefineGravity(view_graph, frames, images);
   }
 
   colmap::Timer run_timer;

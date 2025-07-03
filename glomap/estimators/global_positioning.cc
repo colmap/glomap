@@ -20,13 +20,13 @@ Eigen::Vector3d RandVector3d(std::mt19937& random_generator,
 
 }  // namespace
 
-RigGlobalPositioner::RigGlobalPositioner(
-    const RigGlobalPositionerOptions& options)
+GlobalPositioner::GlobalPositioner(
+    const GlobalPositionerOptions& options)
     : options_(options) {
   random_generator_.seed(options_.seed);
 }
 
-bool RigGlobalPositioner::Solve(const ViewGraph& view_graph,
+bool GlobalPositioner::Solve(const ViewGraph& view_graph,
                                 std::unordered_map<rig_t, Rig>& rigs,
                                 std::unordered_map<camera_t, Camera>& cameras,
                                 std::unordered_map<frame_t, Frame>& frames,
@@ -40,12 +40,12 @@ bool RigGlobalPositioner::Solve(const ViewGraph& view_graph,
     return false;
   }
   if (view_graph.image_pairs.empty() &&
-      options_.constraint_type != RigGlobalPositionerOptions::ONLY_POINTS) {
+      options_.constraint_type != GlobalPositionerOptions::ONLY_POINTS) {
     LOG(ERROR) << "Number of image_pairs = " << view_graph.image_pairs.size();
     return false;
   }
   if (tracks.empty() &&
-      options_.constraint_type != RigGlobalPositionerOptions::ONLY_CAMERAS) {
+      options_.constraint_type != GlobalPositionerOptions::ONLY_CAMERAS) {
     LOG(ERROR) << "Number of tracks = " << tracks.size();
     return false;
   }
@@ -61,12 +61,12 @@ bool RigGlobalPositioner::Solve(const ViewGraph& view_graph,
   InitializeRandomPositions(view_graph, frames, images, tracks);
 
   // // Add the camera to camera constraints to the problem.
-  // if (options_.constraint_type != RigGlobalPositionerOptions::ONLY_POINTS) {
+  // if (options_.constraint_type != GlobalPositionerOptions::ONLY_POINTS) {
   //   AddCameraToCameraConstraints(view_graph, images);
   // }
 
   // // Add the point to camera constraints to the problem.
-  // if (options_.constraint_type != RigGlobalPositionerOptions::ONLY_CAMERAS) {
+  // if (options_.constraint_type != GlobalPositionerOptions::ONLY_CAMERAS) {
   // }
   AddPointToCameraConstraints(rigs, cameras, frames, images, tracks);
 
@@ -94,7 +94,7 @@ bool RigGlobalPositioner::Solve(const ViewGraph& view_graph,
   return summary.IsSolutionUsable();
 }
 
-void RigGlobalPositioner::SetupProblem(
+void GlobalPositioner::SetupProblem(
     const ViewGraph& view_graph,
     const std::unordered_map<rig_t, Rig>& rigs,
     const std::unordered_map<track_t, Track>& tracks) {
@@ -124,7 +124,7 @@ void RigGlobalPositioner::SetupProblem(
   }
 }
 
-// void RigGlobalPositioner::ExtractRigsFromWorld(
+// void GlobalPositioner::ExtractRigsFromWorld(
 //     const std::unordered_map<rig_t, Rig>& rigs,
 //     const std::unordered_map<image_t, Image>& images) {
 //   rigs_from_world_.reserve(rigs.size());
@@ -147,7 +147,7 @@ void RigGlobalPositioner::SetupProblem(
 //   }
 // }
 
-void RigGlobalPositioner::InitializeRandomPositions(
+void GlobalPositioner::InitializeRandomPositions(
     const ViewGraph& view_graph,
     std::unordered_map<frame_t, Frame>& frames,
     std::unordered_map<image_t, Image>& images,
@@ -216,7 +216,7 @@ void RigGlobalPositioner::InitializeRandomPositions(
   VLOG(2) << "Constrained positions: " << constrained_positions.size();
 }
 
-void RigGlobalPositioner::AddPointToCameraConstraints(
+void GlobalPositioner::AddPointToCameraConstraints(
     std::unordered_map<rig_t, Rig>& rigs,
     std::unordered_map<camera_t, Camera>& cameras,
     std::unordered_map<frame_t, Frame>& frames,
@@ -259,7 +259,7 @@ void RigGlobalPositioner::AddPointToCameraConstraints(
   }
 }
 
-void RigGlobalPositioner::AddTrackToProblem(
+void GlobalPositioner::AddTrackToProblem(
     track_t track_id,
     std::unordered_map<rig_t, Rig>& rigs,
     std::unordered_map<camera_t, Camera>& cameras,
@@ -374,7 +374,7 @@ void RigGlobalPositioner::AddTrackToProblem(
   }
 }
 
-void RigGlobalPositioner::AddCamerasAndPointsToParameterGroups(
+void GlobalPositioner::AddCamerasAndPointsToParameterGroups(
     // std::unordered_map<image_t, Image>& images,
     std::unordered_map<rig_t, Rig>& rigs,
     std::unordered_map<frame_t, Frame>& frames,
@@ -446,7 +446,7 @@ void RigGlobalPositioner::AddCamerasAndPointsToParameterGroups(
   }
 }
 
-void RigGlobalPositioner::ParameterizeVariables(
+void GlobalPositioner::ParameterizeVariables(
     // std::unordered_map<image_t, Image>& images,
     std::unordered_map<rig_t, Rig>& rigs,
     std::unordered_map<frame_t, Frame>& frames,
@@ -584,7 +584,7 @@ void RigGlobalPositioner::ParameterizeVariables(
   }
 }
 
-void RigGlobalPositioner::ConvertResults(
+void GlobalPositioner::ConvertResults(
     std::unordered_map<rig_t, Rig>& rigs,
     std::unordered_map<frame_t, Frame>& frames) {
   // // translation now stores the camera position, needs to convert back

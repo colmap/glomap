@@ -6,7 +6,7 @@
 
 namespace glomap {
 
-struct RigGlobalPositionerOptions : public OptimizationBaseOptions {
+struct GlobalPositionerOptions : public OptimizationBaseOptions {
   // ONLY_POINTS is recommended
   enum ConstraintType {
     // only include camera to point constraints
@@ -44,7 +44,7 @@ struct RigGlobalPositionerOptions : public OptimizationBaseOptions {
   double constraint_reweight_scale =
       1.0;  // only relevant for POINTS_AND_CAMERAS_BALANCED
 
-  RigGlobalPositionerOptions() : OptimizationBaseOptions() {
+  GlobalPositionerOptions() : OptimizationBaseOptions() {
     thres_loss_function = 1e-1;
   }
 
@@ -53,9 +53,9 @@ struct RigGlobalPositionerOptions : public OptimizationBaseOptions {
   }
 };
 
-class RigGlobalPositioner {
+class GlobalPositioner {
  public:
-  RigGlobalPositioner(const RigGlobalPositionerOptions& options);
+  GlobalPositioner(const GlobalPositionerOptions& options);
 
   // Returns true if the optimization was a success, false if there was a
   // failure.
@@ -67,7 +67,7 @@ class RigGlobalPositioner {
              std::unordered_map<image_t, Image>& images,
              std::unordered_map<track_t, Track>& tracks);
 
-  RigGlobalPositionerOptions& GetOptions() { return options_; }
+  GlobalPositionerOptions& GetOptions() { return options_; }
 
  protected:
   void SetupProblem(const ViewGraph& view_graph,
@@ -122,7 +122,7 @@ class RigGlobalPositioner {
   void ConvertResults(std::unordered_map<rig_t, Rig>& rigs,
                       std::unordered_map<frame_t, Frame>& frames);
 
-  RigGlobalPositionerOptions options_;
+  GlobalPositionerOptions options_;
 
   std::mt19937 random_generator_;
   std::unique_ptr<ceres::Problem> problem_;

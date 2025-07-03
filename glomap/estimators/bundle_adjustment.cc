@@ -8,7 +8,7 @@
 
 namespace glomap {
 
-bool RigBundleAdjuster::Solve(std::unordered_map<rig_t, Rig>& rigs,
+bool BundleAdjuster::Solve(std::unordered_map<rig_t, Rig>& rigs,
                               std::unordered_map<camera_t, Camera>& cameras,
                               std::unordered_map<frame_t, Frame>& frames,
                               std::unordered_map<image_t, Image>& images,
@@ -107,7 +107,7 @@ bool RigBundleAdjuster::Solve(std::unordered_map<rig_t, Rig>& rigs,
   return summary.IsSolutionUsable();
 }
 
-void RigBundleAdjuster::Reset() {
+void BundleAdjuster::Reset() {
   ceres::Problem::Options problem_options;
   problem_options.loss_function_ownership = ceres::DO_NOT_TAKE_OWNERSHIP;
   problem_ = std::make_unique<ceres::Problem>(problem_options);
@@ -116,7 +116,7 @@ void RigBundleAdjuster::Reset() {
   // ExtractRigsFromWorld(camera_rigs, images);
 }
 
-// void RigBundleAdjuster::ExtractRigsFromWorld(
+// void BundleAdjuster::ExtractRigsFromWorld(
 //     const std::vector<CameraRig>& camera_rigs,
 //     const std::unordered_map<image_t, Image>& images) {
 //   rigs_from_world_.reserve(camera_rigs.size());
@@ -139,7 +139,7 @@ void RigBundleAdjuster::Reset() {
 //   }
 // }
 
-void RigBundleAdjuster::AddPointToCameraConstraints(
+void BundleAdjuster::AddPointToCameraConstraints(
     std::unordered_map<rig_t, Rig>& rigs,
     std::unordered_map<camera_t, Camera>& cameras,
     std::unordered_map<frame_t, Frame>& frames,
@@ -216,7 +216,7 @@ void RigBundleAdjuster::AddPointToCameraConstraints(
   }
 }
 
-void RigBundleAdjuster::AddCamerasAndPointsToParameterGroups(
+void BundleAdjuster::AddCamerasAndPointsToParameterGroups(
     std::unordered_map<camera_t, Camera>& cameras,
     std::unordered_map<frame_t, Frame>& frames,
     std::unordered_map<track_t, Track>& tracks) {
@@ -269,7 +269,7 @@ void RigBundleAdjuster::AddCamerasAndPointsToParameterGroups(
   }
 }
 
-void RigBundleAdjuster::ParameterizeVariables(
+void BundleAdjuster::ParameterizeVariables(
     std::unordered_map<camera_t, Camera>& cameras,
     std::unordered_map<frame_t, Frame>& frames,
     std::unordered_map<track_t, Track>& tracks) {
@@ -343,7 +343,7 @@ void RigBundleAdjuster::ParameterizeVariables(
   }
 }
 
-// void RigBundleAdjuster::ConvertResults(
+// void BundleAdjuster::ConvertResults(
 //     const std::vector<CameraRig>& camera_rigs,
 //     std::unordered_map<image_t, Image>& images) {
 //   // For images within rigs, use the chained translation

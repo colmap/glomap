@@ -33,7 +33,7 @@ bool SolveRotationAveraging(ViewGraph& view_graph,
 
       total_pairs++;
 
-      if (image1.gravity_info.has_gravity && image2.gravity_info.has_gravity) {
+      if (image1.HasGravity() && image2.HasGravity()) {
         view_graph_grav.image_pairs.emplace(
             pair_id,
             ImagePair(image_id1, image_id2, image_pair.cam2_from_cam1));
@@ -53,7 +53,7 @@ bool SolveRotationAveraging(ViewGraph& view_graph,
                  "prior system";
     int num_img_grv =
         view_graph_grav.KeepLargestConnectedComponents(frames, images);
-    RigRotationEstimator rotation_estimator_grav(options);
+    RotationEstimator rotation_estimator_grav(options);
     if (!rotation_estimator_grav.EstimateRotations(
             view_graph_grav, rigs, frames, images)) {
       return false;
@@ -79,7 +79,7 @@ bool SolveRotationAveraging(ViewGraph& view_graph,
 
   bool status_ra = false;
   // If the trivial rotation averaging is enabled, run it
-  if (camera_without_rig.size() > 0) {
+  if (camera_without_rig.size() > 0 && !options.skip_initialization) {
     LOG(INFO) << "Running trivial rotation averaging for rigged cameras";
     // Create a rig for each camera
     std::unordered_map<rig_t, Rig> rigs_trivial;
@@ -162,9 +162,9 @@ bool SolveRotationAveraging(ViewGraph& view_graph,
     }
 
     // Run the trivial rotation averaging
-    RigRotationEstimatorOptions options_trivial = options;
+    RotationEstimatorOptions options_trivial = options;
     options_trivial.skip_initialization = options.skip_initialization;
-    RigRotationEstimator rotation_estimator_trivial(options_trivial);
+    RotationEstimator rotation_estimator_trivial(options_trivial);
     rotation_estimator_trivial.EstimateRotations(
         view_graph, rigs_trivial, frames_trivial, images_trivial);
 
@@ -177,14 +177,22 @@ bool SolveRotationAveraging(ViewGraph& view_graph,
 
     ConvertRotationsFromImageToRig(cam_from_worlds, images, rigs, frames);
 
-    RigRotationEstimatorOptions options_ra = options;
+    RotationEstimatorOptions options_ra = options;
     options_ra.skip_initialization = true;
-    RigRotationEstimator rotation_estimator(options_ra);
+    RotationEstimator rotation_estimator(options_ra);
     status_ra =
         rotation_estimator.EstimateRotations(view_graph, rigs, frames, images);
     view_graph.KeepLargestConnectedComponents(frames, images);
   } else {
-    RigRotationEstimator rotation_estimator(options);
+    RotationAveragerOptions options_ra = options;
+    // For cases where there are some cameras without known cam_from_rig
+    // transformation, we need to run the rotation averaging with the
+    // skip_initialization flag set to false for convergence
+    if (camera_without_rig.size() > 0) {
+      options_ra.skip_initialization = false;
+    }
+
+    RotationEstimator rotation_estimator(options_ra);
     status_ra =
         rotation_estimator.EstimateRotations(view_graph, rigs, frames, images);
     view_graph.KeepLargestConnectedComponents(frames, images);

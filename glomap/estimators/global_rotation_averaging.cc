@@ -32,7 +32,7 @@ double RelAngleError(double angle_12, double angle_1, double angle_2) {
 }
 }  // namespace
 
-bool RigRotationEstimator::EstimateRotations(
+bool RotationEstimator::EstimateRotations(
     const ViewGraph& view_graph,
     std::unordered_map<rig_t, Rig>& rigs,
     std::unordered_map<frame_t, Frame>& frames,
@@ -81,7 +81,7 @@ bool RigRotationEstimator::EstimateRotations(
   return true;
 }
 
-void RigRotationEstimator::InitializeFromMaximumSpanningTree(
+void RotationEstimator::InitializeFromMaximumSpanningTree(
     const ViewGraph& view_graph,
     std::unordered_map<rig_t, Rig>& rigs,
     std::unordered_map<frame_t, Frame>& frames,
@@ -135,7 +135,7 @@ void RigRotationEstimator::InitializeFromMaximumSpanningTree(
 }
 
 // TODO: refine the code
-void RigRotationEstimator::SetupLinearSystem(
+void RotationEstimator::SetupLinearSystem(
     const ViewGraph& view_graph,
     std::unordered_map<rig_t, Rig>& rigs,
     std::unordered_map<frame_t, Frame>& frames,
@@ -491,7 +491,7 @@ void RigRotationEstimator::SetupLinearSystem(
   tangent_space_residual_.resize(curr_pos);
 }
 
-bool RigRotationEstimator::SolveL1Regression(
+bool RotationEstimator::SolveL1Regression(
     const ViewGraph& view_graph,
     std::unordered_map<frame_t, Frame>& frames,
     std::unordered_map<image_t, Image>& images) {
@@ -551,7 +551,7 @@ bool RigRotationEstimator::SolveL1Regression(
   return true;
 }
 
-bool RigRotationEstimator::SolveIRLS(
+bool RotationEstimator::SolveIRLS(
     const ViewGraph& view_graph,
     std::unordered_map<frame_t, Frame>& frames,
     std::unordered_map<image_t, Image>& images) {
@@ -595,11 +595,11 @@ bool RigRotationEstimator::SolveIRLS(
             tangent_space_residual_.segment<3>(image_pair_pos).squaredNorm();
 
       // Compute the weight
-      if (options_.weight_type == RigRotationEstimatorOptions::GEMAN_MCCLURE) {
+      if (options_.weight_type == RotationEstimatorOptions::GEMAN_MCCLURE) {
         double tmp = err_squared + sigma * sigma;
         w = sigma * sigma / (tmp * tmp);
       } else if (options_.weight_type ==
-                 RigRotationEstimatorOptions::HALF_NORM) {
+                 RotationEstimatorOptions::HALF_NORM) {
         w = std::pow(err_squared, (0.5 - 2) / 2);
       }
 
@@ -640,7 +640,7 @@ bool RigRotationEstimator::SolveIRLS(
   return true;
 }
 
-void RigRotationEstimator::UpdateGlobalRotations(
+void RotationEstimator::UpdateGlobalRotations(
     const ViewGraph& view_graph,
     std::unordered_map<frame_t, Frame>& frames,
     std::unordered_map<image_t, Image>& images) {
@@ -710,7 +710,7 @@ void RigRotationEstimator::UpdateGlobalRotations(
   }
 }
 
-void RigRotationEstimator::ComputeResiduals(
+void RotationEstimator::ComputeResiduals(
     const ViewGraph& view_graph, std::unordered_map<image_t, Image>& images) {
   int curr_pos = 0;
   for (auto& [pair_id, pair_info] : rel_temp_info_) {
@@ -773,7 +773,7 @@ void RigRotationEstimator::ComputeResiduals(
                 image_id_to_idx_[fixed_camera_id_], 3)));
 }
 
-double RigRotationEstimator::ComputeAverageStepSize(
+double RotationEstimator::ComputeAverageStepSize(
     const std::unordered_map<image_t, Image>& images) {
   double total_update = 0;
   for (const auto& [image_id, image] : images) {
@@ -789,7 +789,7 @@ double RigRotationEstimator::ComputeAverageStepSize(
   return total_update / image_id_to_idx_.size();
 }
 
-void RigRotationEstimator::ConvertResults(
+void RotationEstimator::ConvertResults(
     std::unordered_map<rig_t, Rig>& rigs,
     std::unordered_map<frame_t, Frame>& frames,
     std::unordered_map<image_t, Image>& images) {
