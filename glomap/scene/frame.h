@@ -1,5 +1,6 @@
 #pragma once
 
+#include "glomap/math/gravity.h"
 #include "glomap/scene/types.h"
 #include "glomap/types.h"
 
