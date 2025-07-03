@@ -161,11 +161,14 @@ void ReadGravity(const std::string& gravity_path,
     auto ite = name_idx.find(name);
     if (ite != name_idx.end()) {
       counter++;
-      images[ite->second].gravity_info.SetGravity(gravity);
-      // TODO: add the check for the gravity information
-      // Make sure the initialization is aligned with the gravity
-      // images[ite->second].cam_from_world.rotation =
-      //     images[ite->second].gravity_info.GetRAlign().transpose();
+      if (images[ite->second].HasTrivialFrame()) {
+        images[ite->second].frame_ptr->gravity_info.SetGravity(gravity);
+        Rigid3d& cam_from_world = images[ite->second].frame_ptr->RigFromWorld();
+        // Set the rotation from the camera to the world
+        // Make sure the initialization is aligned with the gravity
+        cam_from_world.rotation = Eigen::Quaterniond(
+            images[ite->second].frame_ptr->gravity_info.GetRAlign());
+      }
     }
   }
   LOG(INFO) << counter << " images are loaded with gravity" << std::endl;
