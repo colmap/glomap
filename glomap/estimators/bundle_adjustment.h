@@ -35,12 +35,6 @@ struct BundleAdjusterOptions : public OptimizationBaseOptions {
     return std::make_shared<ceres::HuberLoss>(thres_loss_function);
   }
 };
-// struct BundleAdjusterOptions : public BundleAdjusterOptions {
-//  public:
-//   bool optimize_rig_poses = true;  // Whether to optimize the rig poses
-//   BundleAdjusterOptions() : BundleAdjusterOptions() {};
-// };
-
 class BundleAdjuster {
  public:
   BundleAdjuster(const BundleAdjusterOptions& options)
@@ -61,10 +55,6 @@ class BundleAdjuster {
   // Reset the problem
   void Reset();
 
-  //   void ExtractRigsFromWorld(const std::unordered_map<rig_t, Rig>& rigs,
-  //                             const std::unordered_map<image_t, Image>&
-  //                             images);
-
   // Add tracks to the problem
   void AddPointToCameraConstraints(
       std::unordered_map<rig_t, Rig>& rigs,
@@ -83,19 +73,6 @@ class BundleAdjuster {
   void ParameterizeVariables(std::unordered_map<camera_t, Camera>& cameras,
                              std::unordered_map<frame_t, Frame>& frames,
                              std::unordered_map<track_t, Track>& tracks);
-
-  //   // During the optimization, the camera translation is set to be the
-  //   camera
-  //   // center Convert the results back to camera poses
-  //   void ConvertResults(const std::unordered_map<rig_t, Rig>& rigs,
-  //                       std::unordered_map<image_t, Image>& images);
-
-  //   // Mapping from images to camera rigs.
-  //   std::unordered_map<image_t, int> image_id_to_camera_rig_index_;
-  //   std::unordered_map<image_t, Rigid3d*> image_id_to_rig_from_world_;
-
-  //   // For each camera rig, the absolute camera rig poses for all snapshots.
-  //   std::vector<std::vector<Rigid3d>> rigs_from_world_;
 
   BundleAdjusterOptions options_;
 

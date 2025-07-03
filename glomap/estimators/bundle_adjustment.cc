@@ -102,7 +102,6 @@ bool BundleAdjuster::Solve(std::unordered_map<rig_t, Rig>& rigs,
   else
     LOG(INFO) << summary.BriefReport();
 
-  // ConvertResults(camera_rigs, images);
 
   return summary.IsSolutionUsable();
 }
@@ -112,32 +111,7 @@ void BundleAdjuster::Reset() {
   problem_options.loss_function_ownership = ceres::DO_NOT_TAKE_OWNERSHIP;
   problem_ = std::make_unique<ceres::Problem>(problem_options);
   loss_function_ = options_.CreateLossFunction();
-
-  // ExtractRigsFromWorld(camera_rigs, images);
 }
-
-// void BundleAdjuster::ExtractRigsFromWorld(
-//     const std::vector<CameraRig>& camera_rigs,
-//     const std::unordered_map<image_t, Image>& images) {
-//   rigs_from_world_.reserve(camera_rigs.size());
-//   for (size_t idx_rig = 0; idx_rig < camera_rigs.size(); ++idx_rig) {
-//     const auto& camera_rig = camera_rigs.at(idx_rig);
-//     rigs_from_world_.emplace_back();
-//     auto& rig_from_world = rigs_from_world_.back();
-//     const size_t num_snapshots = camera_rig.NumSnapshots();
-//     rig_from_world.resize(num_snapshots);
-//     for (size_t snapshot_idx = 0; snapshot_idx < num_snapshots;
-//          ++snapshot_idx) {
-//       rig_from_world[snapshot_idx] =
-//           camera_rig.ComputeRigFromWorld(snapshot_idx, images);
-//       for (const auto image_id : camera_rig.Snapshots()[snapshot_idx]) {
-//         image_id_to_camera_rig_index_.emplace(image_id, idx_rig);
-//         image_id_to_rig_from_world_.emplace(image_id,
-//                                             &rig_from_world[snapshot_idx]);
-//       }
-//     }
-//   }
-// }
 
 void BundleAdjuster::AddPointToCameraConstraints(
     std::unordered_map<rig_t, Rig>& rigs,
@@ -233,16 +207,7 @@ void BundleAdjuster::AddCamerasAndPointsToParameterGroups(
       parameter_ordering->AddElementToGroup(track.xyz.data(), 0);
   }
 
-  // Add camera parameters to group 1.
-  // for (auto& [image_id, image] : images) {
-  //   if (problem_->HasParameterBlock(image.cam_from_world.translation.data()))
-  //   {
-  //     parameter_ordering->AddElementToGroup(
-  //         image.cam_from_world.translation.data(), 1);
-  //     parameter_ordering->AddElementToGroup(
-  //         image.cam_from_world.rotation.coeffs().data(), 1);
-  //   }
-  // }
+  // Add frame parameters to group 1.
   for (auto& [frame_id, frame] : frames) {
     if (problem_->HasParameterBlock(frame.RigFromWorld().translation.data())) {
       parameter_ordering->AddElementToGroup(
@@ -252,15 +217,6 @@ void BundleAdjuster::AddCamerasAndPointsToParameterGroups(
     }
   }
 
-  // for (auto& rigs : rigs_from_world_) {
-  //   for (auto& rig : rigs) {
-  //     if (problem_->HasParameterBlock(rig.translation.data())) {
-  //       parameter_ordering->AddElementToGroup(rig.translation.data(), 1);
-  //       parameter_ordering->AddElementToGroup(rig.rotation.coeffs().data(),
-  //       1);
-  //     }
-  //   }
-  // }
 
   // Add camera parameters to group 1.
   for (auto& [camera_id, camera] : cameras) {
@@ -295,22 +251,6 @@ void BundleAdjuster::ParameterizeVariables(
     }
   }
 
-  // for (auto& rigs : rigs_from_world_) {
-  //   for (auto& rig : rigs) {
-  //     if (problem_->HasParameterBlock(rig.rotation.coeffs().data())) {
-  //       colmap::SetQuaternionManifold(problem_.get(),
-  //                                     rig.rotation.coeffs().data());
-
-  //       if (!options_.optimize_rotations || counter == 0)
-  //         problem_->SetParameterBlockConstant(rig.rotation.coeffs().data());
-  //       if (!options_.optimize_translation || counter == 0)
-  //         problem_->SetParameterBlockConstant(rig.translation.data());
-
-  //       counter++;
-  //     }
-  //   }
-  // }
-
   // Parameterize the camera parameters, or set them to be constant if desired
   if (options_.optimize_intrinsics && !options_.optimize_principal_point) {
     for (auto& [camera_id, camera] : cameras) {
@@ -342,25 +282,5 @@ void BundleAdjuster::ParameterizeVariables(
     }
   }
 }
-
-// void BundleAdjuster::ConvertResults(
-//     const std::vector<CameraRig>& camera_rigs,
-//     std::unordered_map<image_t, Image>& images) {
-//   // For images within rigs, use the chained translation
-//   for (size_t idx_rig = 0; idx_rig < camera_rigs.size(); idx_rig++) {
-//     const CameraRig& camera_rig = camera_rigs.at(idx_rig);
-//     const size_t num_snapshots = camera_rig.NumSnapshots();
-//     for (size_t snapshot_idx = 0; snapshot_idx < num_snapshots;
-//          ++snapshot_idx) {
-//       for (const auto image_id : camera_rig.Snapshots()[snapshot_idx]) {
-//         camera_t camera_id = images[image_id].camera_id;
-//         const Rigid3d& cam_from_rig = camera_rig.CamFromRig(camera_id);
-
-//         images[image_id].cam_from_world =
-//             (cam_from_rig * rigs_from_world_[idx_rig][snapshot_idx]);
-//       }
-//     }
-//   }
-// }
 
 }  // namespace glomap
