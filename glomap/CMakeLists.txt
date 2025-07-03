@@ -1,13 +1,9 @@
 set(SOURCES
-    # controllers/global_mapper.cc
     controllers/option_manager.cc
     controllers/rig_global_mapper.cc
     controllers/rotation_averager.cc
     controllers/track_establishment.cc
     controllers/track_retriangulation.cc
-    # estimators/bundle_adjustment.cc
-    # estimators/global_positioning.cc
-    # estimators/global_rotation_averaging.cc
     estimators/gravity_refinement.cc
     estimators/relpose_estimation.cc
     estimators/rig_bundle_adjustment.cc
@@ -30,20 +26,15 @@ set(SOURCES
     processors/track_filter.cc
     processors/view_graph_manipulation.cc
     scene/view_graph.cc
-    # scene/camera_rig.cc
 )
 
 set(HEADERS
-    # controllers/global_mapper.h
     controllers/option_manager.h
     controllers/rig_global_mapper.h
     controllers/rotation_averager.h
     controllers/track_establishment.h
     controllers/track_retriangulation.h
-    # estimators/bundle_adjustment.h
     estimators/cost_function.h
-    # estimators/global_positioning.h
-    # estimators/global_rotation_averaging.h
     estimators/gravity_refinement.h
     estimators/relpose_estimation.h
     estimators/optimization_base.h
@@ -68,8 +59,8 @@ set(HEADERS
     processors/relpose_filter.h
     processors/track_filter.h
     processors/view_graph_manipulation.h
-    # scene/camera_rig.h
     scene/camera.h
+    scene/frame.h
     scene/image_pair.h
     scene/image.h
     scene/track.h
@@ -123,12 +114,6 @@ target_link_libraries(glomap_main glomap)
 
 set_target_properties(glomap_main PROPERTIES OUTPUT_NAME glomap)
 install(TARGETS glomap_main DESTINATION bin)
-
-# add_executable(test_rig
-#     test_rig_function.cc
-#     # test_relative_pose.cc
-# )
-# target_link_libraries(test_rig glomap)
 
 if(TESTS_ENABLED)
     add_executable(glomap_test
