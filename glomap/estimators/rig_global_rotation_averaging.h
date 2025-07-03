@@ -75,9 +75,6 @@ struct RigRotationEstimatorOptions {
 
 // TODO: Implement the stratified camera rotation estimation
 // TODO: Implement the HALF_NORM loss for IRLS
-// TODO: Implement the gravity as prior for rotation averaging
-// TODO: Implement the case when cam_from_rig are not calibrated
-// TODO: Implement the initialization from the maximum spanning tree
 class RigRotationEstimator {
  public:
   explicit RigRotationEstimator(const RigRotationEstimatorOptions& options)
@@ -172,14 +169,8 @@ class RigRotationEstimator {
   // The weights for the edges
   Eigen::ArrayXd weights_;
 
-  // std::unordered_map<image_t, int> image_id_to_camera_rig_index_;
-  // std::unordered_map<image_t, Rigid3d*> image_id_to_rig_from_world_;
-
-  // std::vector<std::vector<bool>> rig_is_registered_;
+  // Variable for bookkeeping the registration status of frames
   std::unordered_map<frame_t, bool> frame_is_registered_;
-
-  // A frame has gravity if at least one of its images has gravity
-  std::unordered_map<frame_t, bool> frame_has_gravity_;
 };
 
 }  // namespace glomap
