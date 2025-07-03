@@ -1,4 +1,4 @@
-#include "rig_global_rotation_averaging.h"
+#include "global_rotation_averaging.h"
 
 #include "glomap/estimators/rotation_initializer.h"
 #include "glomap/math/l1_solver.h"

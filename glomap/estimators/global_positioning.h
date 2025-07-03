@@ -1,28 +1,10 @@
 #pragma once
 
-// #include "glomap/estimators/global_positioning.h"
 #include "glomap/estimators/optimization_base.h"
 #include "glomap/scene/types_sfm.h"
 #include "glomap/types.h"
 
 namespace glomap {
-
-// struct RigGlobalPositionerOptions : public GlobalPositionerOptions {
-//   //   // Whether initialize the reconstruction randomly
-//   //   bool generate_random_positions = true;
-//   //   bool generate_random_points = true;
-//   //   bool generate_scales = true;  // Now using fixed 1 as initializaiton
-
-//   //   // Flags for which parameters to optimize
-//   //   bool optimize_positions = true;
-//   //   bool optimize_points = true;
-//   //   bool optimize_scales = true;
-
-//   //   // Constrain the minimum number of views per track
-//   //   int min_num_view_per_track = 3;
-
-//   RigGlobalPositionerOptions() : GlobalPositionerOptions() {}
-// };
 
 struct RigGlobalPositionerOptions : public OptimizationBaseOptions {
   // ONLY_POINTS is recommended

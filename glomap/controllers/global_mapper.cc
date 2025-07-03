@@ -1,4 +1,4 @@
-#include "rig_global_mapper.h"
+#include "global_mapper.h"
 
 #include "glomap/controllers/rotation_averager.h"
 #include "glomap/io/colmap_converter.h"
@@ -15,6 +15,7 @@
 
 namespace glomap {
 
+// TODO: Rig normalizaiton has not be done
 bool RigGlobalMapper::Solve(const colmap::Database& database,
                             ViewGraph& view_graph,
                             std::unordered_map<rig_t, Rig>& rigs,

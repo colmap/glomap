@@ -1,4 +1,4 @@
-#include "glomap/estimators/rig_global_positioning.h"
+#include "glomap/estimators/global_positioning.h"
 
 #include "glomap/estimators/cost_function.h"
 #include "glomap/math/rigid3d.h"

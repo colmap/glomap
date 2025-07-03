@@ -1,4 +1,4 @@
-#include "rig_bundle_adjustment.h"
+#include "bundle_adjustment.h"
 
 #include <colmap/estimators/cost_functions.h>
 #include <colmap/estimators/manifold.h>
