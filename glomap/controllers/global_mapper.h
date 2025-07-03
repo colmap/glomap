@@ -14,8 +14,6 @@ namespace glomap {
 
 struct GlobalMapperOptions {
   // Options for each component
-
-  // Options for each component
   ViewGraphCalibratorOptions opt_vgcalib;
   RelativePoseEstimationOptions opt_relpose;
   RotationEstimatorOptions opt_ra;

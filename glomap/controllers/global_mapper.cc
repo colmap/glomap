@@ -23,6 +23,20 @@ bool GlobalMapper::Solve(const colmap::Database& database,
                             std::unordered_map<frame_t, Frame>& frames,
                             std::unordered_map<image_t, Image>& images,
                             std::unordered_map<track_t, Track>& tracks) {
+  // Check out the rig scales. If the some rigs are with known sensor_from_rig, then do not normalize scale
+  bool normalize_scale = true;
+  for (auto &[rig_id, rig] : rigs) {
+    auto sensors = rig.Sensors();
+    for (auto &[sensor_id, sensor_from_rig]: sensors) {
+      if (sensor_from_rig.has_value()) {
+        normalize_scale = false;
+        break;
+      }
+    }
+    if (!normalize_scale)
+      break;
+  }
+  
   // 0. Preprocessing
   if (!options_.skip_preprocessing) {
     std::cout << "-------------------------------------" << std::endl;
@@ -91,8 +105,6 @@ bool GlobalMapper::Solve(const colmap::Database& database,
     // The first run is for filtering
     SolveRotationAveraging(view_graph, rigs, frames, images, options_.opt_ra);
 
-    // TODO: figure out a better way to keep connected components, taking into
-    // account the camera rig
     RelPoseFilter::FilterRotations(
         view_graph, images, options_.inlier_thresholds.max_rotation_error);
     if (view_graph.KeepLargestConnectedComponents(frames, images) == 0) {
@@ -173,8 +185,8 @@ bool GlobalMapper::Solve(const colmap::Database& database,
     // TODO: determine the logic for reconstruction normalization
     // Normalize the structure
     // If the camera rig is used, the structure do not need to be normalized
-    // if (rigs.size() == 0)
-    // NormalizeReconstruction(cameras, images, tracks);
+    NormalizeReconstruction(rigs, cameras, frames, images, tracks, !normalize_scale);
+    normalize_scale = false;
 
     run_timer.PrintSeconds();
   }
@@ -220,9 +232,9 @@ bool GlobalMapper::Solve(const colmap::Database& database,
         run_timer.PrintSeconds();
 
       // TODO: determine the logic for reconstruction normalization
-      // // Normalize the structure
-      // if (rigs.size() == 0)
-      //   NormalizeReconstruction(cameras, images, tracks);
+      // Normalize the structure
+      NormalizeReconstruction(rigs, cameras, frames, images, tracks, !normalize_scale);
+      normalize_scale = false;
 
       // 6.3. Filter tracks based on the estimation
       // For the filtering, in each round, the criteria for outlier is
@@ -312,8 +324,9 @@ bool GlobalMapper::Solve(const colmap::Database& database,
       run_timer.PrintSeconds();
     }
 
-    // // Normalize the structure
-    // if (rigs.size() == 0) NormalizeReconstruction(cameras, images, tracks);
+    // Normalize the structure
+    NormalizeReconstruction(rigs, cameras, frames, images, tracks, !normalize_scale);
+    normalize_scale = false;
 
     // Filter tracks based on the estimation
     UndistortImages(cameras, images, true);
