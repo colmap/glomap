@@ -74,21 +74,16 @@ class GlobalPositioner {
                     const std::unordered_map<rig_t, Rig>& rigs,
                     const std::unordered_map<track_t, Track>& tracks);
 
-  // void ExtractRigsFromWorld(const std::unordered_map<rig_t, Rig>& rigs,
-  //                           const std::unordered_map<frame_t, Frame>& frames,
-  //                           const std::unordered_map<image_t, Image>&
-  //                           images);
-
   // Initialize all cameras to be random.
   void InitializeRandomPositions(const ViewGraph& view_graph,
                                  std::unordered_map<frame_t, Frame>& frames,
                                  std::unordered_map<image_t, Image>& images,
                                  std::unordered_map<track_t, Track>& tracks);
 
-  // // Creates camera to camera constraints from relative translations. (3D)
-  // void AddCameraToCameraConstraints(const ViewGraph& view_graph,
-  //                                   std::unordered_map<image_t, Image>&
-  //                                   images);
+  // Creates camera to camera constraints from relative translations. (3D)
+  void AddCameraToCameraConstraints(const ViewGraph& view_graph,
+                                    std::unordered_map<image_t, Image>&
+                                    images);
 
   // Add tracks to the problem
   void AddPointToCameraConstraints(
@@ -135,29 +130,7 @@ class GlobalPositioner {
   // Auxiliary scale variables.
   std::vector<double> scales_;
 
-  // Reconstruction& reconstruction_;
-
-  // std::shared_ptr<ceres::Problem> problem_;
-  // std::unique_ptr<ceres::LossFunction> loss_function_;
-
-  // std::unordered_set<camera_t> camera_ids_;
-  // std::unordered_map<point3D_t, size_t> point3D_num_observations_;
-
-  // Mapping from images to camera rigs.
-  // std::unordered_map<image_t, CameraRig*> image_id_to_camera_rig_;
-  // std::unordered_map<image_t, int> image_id_to_camera_rig_index_;
-  // std::unordered_map<image_t, Rigid3d*> image_id_to_rig_from_world_;
-
-  // For each camera rig, the absolute camera rig poses for all snapshots.
-  // std::vector<std::vector<Rigid3d>> rigs_from_world_;
-
-  // // The Quaternions added to the problem, used to set the local
-  // // parameterization once after setting up the problem.
-  // std::unordered_set<double*> parameterized_cams_from_rig_rotations_;
-
   std::unordered_map<rig_t, double> rig_scales_;
-
-  // colmap::Reconstruction reconstruction_;
 };
 
 }  // namespace glomap
