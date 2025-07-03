@@ -121,7 +121,7 @@ bool SolveRotationAveraging(ViewGraph& view_graph,
     max_frame_id++;
 
     for (auto& [frame_id, frame] : frames) {
-      Frame frame_trivial();
+      Frame frame_trivial = Frame();
       frame_trivial.SetFrameId(frame_id);
       frame_trivial.SetRigId(frame.RigId());
       frame_trivial.SetRigPtr(rigs_trivial.find(frame.RigId()) !=
