@@ -1,4 +1,5 @@
 #include "glomap/controllers/global_mapper.h"
+
 #include "glomap/io/colmap_io.h"
 #include "glomap/types.h"
 
@@ -97,7 +98,8 @@ TEST(GlobalMapper, WithoutNoiseWithNonTrivialKnownRig) {
   synthetic_dataset_options.num_frames_per_rig = 7;
   synthetic_dataset_options.num_points3D = 50;
   synthetic_dataset_options.point2D_stddev = 0;
-  synthetic_dataset_options.sensor_from_rig_translation_stddev = 0.1;  // No noise
+  synthetic_dataset_options.sensor_from_rig_translation_stddev =
+      0.1;                                                         // No noise
   synthetic_dataset_options.sensor_from_rig_rotation_stddev = 5.;  // No noise
   colmap::SynthesizeDataset(
       synthetic_dataset_options, &gt_reconstruction, &database);
@@ -136,9 +138,10 @@ TEST(GlobalMapper, WithoutNoiseWithNonTrivialUnknownRig) {
   synthetic_dataset_options.num_frames_per_rig = 7;
   synthetic_dataset_options.num_points3D = 50;
   synthetic_dataset_options.point2D_stddev = 0;
-  synthetic_dataset_options.sensor_from_rig_translation_stddev = 0.1;  // No noise
+  synthetic_dataset_options.sensor_from_rig_translation_stddev =
+      0.1;                                                         // No noise
   synthetic_dataset_options.sensor_from_rig_rotation_stddev = 5.;  // No noise
-  
+
   colmap::SynthesizeDataset(
       synthetic_dataset_options, &gt_reconstruction, &database);
 

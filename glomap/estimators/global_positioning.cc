@@ -20,18 +20,17 @@ Eigen::Vector3d RandVector3d(std::mt19937& random_generator,
 
 }  // namespace
 
-GlobalPositioner::GlobalPositioner(
-    const GlobalPositionerOptions& options)
+GlobalPositioner::GlobalPositioner(const GlobalPositionerOptions& options)
     : options_(options) {
   random_generator_.seed(options_.seed);
 }
 
 bool GlobalPositioner::Solve(const ViewGraph& view_graph,
-                                std::unordered_map<rig_t, Rig>& rigs,
-                                std::unordered_map<camera_t, Camera>& cameras,
-                                std::unordered_map<frame_t, Frame>& frames,
-                                std::unordered_map<image_t, Image>& images,
-                                std::unordered_map<track_t, Track>& tracks) {
+                             std::unordered_map<rig_t, Rig>& rigs,
+                             std::unordered_map<camera_t, Camera>& cameras,
+                             std::unordered_map<frame_t, Frame>& frames,
+                             std::unordered_map<image_t, Image>& images,
+                             std::unordered_map<track_t, Track>& tracks) {
   if (rigs.size() > 1) {
     LOG(ERROR) << "Number of camera rigs = " << rigs.size();
   }
@@ -60,7 +59,8 @@ bool GlobalPositioner::Solve(const ViewGraph& view_graph,
   InitializeRandomPositions(view_graph, frames, images, tracks);
 
   // Add the camera to camera constraints to the problem.
-  // TODO: support the relative constraints with trivial frames to a non trivial frame
+  // TODO: support the relative constraints with trivial frames to a non trivial
+  // frame
   if (options_.constraint_type != GlobalPositionerOptions::ONLY_POINTS) {
     AddCameraToCameraConstraints(view_graph, images);
   }
@@ -114,7 +114,6 @@ void GlobalPositioner::SetupProblem(
                         return sum + track.second.observations.size();
                       }));
 
-
   // Initialize the rig scales to be 1.0.
   for (const auto& [rig_id, rig] : rigs) {
     rig_scales_.emplace(rig_id, 1.0);
@@ -167,11 +166,12 @@ void GlobalPositioner::InitializeRandomPositions(
 
 void GlobalPositioner::AddCameraToCameraConstraints(
     const ViewGraph& view_graph, std::unordered_map<image_t, Image>& images) {
-      // For cam to cam constraint, only support the trivial frames now
-  for (const auto & [image_id, image] : images) {
+  // For cam to cam constraint, only support the trivial frames now
+  for (const auto& [image_id, image] : images) {
     if (!image.is_registered) continue;
     if (!image.HasTrivialFrame()) {
-      LOG(ERROR) << "Now, only trivial frames are supported for the camera to camera constraints";
+      LOG(ERROR) << "Now, only trivial frames are supported for the camera to "
+                    "camera constraints";
     }
   }
 
@@ -207,7 +207,6 @@ void GlobalPositioner::AddCameraToCameraConstraints(
   VLOG(2) << problem_->NumResidualBlocks()
           << " camera to camera constraints were added to the position "
              "estimation problem.";
-
 }
 
 void GlobalPositioner::AddPointToCameraConstraints(
@@ -358,8 +357,8 @@ void GlobalPositioner::AddTrackToProblem(
         // the rig is not needed, as it would natrually be consistent with the
         // global one
         ceres::CostFunction* cost_function =
-            RigUnknownBATAPairwiseDirectionError::Create(translation,
-                                                         image.frame_ptr->RigFromWorld().rotation);
+            RigUnknownBATAPairwiseDirectionError::Create(
+                translation, image.frame_ptr->RigFromWorld().rotation);
 
         problem_->AddResidualBlock(
             cost_function,
@@ -577,7 +576,8 @@ void GlobalPositioner::ConvertResults(
     std::map<sensor_t, std::optional<Rigid3d>>& sensors = rig.Sensors();
     for (auto& [sensor_id, cam_from_rig] : sensors) {
       if (cam_from_rig.has_value()) {
-        if (problem_->HasParameterBlock(rig.SensorFromRig(sensor_id).translation.data())) {
+        if (problem_->HasParameterBlock(
+                rig.SensorFromRig(sensor_id).translation.data())) {
           cam_from_rig->translation =
               -(cam_from_rig->rotation * cam_from_rig->translation);
         } else {
@@ -588,7 +588,6 @@ void GlobalPositioner::ConvertResults(
       }
     }
   }
-
 }
 
 }  // namespace glomap

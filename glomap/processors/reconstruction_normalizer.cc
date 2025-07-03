@@ -61,13 +61,13 @@ colmap::Sim3d NormalizeReconstruction(
   colmap::Sim3d tform(
       scale, Eigen::Quaterniond::Identity(), -scale * mean_coord);
 
-  for (auto &[_, frame] : frames) {
+  for (auto& [_, frame] : frames) {
     Rigid3d& rig_from_world = frame.RigFromWorld();
     rig_from_world = TransformCameraWorld(tform, rig_from_world);
   }
 
-  for (auto &[_, rig] : rigs) {
-    for (auto &[sensor_id, sensor_from_rig_opt] : rig.Sensors()) {
+  for (auto& [_, rig] : rigs) {
+    for (auto& [sensor_id, sensor_from_rig_opt] : rig.Sensors()) {
       if (sensor_from_rig_opt.has_value()) {
         Rigid3d sensor_from_rig = sensor_from_rig_opt.value();
         sensor_from_rig.translation *= scale;

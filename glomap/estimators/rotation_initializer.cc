@@ -98,7 +98,8 @@ bool ConvertRotationsFromImageToRig(
       if (!image.is_registered) continue;
 
       if (image_id == frame_to_ref_image_id[frame_id]) {
-        rig_from_world_rotations.push_back(cam_from_worlds.at(image_id).rotation);
+        rig_from_world_rotations.push_back(
+            cam_from_worlds.at(image_id).rotation);
       } else {
         auto cam_from_rig_opt =
             rigs[camera_id_to_rig_id[image.camera_id]].MaybeSensorFromRig(

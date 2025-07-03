@@ -82,8 +82,7 @@ class GlobalPositioner {
 
   // Creates camera to camera constraints from relative translations. (3D)
   void AddCameraToCameraConstraints(const ViewGraph& view_graph,
-                                    std::unordered_map<image_t, Image>&
-                                    images);
+                                    std::unordered_map<image_t, Image>& images);
 
   // Add tracks to the problem
   void AddPointToCameraConstraints(

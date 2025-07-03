@@ -10,5 +10,5 @@ bool ConvertRotationsFromImageToRig(
     const std::unordered_map<image_t, Image>& images,
     std::unordered_map<rig_t, Rig>& rigs,
     std::unordered_map<frame_t, Frame>& frames);
-    
+
 }  // namespace glomap

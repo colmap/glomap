@@ -31,7 +31,6 @@ struct Image {
   frame_t frame_id;
   struct Frame* frame_ptr = nullptr;
 
-
   // Distorted feature points in pixels.
   std::vector<Eigen::Vector2d> features;
   // Normalized feature rays, can be obtained by calling UndistortImages.

@@ -17,26 +17,26 @@ namespace glomap {
 
 // TODO: Rig normalizaiton has not be done
 bool GlobalMapper::Solve(const colmap::Database& database,
-                            ViewGraph& view_graph,
-                            std::unordered_map<rig_t, Rig>& rigs,
-                            std::unordered_map<camera_t, Camera>& cameras,
-                            std::unordered_map<frame_t, Frame>& frames,
-                            std::unordered_map<image_t, Image>& images,
-                            std::unordered_map<track_t, Track>& tracks) {
-  // Check out the rig scales. If the some rigs are with known sensor_from_rig, then do not normalize scale
+                         ViewGraph& view_graph,
+                         std::unordered_map<rig_t, Rig>& rigs,
+                         std::unordered_map<camera_t, Camera>& cameras,
+                         std::unordered_map<frame_t, Frame>& frames,
+                         std::unordered_map<image_t, Image>& images,
+                         std::unordered_map<track_t, Track>& tracks) {
+  // Check out the rig scales. If the some rigs are with known sensor_from_rig,
+  // then do not normalize scale
   bool normalize_scale = true;
-  for (auto &[rig_id, rig] : rigs) {
+  for (auto& [rig_id, rig] : rigs) {
     auto sensors = rig.Sensors();
-    for (auto &[sensor_id, sensor_from_rig]: sensors) {
+    for (auto& [sensor_id, sensor_from_rig] : sensors) {
       if (sensor_from_rig.has_value()) {
         normalize_scale = false;
         break;
       }
     }
-    if (!normalize_scale)
-      break;
+    if (!normalize_scale) break;
   }
-  
+
   // 0. Preprocessing
   if (!options_.skip_preprocessing) {
     std::cout << "-------------------------------------" << std::endl;
@@ -185,7 +185,8 @@ bool GlobalMapper::Solve(const colmap::Database& database,
     // TODO: determine the logic for reconstruction normalization
     // Normalize the structure
     // If the camera rig is used, the structure do not need to be normalized
-    NormalizeReconstruction(rigs, cameras, frames, images, tracks, !normalize_scale);
+    NormalizeReconstruction(
+        rigs, cameras, frames, images, tracks, !normalize_scale);
     normalize_scale = false;
 
     run_timer.PrintSeconds();
@@ -204,8 +205,7 @@ bool GlobalMapper::Solve(const colmap::Database& database,
     for (int ite = 0; ite < options_.num_iteration_bundle_adjustment; ite++) {
       BundleAdjuster ba_engine(options_.opt_ba);
 
-      BundleAdjusterOptions& ba_engine_options_inner =
-          ba_engine.GetOptions();
+      BundleAdjusterOptions& ba_engine_options_inner = ba_engine.GetOptions();
 
       // Staged bundle adjustment
       // 6.1. First stage: optimize positions only
@@ -233,7 +233,8 @@ bool GlobalMapper::Solve(const colmap::Database& database,
 
       // TODO: determine the logic for reconstruction normalization
       // Normalize the structure
-      NormalizeReconstruction(rigs, cameras, frames, images, tracks, !normalize_scale);
+      NormalizeReconstruction(
+          rigs, cameras, frames, images, tracks, !normalize_scale);
       normalize_scale = false;
 
       // 6.3. Filter tracks based on the estimation
@@ -325,7 +326,8 @@ bool GlobalMapper::Solve(const colmap::Database& database,
     }
 
     // Normalize the structure
-    NormalizeReconstruction(rigs, cameras, frames, images, tracks, !normalize_scale);
+    NormalizeReconstruction(
+        rigs, cameras, frames, images, tracks, !normalize_scale);
     normalize_scale = false;
 
     // Filter tracks based on the estimation

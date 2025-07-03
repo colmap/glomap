@@ -1,5 +1,6 @@
-#include "glomap/controllers/option_manager.h"
 #include "glomap/controllers/global_mapper.h"
+
+#include "glomap/controllers/option_manager.h"
 #include "glomap/io/colmap_io.h"
 #include "glomap/io/pose_io.h"
 #include "glomap/types.h"

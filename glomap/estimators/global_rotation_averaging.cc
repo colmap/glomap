@@ -551,10 +551,9 @@ bool RotationEstimator::SolveL1Regression(
   return true;
 }
 
-bool RotationEstimator::SolveIRLS(
-    const ViewGraph& view_graph,
-    std::unordered_map<frame_t, Frame>& frames,
-    std::unordered_map<image_t, Image>& images) {
+bool RotationEstimator::SolveIRLS(const ViewGraph& view_graph,
+                                  std::unordered_map<frame_t, Frame>& frames,
+                                  std::unordered_map<image_t, Image>& images) {
   // TODO: Determine what is the best solver for this part
   Eigen::CholmodSupernodalLLT<Eigen::SparseMatrix<double>> llt;
 
@@ -598,8 +597,7 @@ bool RotationEstimator::SolveIRLS(
       if (options_.weight_type == RotationEstimatorOptions::GEMAN_MCCLURE) {
         double tmp = err_squared + sigma * sigma;
         w = sigma * sigma / (tmp * tmp);
-      } else if (options_.weight_type ==
-                 RotationEstimatorOptions::HALF_NORM) {
+      } else if (options_.weight_type == RotationEstimatorOptions::HALF_NORM) {
         w = std::pow(err_squared, (0.5 - 2) / 2);
       }
 
@@ -815,7 +813,6 @@ void RotationEstimator::ConvertResults(
               image_id_to_idx_[image_id_begin], 3))),
           Eigen::Vector3d::Zero()));
     }
-
   }
 
   // add the estimated

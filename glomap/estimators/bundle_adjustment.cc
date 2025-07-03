@@ -9,10 +9,10 @@
 namespace glomap {
 
 bool BundleAdjuster::Solve(std::unordered_map<rig_t, Rig>& rigs,
-                              std::unordered_map<camera_t, Camera>& cameras,
-                              std::unordered_map<frame_t, Frame>& frames,
-                              std::unordered_map<image_t, Image>& images,
-                              std::unordered_map<track_t, Track>& tracks) {
+                           std::unordered_map<camera_t, Camera>& cameras,
+                           std::unordered_map<frame_t, Frame>& frames,
+                           std::unordered_map<image_t, Image>& images,
+                           std::unordered_map<track_t, Track>& tracks) {
   // Check if the input data is valid
   if (images.empty()) {
     LOG(ERROR) << "Number of images = " << images.size();
@@ -101,7 +101,6 @@ bool BundleAdjuster::Solve(std::unordered_map<rig_t, Rig>& rigs,
     LOG(INFO) << summary.FullReport();
   else
     LOG(INFO) << summary.BriefReport();
-
 
   return summary.IsSolutionUsable();
 }
@@ -216,7 +215,6 @@ void BundleAdjuster::AddCamerasAndPointsToParameterGroups(
           frame.RigFromWorld().rotation.coeffs().data(), 1);
     }
   }
-
 
   // Add camera parameters to group 1.
   for (auto& [camera_id, camera] : cameras) {
