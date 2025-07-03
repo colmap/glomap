@@ -121,14 +121,13 @@ bool SolveRotationAveraging(ViewGraph& view_graph,
     max_frame_id++;
 
     for (auto& [frame_id, frame] : frames) {
-      Frame frame_trivial;
+      Frame frame_trivial();
       frame_trivial.SetFrameId(frame_id);
       frame_trivial.SetRigId(frame.RigId());
       frame_trivial.SetRigPtr(rigs_trivial.find(frame.RigId()) !=
                                       rigs_trivial.end()
                                   ? &rigs_trivial[frame.RigId()]
                                   : nullptr);
-      // frame_trivial.SetRigFromWorld(cam_from_world);
       frames_trivial[frame_id] = frame_trivial;
 
       for (const auto& data_id : frame.DataIds()) {
