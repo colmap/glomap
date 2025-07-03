@@ -37,7 +37,7 @@ message(STATUS "Configuring PoseLib... done")
 
 FetchContent_Declare(COLMAP
     GIT_REPOSITORY    https://github.com/colmap/colmap.git
-    GIT_TAG           e175fb1a02412d25fe81e2f5348e914e89fa3f9c
+    GIT_TAG           e7e89eb0c82eccc00b78086e419f4def4e5860ae
     EXCLUDE_FROM_ALL
 )
 message(STATUS "Configuring COLMAP...")
