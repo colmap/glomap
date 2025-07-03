@@ -2,6 +2,7 @@
 // This files contains all the necessary includes for sfm
 // Types defined by GLOMAP
 #include "glomap/scene/camera.h"
+#include "glomap/scene/frame.h"
 #include "glomap/scene/image.h"
 #include "glomap/scene/track.h"
 #include "glomap/scene/types.h"

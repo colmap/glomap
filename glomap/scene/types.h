@@ -53,9 +53,6 @@ using colmap::data_t;
 // Rig
 using colmap::Rig;
 
-// Frame
-using colmap::Frame;
-
 const image_t kMaxNumImages = colmap::Database::kMaxNumImages;
 const image_pair_t kInvalidImagePairId = -1;
 

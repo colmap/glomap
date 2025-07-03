@@ -1,28 +1,11 @@
 #pragma once
 
 #include "glomap/math/gravity.h"
+#include "glomap/scene/frame.h"
 #include "glomap/scene/types.h"
 #include "glomap/types.h"
 
 namespace glomap {
-
-struct GravityInfo {
- public:
-  // Whether the gravity information is available
-  bool has_gravity = false;
-
-  const Eigen::Matrix3d& GetRAlign() const { return R_align; }
-
-  inline void SetGravity(const Eigen::Vector3d& g);
-  inline Eigen::Vector3d GetGravity() const { return gravity; };
-
- private:
-  // Direction of the gravity
-  Eigen::Vector3d gravity;
-
-  // Alignment matrix, the second column is the gravity direction
-  Eigen::Matrix3d R_align;
-};
 
 struct Image {
   Image() : image_id(-1), file_name("") {}
@@ -48,8 +31,6 @@ struct Image {
   frame_t frame_id;
   struct Frame* frame_ptr = nullptr;
 
-  // Gravity information
-  GravityInfo gravity_info;
 
   // Distorted feature points in pixels.
   std::vector<Eigen::Vector2d> features;
@@ -64,6 +45,11 @@ struct Image {
 
   // Check if cam_from_world needs to be composed with sensor_from_rig pose.
   inline bool HasTrivialFrame() const;
+
+  // Easy way to check if the image has gravity information
+  inline bool HasGravity() const;
+
+  inline Eigen::Matrix3d GetRAlign() const;
 
   inline data_t DataId() const;
 };
@@ -83,14 +69,31 @@ bool Image::HasTrivialFrame() const {
       sensor_t(SensorType::CAMERA, camera_id));
 }
 
-data_t Image::DataId() const {
-  return data_t(sensor_t(SensorType::CAMERA, camera_id), image_id);
+bool Image::HasGravity() const {
+  return frame_ptr->HasGravity() &&
+         (HasTrivialFrame() ||
+          frame_ptr->RigPtr()
+              ->MaybeSensorFromRig(sensor_t(SensorType::CAMERA, camera_id))
+              .has_value());
 }
 
-void GravityInfo::SetGravity(const Eigen::Vector3d& g) {
-  gravity = g;
-  R_align = GetAlignRot(g);
-  has_gravity = true;
+Eigen::Matrix3d Image::GetRAlign() const {
+  if (HasGravity()) {
+    if (HasTrivialFrame()) {
+      return frame_ptr->gravity_info.GetRAlign();
+    } else {
+      return frame_ptr->RigPtr()
+                 ->SensorFromRig(sensor_t(SensorType::CAMERA, camera_id))
+                 .rotation.toRotationMatrix() *
+             frame_ptr->gravity_info.GetRAlign();
+    }
+  } else {
+    return Eigen::Matrix3d::Identity();
+  }
+}
+
+data_t Image::DataId() const {
+  return data_t(sensor_t(SensorType::CAMERA, camera_id), image_id);
 }
 
 }  // namespace glomap
