@@ -97,8 +97,7 @@ bool ConvertRotationsFromImageToRig(
       if (!image.is_registered) continue;
 
       // For images that not estimated directly, we need to skip it
-      if (cam_from_worlds.find(image_id) == cam_from_worlds.end())
-        continue;
+      if (cam_from_worlds.find(image_id) == cam_from_worlds.end()) continue;
 
       if (image_id == frame_to_ref_image_id[frame_id]) {
         rig_from_world_rotations.push_back(
