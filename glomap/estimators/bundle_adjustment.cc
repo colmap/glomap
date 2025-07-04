@@ -208,6 +208,7 @@ void BundleAdjuster::AddCamerasAndPointsToParameterGroups(
 
   // Add frame parameters to group 1.
   for (auto& [frame_id, frame] : frames) {
+    if (!frame.HasPose()) continue;
     if (problem_->HasParameterBlock(frame.RigFromWorld().translation.data())) {
       parameter_ordering->AddElementToGroup(
           frame.RigFromWorld().translation.data(), 1);
@@ -233,6 +234,7 @@ void BundleAdjuster::ParameterizeVariables(
   // if desired FUTURE: Consider fix the scale of the reconstruction
   int counter = 0;
   for (auto& [frame_id, frame] : frames) {
+    if (!frame.HasPose()) continue;
     if (problem_->HasParameterBlock(
             frame.RigFromWorld().rotation.coeffs().data())) {
       colmap::SetQuaternionManifold(

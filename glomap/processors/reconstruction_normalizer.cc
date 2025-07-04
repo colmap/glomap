@@ -62,6 +62,7 @@ colmap::Sim3d NormalizeReconstruction(
       scale, Eigen::Quaterniond::Identity(), -scale * mean_coord);
 
   for (auto& [_, frame] : frames) {
+    if (!frame.HasPose()) continue;
     Rigid3d& rig_from_world = frame.RigFromWorld();
     rig_from_world = TransformCameraWorld(tform, rig_from_world);
   }

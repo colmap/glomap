@@ -12,10 +12,7 @@ void ConvertGlomapToColmapImage(const Image& image,
   image_colmap.SetImageId(image.image_id);
   image_colmap.SetCameraId(image.camera_id);
   image_colmap.SetName(image.file_name);
-  if (image.is_registered) {
-    image_colmap.SetFrameId(image.frame_id);
-    // image_colmap.SetFramePtr(image.frame_ptr);
-  }
+  image_colmap.SetFrameId(image.frame_id);
 
   if (keep_points) {
     image_colmap.SetPoints2D(image.features);
@@ -41,9 +38,6 @@ void ConvertGlomapToColmap(const std::unordered_map<rig_t, Rig>& rigs,
   // Add rigs
   for (const auto& [rig_id, rig] : rigs) {
     reconstruction.AddRig(rig);
-    // std::cout << "Original address of rig: " << &rig << std::endl;
-    // std::cout << "Address of rig in reconstruction: "
-    //           << &reconstruction.Rig(rig_id) << std::endl;
   }
 
   // Add frames
@@ -109,10 +103,6 @@ void ConvertGlomapToColmap(const std::unordered_map<rig_t, Rig>& rigs,
 
   // Add images
   for (const auto& [image_id, image] : images) {
-    if (!image.is_registered ||
-        (cluster_id != -1 && image.cluster_id != cluster_id))
-      continue;
-
     colmap::Image image_colmap;
     bool keep_points =
         image_to_point3D.find(image_id) != image_to_point3D.end();
@@ -127,6 +117,23 @@ void ConvertGlomapToColmap(const std::unordered_map<rig_t, Rig>& rigs,
     }
 
     reconstruction.AddImage(std::move(image_colmap));
+  }
+
+  // Deregister frames
+  for (auto& [frame_id, frame] : frames) {
+    // Go through the images. If all images are not registered, then
+    // the frame is not registered.
+    bool is_registered = false;
+    for (const auto& data_id : frame.DataIds()) {
+      if (!(images.find(data_id.id) == images.end() ||
+            !images.at(data_id.id).is_registered ||
+            (cluster_id != -1 &&
+             images.at(data_id.id).cluster_id != cluster_id))) {
+        is_registered = true;
+        break;
+      }
+    }
+    if (!is_registered) reconstruction.DeRegisterFrame(frame_id);
   }
 
   reconstruction.UpdatePoint3DErrors();
@@ -167,11 +174,8 @@ void ConvertColmapToGlomap(const colmap::Reconstruction& reconstruction,
                                                   image_colmap.Name())));
 
     Image& image = ite.first->second;
-    image.is_registered = image_colmap.HasPose();
-    // if (image_colmap.HasPose()) {
-    //   image.cam_from_world =
-    //   static_cast<Rigid3d>(image_colmap.CamFromWorld());
-    // }
+    image.is_registered = image_colmap.FramePtr() != nullptr &&
+                          image_colmap.FramePtr()->HasPose();
     image.frame_id = image_colmap.FrameId();
     image.frame_ptr = frames.find(image.frame_id) != frames.end()
                           ? &frames[image.frame_id]
@@ -214,8 +218,8 @@ void ConvertColmapPoints3DToGlomapTracks(
   }
 }
 
-// For ease of debug, go through the database twice: first extract the available
-// pairs, then read matches from pairs.
+// For ease of debug, go through the database twice: first extract the
+// available pairs, then read matches from pairs.
 void ConvertDatabaseToGlomap(const colmap::Database& database,
                              ViewGraph& view_graph,
                              std::unordered_map<rig_t, Rig>& rigs,
@@ -346,8 +350,8 @@ void ConvertDatabaseToGlomap(const colmap::Database& database,
   std::vector<std::pair<colmap::image_pair_t, colmap::FeatureMatches>>
       all_matches = database.ReadAllMatches();
 
-  // Go through all matches and store the matche with enough observations in the
-  // view_graph
+  // Go through all matches and store the matche with enough observations in
+  // the view_graph
   size_t invalid_count = 0;
   std::unordered_map<image_pair_t, ImagePair>& image_pairs =
       view_graph.image_pairs;

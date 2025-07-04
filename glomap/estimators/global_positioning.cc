@@ -401,6 +401,7 @@ void GlobalPositioner::AddCamerasAndPointsToParameterGroups(
   }
 
   for (auto& [frame_id, frame] : frames) {
+    if (!frame.HasPose()) continue;
     if (problem_->HasParameterBlock(frame.RigFromWorld().translation.data())) {
       parameter_ordering->AddElementToGroup(
           frame.RigFromWorld().translation.data(), group_id);
@@ -457,6 +458,7 @@ void GlobalPositioner::ParameterizeVariables(
   // If do not optimize the positions, set the camera positions to be constant
   if (!options_.optimize_positions) {
     for (auto& [frame_id, frame] : frames) {
+      if (!frame.HasPose()) continue;
       if (problem_->HasParameterBlock(frame.RigFromWorld().translation.data()))
         problem_->SetParameterBlockConstant(
             frame.RigFromWorld().translation.data());
