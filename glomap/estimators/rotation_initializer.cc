@@ -75,7 +75,6 @@ bool ConvertRotationsFromImageToRig(
   nan_translation.setConstant(std::numeric_limits<double>::quiet_NaN());
 
   // Use the average of the rotations to set the rotation from the camera
-  // std::unordered_map<camera_t, Eigen::Quaterniond> cam_from_ref_cam_rigs;
   for (auto& [camera_id, cam_from_ref_cam_rotations_i] :
        cam_from_ref_cam_rotations) {
     const std::vector<double> weights(cam_from_ref_cam_rotations_i.size(), 1.0);
@@ -96,6 +95,10 @@ bool ConvertRotationsFromImageToRig(
       if (images.find(image_id) == images.end()) continue;
       const auto& image = images.at(image_id);
       if (!image.is_registered) continue;
+
+      // For images that not estimated directly, we need to skip it
+      if (cam_from_worlds.find(image_id) == cam_from_worlds.end())
+        continue;
 
       if (image_id == frame_to_ref_image_id[frame_id]) {
         rig_from_world_rotations.push_back(
