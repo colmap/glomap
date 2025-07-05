@@ -64,7 +64,7 @@ bool GlobalMapper::Solve(const colmap::Database& database,
   }
 
   // 2. Run relative pose estimation
-  //   TODO: Use the rigged relative pose estimation
+  //   TODO: Use generalized relative pose estimation for rigs.
   if (!options_.skip_relative_pose_estimation) {
     std::cout << "-------------------------------------" << std::endl;
     std::cout << "Running relative pose estimation ..." << std::endl;
