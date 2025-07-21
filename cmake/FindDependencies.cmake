@@ -7,6 +7,7 @@ if(NOT TARGET SuiteSparse::CHOLMOD)
 endif()
 find_package(Ceres REQUIRED COMPONENTS SuiteSparse)
 find_package(Boost REQUIRED)
+find_package(OpenMP REQUIRED COMPONENTS C CXX)
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     find_package(Glog REQUIRED)

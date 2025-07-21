@@ -87,6 +87,7 @@ target_link_libraries(
         Eigen3::Eigen
         Ceres::ceres
         SuiteSparse::CHOLMOD
+        OpenMP::OpenMP_CXX
         ${BOOST_LIBRARIES}
 )
 target_include_directories(glomap PUBLIC ..)
