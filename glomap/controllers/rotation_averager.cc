@@ -64,7 +64,6 @@ bool SolveRotationAveraging(ViewGraph& view_graph,
   // By default, run trivial rotation averaging for rigged cameras if some
   // cam_from_rig are not estimated Check if there are rigs with non-trivial
   // cam_from_rig
-  // bool run_trivial_ra = false;
   std::unordered_set<camera_t> camera_without_rig;
   rig_t max_rig_id = 0;
   for (const auto& [rig_id, rig] : rigs) {
