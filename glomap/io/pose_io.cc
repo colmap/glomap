@@ -187,8 +187,9 @@ void WriteGlobalRotation(const std::string& file_path,
     const auto image = images.at(image_id);
     if (!image.is_registered) continue;
     file << image.file_name;
+    Rigid3d cam_from_world = image.CamFromWorld();
     for (int i = 0; i < 4; i++) {
-      file << " " << image.CamFromWorld().rotation.coeffs()[(i + 3) % 4];
+      file << " " << cam_from_world.rotation.coeffs()[(i + 3) % 4];
     }
     file << "\n";
   }
