@@ -130,7 +130,8 @@ void ReadRelWeight(const std::string& file_path,
   LOG(INFO) << counter << " weights are used are loaded" << std::endl;
 }
 
-// TODO: now, it does not care about the frames
+// TODO: now, we only store 1 single gravity per rig.
+// for ease of implementation, we only store from the image with trivial frame
 void ReadGravity(const std::string& gravity_path,
                  std::unordered_map<image_t, Image>& images) {
   std::unordered_map<std::string, image_t> name_idx;
