@@ -30,9 +30,9 @@ bool RetriangulateTracks(const TriangulatorOptions& options,
   std::vector<image_t> image_ids_notconnected;
   for (auto& image : images) {
     if (!database_cache->ExistsImage(image.first) &&
-        image.second.is_registered) {
-      image.second.is_registered = false;
+        image.second.IsRegistered()) {
       image_ids_notconnected.push_back(image.first);
+      image.second.frame_ptr->is_registered = false;
     }
   }
 
@@ -123,7 +123,7 @@ bool RetriangulateTracks(const TriangulatorOptions& options,
 
   // Add the removed images to the reconstruction
   for (const auto& image_id : image_ids_notconnected) {
-    images[image_id].is_registered = true;
+    images[image_id].frame_ptr->is_registered = true;
     colmap::Image image_colmap;
     ConvertGlomapToColmapImage(images[image_id], image_colmap, true);
     reconstruction_ptr->AddImage(std::move(image_colmap));

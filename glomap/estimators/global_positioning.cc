@@ -138,7 +138,7 @@ void GlobalPositioner::InitializeRandomPositions(
     for (const auto& observation : tracks[track_id].observations) {
       if (images.find(observation.first) == images.end()) continue;
       Image& image = images[observation.first];
-      if (!image.is_registered) continue;
+      if (!image.IsRegistered()) continue;
       constrained_positions.insert(images[observation.first].frame_id);
     }
   }
@@ -168,7 +168,7 @@ void GlobalPositioner::AddCameraToCameraConstraints(
     const ViewGraph& view_graph, std::unordered_map<image_t, Image>& images) {
   // For cam to cam constraint, only support the trivial frames now
   for (const auto& [image_id, image] : images) {
-    if (!image.is_registered) continue;
+    if (!image.IsRegistered()) continue;
     if (!image.HasTrivialFrame()) {
       LOG(ERROR) << "Now, only trivial frames are supported for the camera to "
                     "camera constraints";
@@ -279,7 +279,7 @@ void GlobalPositioner::AddTrackToProblem(
     if (images.find(observation.first) == images.end()) continue;
 
     Image& image = images[observation.first];
-    if (!image.is_registered) continue;
+    if (!image.IsRegistered()) continue;
 
     const Eigen::Vector3d& feature_undist =
         image.features_undist[observation.second];

@@ -11,11 +11,13 @@ struct ViewGraphManipulater {
   };
 
   static image_pair_t SparsifyGraph(ViewGraph& view_graph,
+                                    std::unordered_map<frame_t, Frame>& frames,
                                     std::unordered_map<image_t, Image>& images,
                                     int expected_degree = 50);
 
   static image_t EstablishStrongClusters(
       ViewGraph& view_graph,
+      std::unordered_map<frame_t, Frame>& frames,
       std::unordered_map<image_t, Image>& images,
       StrongClusterCriteria criteria = INLIER_NUM,
       double min_thres = 100,  // require strong edges

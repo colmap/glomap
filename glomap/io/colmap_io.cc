@@ -17,9 +17,9 @@ void WriteGlomapReconstruction(
   // Check whether reconstruction pruning is applied.
   // If so, export seperate reconstruction
   int largest_component_num = -1;
-  for (const auto& [image_id, image] : images) {
-    if (image.cluster_id > largest_component_num)
-      largest_component_num = image.cluster_id;
+  for (const auto& [frame_id, frame] : frames) {
+    if (frame.cluster_id > largest_component_num)
+      largest_component_num = frame.cluster_id;
   }
   // If it is not seperated into several clusters, then output them as whole
   if (largest_component_num == -1) {

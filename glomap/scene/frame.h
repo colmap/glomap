@@ -30,6 +30,10 @@ struct Frame : public colmap::Frame {
   Frame() : colmap::Frame() {}
   Frame(const colmap::Frame& frame) : colmap::Frame(frame) {}
 
+  // whether the frame is within the largest connected component
+  bool is_registered = false;
+  int cluster_id = -1;
+
   // Gravity information
   GravityInfo gravity_info;
 

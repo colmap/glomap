@@ -20,11 +20,6 @@ struct Image {
   // The id of the camera
   camera_t camera_id;
 
-  // whether the image is within the largest connected component
-  // TODO: change this potentially to be automatically determined by the
-  // frame info
-  bool is_registered = false;
-  int cluster_id = -1;
 
   // Frame info
   // By default, set it to be invalid index
@@ -41,6 +36,11 @@ struct Image {
 
   // Methods to access the camera pose
   inline Rigid3d CamFromWorld() const;
+
+  // Check whether the frame is registered
+  inline bool IsRegistered() const;
+
+  inline int ClusterId() const;
 
   // Check if cam_from_world needs to be composed with sensor_from_rig pose.
   inline bool HasTrivialFrame() const;
@@ -61,6 +61,14 @@ Eigen::Vector3d Image::Center() const {
 Rigid3d Image::CamFromWorld() const {
   return THROW_CHECK_NOTNULL(frame_ptr)->SensorFromWorld(
       sensor_t(SensorType::CAMERA, camera_id));
+}
+
+bool Image::IsRegistered() const {
+  return frame_ptr != nullptr && frame_ptr->is_registered;
+}
+
+int Image::ClusterId() const {
+  return frame_ptr != nullptr ? frame_ptr->cluster_id : -1;
 }
 
 bool Image::HasTrivialFrame() const {

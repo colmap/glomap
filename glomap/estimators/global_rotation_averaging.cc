@@ -95,7 +95,7 @@ void RotationEstimator::InitializeFromMaximumSpanningTree(
   // Establish child info
   std::unordered_map<image_t, std::vector<image_t>> children;
   for (const auto& [image_id, image] : images) {
-    if (!image.is_registered) continue;
+    if (!image.IsRegistered()) continue;
     children.insert(std::make_pair(image_id, std::vector<image_t>()));
   }
   for (auto& [child, parent] : parents) {
@@ -157,14 +157,11 @@ void RotationEstimator::SetupLinearSystem(
   image_t num_dof = 0;
   std::unordered_map<camera_t, rig_t> camera_id_to_rig_id;
   for (auto& [frame_id, frame] : frames) {
-    frame_is_registered_[frame_id] = false;
-
     for (const auto& data_id : frame.ImageIds()) {
       image_t image_id = data_id.id;
       if (images.find(image_id) == images.end()) continue;
       const auto& image = images.at(image_id);
-      if (!image.is_registered) continue;
-      frame_is_registered_[frame_id] = true;
+      if (!image.IsRegistered()) continue;
       camera_id_to_rig_id[image.camera_id] = frame.RigId();
     }
   }
@@ -192,7 +189,7 @@ void RotationEstimator::SetupLinearSystem(
 
   for (auto& [frame_id, frame] : frames) {
     // Skip the unregistered frames
-    if (frame_is_registered_[frame_id] == false) continue;
+    if (frames[frame_id].is_registered == false) continue;
     frame_id_to_idx_[frame_id] = num_dof;
     image_t image_id_ref = -1;
     for (auto& data_id : frame.ImageIds()) {
@@ -247,7 +244,7 @@ void RotationEstimator::SetupLinearSystem(
   // If no cameras are set to be fixed, then take the first camera
   if (fixed_camera_id_ == -1) {
     for (auto& [frame_id, frame] : frames) {
-      if (frame_is_registered_[frame_id] == false) continue;
+      if (frames[frame_id].is_registered == false) continue;
 
       fixed_camera_id_ = frame.DataIds().begin()->id;
       fixed_camera_rotation_ = Rigid3dToAngleAxis(frame.RigFromWorld());
@@ -363,8 +360,8 @@ void RotationEstimator::SetupLinearSystem(
     frame_t frame_id1 = images[image_id1].frame_id;
     frame_t frame_id2 = images[image_id2].frame_id;
 
-    if (frame_is_registered_[frame_id1] == false ||
-        frame_is_registered_[frame_id2] == false) {
+    if (frames[frame_id1].is_registered == false ||
+        frames[frame_id2].is_registered == false) {
       continue;  // skip unregistered frames
     }
 
@@ -461,20 +458,6 @@ void RotationEstimator::SetupLinearSystem(
     curr_pos += 3;
   }
 
-  // For rig case, we only keep one representative of the rig, so set all
-  // other images to be not registered
-  for (auto& [image_id, image] : images) {
-    image.is_registered = false;
-  }
-
-  for (auto& [frame_id, frame] : frames) {
-    if (frame_is_registered_[frame_id]) {
-      // Set the first image in the frame to be registered
-      image_t image_id_begin = frame.DataIds().begin()->id;
-      images[image_id_begin].is_registered = true;
-    }
-  }
-
   sparse_matrix_.resize(curr_pos, num_dof);
   sparse_matrix_.setFromTriplets(coeffs.begin(), coeffs.end());
 
@@ -536,7 +519,7 @@ bool RotationEstimator::SolveL1Regression(
 
     // Check the residual. If it is small, stop
     // TODO: strange bug for the L1 solver: update norm state constant
-    if (ComputeAverageStepSize(images) <
+    if (ComputeAverageStepSize(frames) <
             options_.l1_step_convergence_threshold ||
         std::abs(last_norm - curr_norm) < EPS) {
       if (std::abs(last_norm - curr_norm) < EPS)
@@ -627,7 +610,7 @@ bool RotationEstimator::SolveIRLS(const ViewGraph& view_graph,
     ComputeResiduals(view_graph, images);
 
     // Check the residual. If it is small, stop
-    if (ComputeAverageStepSize(images) <
+    if (ComputeAverageStepSize(frames) <
         options_.irls_step_convergence_threshold) {
       iteration++;
       break;
@@ -642,9 +625,8 @@ void RotationEstimator::UpdateGlobalRotations(
     const ViewGraph& view_graph,
     std::unordered_map<frame_t, Frame>& frames,
     std::unordered_map<image_t, Image>& images) {
-  // for (const auto& [image_id, image] : images) {
   for (auto& [frame_id, frame] : frames) {
-    if (frame_is_registered_[frame_id] == false) continue;
+    if (frames[frame_id].is_registered == false) continue;
     image_t vector_idx = frame_id_to_idx_[frame_id];
     if (!(options_.use_gravity && frame.HasGravity())) {
       Eigen::Matrix3d R_ori =
@@ -663,7 +645,7 @@ void RotationEstimator::UpdateGlobalRotations(
     cam_from_rigs[camera_id] = std::vector<Eigen::Matrix3d>();
   }
   for (auto& [frame_id, frame] : frames) {
-    if (frame_is_registered_[frame_id] == false) continue;
+    if (frames.at(frame_id).is_registered == false) continue;
     // Update the rig from world for the frame
     Eigen::Matrix3d R_ori;
     if (!options_.use_gravity || !frame.HasGravity()) {
@@ -772,19 +754,19 @@ void RotationEstimator::ComputeResiduals(
 }
 
 double RotationEstimator::ComputeAverageStepSize(
-    const std::unordered_map<image_t, Image>& images) {
+    const std::unordered_map<frame_t, Frame>& frames) {
   double total_update = 0;
-  for (const auto& [image_id, image] : images) {
-    if (!image.is_registered) continue;
+  for (const auto& [frame_id, frame] : frames) {
+    if (frames.at(frame_id).is_registered) continue;
 
-    if (options_.use_gravity && image.HasGravity()) {
-      total_update += std::abs(tangent_space_step_[image_id_to_idx_[image_id]]);
+    if (options_.use_gravity && frame.HasGravity()) {
+      total_update += std::abs(tangent_space_step_[frame_id_to_idx_[frame_id]]);
     } else {
       total_update +=
-          tangent_space_step_.segment(image_id_to_idx_[image_id], 3).norm();
+          tangent_space_step_.segment(frame_id_to_idx_[frame_id], 3).norm();
     }
   }
-  return total_update / image_id_to_idx_.size();
+  return total_update / frame_id_to_idx_.size();
 }
 
 void RotationEstimator::ConvertResults(
@@ -792,7 +774,7 @@ void RotationEstimator::ConvertResults(
     std::unordered_map<frame_t, Frame>& frames,
     std::unordered_map<image_t, Image>& images) {
   for (auto& [frame_id, frame] : frames) {
-    if (frame_is_registered_[frame_id] == false) continue;
+    if (frames[frame_id].is_registered == false) continue;
 
     image_t image_id_begin = frame.DataIds().begin()->id;
 

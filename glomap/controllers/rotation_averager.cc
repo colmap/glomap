@@ -29,7 +29,7 @@ bool SolveRotationAveraging(ViewGraph& view_graph,
       Image& image1 = images[image_id1];
       Image& image2 = images[image_id2];
 
-      if (!image1.is_registered || !image2.is_registered) continue;
+      if (!image1.IsRegistered() || !image2.IsRegistered()) continue;
 
       total_pairs++;
 
@@ -134,10 +134,9 @@ bool SolveRotationAveraging(ViewGraph& view_graph,
         image_t image_id = data_id.id;
         if (images.find(image_id) == images.end()) continue;
         const auto& image = images.at(image_id);
-        if (!image.is_registered) continue;
+        if (!image.IsRegistered()) continue;
         images_trivial.insert(std::make_pair(
             image_id, Image(image_id, image.camera_id, image.file_name)));
-        images_trivial[image_id].is_registered = true;
 
         if (camera_without_rig.find(images_trivial[image_id].camera_id) ==
             camera_without_rig.end()) {
@@ -160,6 +159,7 @@ bool SolveRotationAveraging(ViewGraph& view_graph,
       }
     }
 
+    view_graph.KeepLargestConnectedComponents(frames_trivial, images_trivial);
     // Run the trivial rotation averaging
     RotationEstimatorOptions options_trivial = options;
     options_trivial.skip_initialization = options.skip_initialization;
@@ -170,7 +170,7 @@ bool SolveRotationAveraging(ViewGraph& view_graph,
     // Collect the results
     std::unordered_map<image_t, Rigid3d> cam_from_worlds;
     for (const auto& [image_id, image] : images_trivial) {
-      if (!image.is_registered) continue;
+      if (!image.IsRegistered()) continue;
       cam_from_worlds[image_id] = image.CamFromWorld();
     }
 

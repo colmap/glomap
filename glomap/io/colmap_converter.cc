@@ -53,8 +53,8 @@ void ConvertGlomapToColmap(const std::unordered_map<rig_t, Rig>& rigs,
   if (tracks.size() > 0 || include_image_points) {
     // Initialize every point to corresponds to invalid point
     for (auto& [image_id, image] : images) {
-      if (!image.is_registered ||
-          (cluster_id != -1 && image.cluster_id != cluster_id))
+      if (!image.IsRegistered() ||
+          (cluster_id != -1 && image.ClusterId() != cluster_id))
         continue;
       image_to_point3D[image_id] =
           std::vector<track_t>(image.features.size(), -1);
@@ -85,8 +85,8 @@ void ConvertGlomapToColmap(const std::unordered_map<rig_t, Rig>& rigs,
     // Add track element
     for (auto& observation : track.observations) {
       const Image& image = images.at(observation.first);
-      if (!image.is_registered ||
-          (cluster_id != -1 && image.cluster_id != cluster_id))
+      if (!image.IsRegistered() ||
+          (cluster_id != -1 && image.ClusterId() != cluster_id))
         continue;
       colmap::TrackElement colmap_track_el;
       colmap_track_el.image_id = observation.first;
@@ -121,19 +121,7 @@ void ConvertGlomapToColmap(const std::unordered_map<rig_t, Rig>& rigs,
 
   // Deregister frames
   for (auto& [frame_id, frame] : frames) {
-    // Go through the images. If all images are not registered, then
-    // the frame is not registered.
-    bool is_registered = false;
-    for (const auto& data_id : frame.DataIds()) {
-      if (!(images.find(data_id.id) == images.end() ||
-            !images.at(data_id.id).is_registered ||
-            (cluster_id != -1 &&
-             images.at(data_id.id).cluster_id != cluster_id))) {
-        is_registered = true;
-        break;
-      }
-    }
-    if (!is_registered) reconstruction.DeRegisterFrame(frame_id);
+    if (!frame.is_registered) reconstruction.DeRegisterFrame(frame_id);
   }
 
   reconstruction.UpdatePoint3DErrors();
@@ -165,6 +153,7 @@ void ConvertColmapToGlomap(const colmap::Reconstruction& reconstruction,
     frames[frame_id].SetRigPtr(rigs.find(frame.RigId()) != rigs.end()
                                    ? &rigs[frame.RigId()]
                                    : nullptr);
+    frames[frame_id].is_registered = frame.HasPose();
   }
 
   for (auto& [image_id, image_colmap] : reconstruction.Images()) {
@@ -174,8 +163,6 @@ void ConvertColmapToGlomap(const colmap::Reconstruction& reconstruction,
                                                   image_colmap.Name())));
 
     Image& image = ite.first->second;
-    image.is_registered = image_colmap.FramePtr() != nullptr &&
-                          image_colmap.FramePtr()->HasPose();
     image.frame_id = image_colmap.FrameId();
     image.frame_ptr = frames.find(image.frame_id) != frames.end()
                           ? &frames[image.frame_id]

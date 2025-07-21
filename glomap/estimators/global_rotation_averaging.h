@@ -128,7 +128,7 @@ class RotationEstimator {
   // The is the average over all non-fixed global_orientations_ of their
   // rotation magnitudes.
   double ComputeAverageStepSize(
-      const std::unordered_map<image_t, Image>& images);
+      const std::unordered_map<frame_t, Frame>& frames);
 
   // Converts the results from the tangent space to the global rotations and
   // updates the frames and images with the new rotations.
@@ -168,9 +168,6 @@ class RotationEstimator {
 
   // The weights for the edges
   Eigen::ArrayXd weights_;
-
-  // Variable for bookkeeping the registration status of frames
-  std::unordered_map<frame_t, bool> frame_is_registered_;
 };
 
 }  // namespace glomap

@@ -180,13 +180,13 @@ void WriteGlobalRotation(const std::string& file_path,
   std::ofstream file(file_path);
   std::set<image_t> existing_images;
   for (const auto& [image_id, image] : images) {
-    if (image.is_registered) {
+    if (image.IsRegistered()) {
       existing_images.insert(image_id);
     }
   }
   for (const auto& image_id : existing_images) {
     const auto image = images.at(image_id);
-    if (!image.is_registered) continue;
+    if (!image.IsRegistered()) continue;
     file << image.file_name;
     Rigid3d cam_from_world = image.CamFromWorld();
     for (int i = 0; i < 4; i++) {

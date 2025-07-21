@@ -93,7 +93,7 @@ int RunRotationAverager(int argc, char** argv) {
     ReadRelWeight(weight_path, images, view_graph);
   }
 
-  int num_img = view_graph.KeepLargestConnectedComponents(images);
+  int num_img = view_graph.KeepLargestConnectedComponents(frames, images);
   LOG(INFO) << num_img << " / " << images.size()
             << " are within the largest connected component";
 

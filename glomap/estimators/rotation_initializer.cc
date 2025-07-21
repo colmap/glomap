@@ -27,7 +27,7 @@ bool ConvertRotationsFromImageToRig(
       image_t image_id = data_id.id;
       if (images.find(image_id) == images.end()) continue;
       const auto& image = images.at(image_id);
-      if (!image.is_registered) continue;
+      if (!image.IsRegistered()) continue;
 
       if (image.camera_id == frame.RigPtr()->RefSensorId().id) {
         ref_img_id = image_id;
@@ -46,7 +46,7 @@ bool ConvertRotationsFromImageToRig(
       image_t image_id = data_id.id;
       if (images.find(image_id) == images.end()) continue;
       const auto& image = images.at(image_id);
-      if (!image.is_registered) continue;
+      if (!image.IsRegistered()) continue;
 
       Rig* rig_ptr = frame.RigPtr();
 
@@ -94,7 +94,7 @@ bool ConvertRotationsFromImageToRig(
       image_t image_id = data_id.id;
       if (images.find(image_id) == images.end()) continue;
       const auto& image = images.at(image_id);
-      if (!image.is_registered) continue;
+      if (!image.IsRegistered()) continue;
 
       // For images that not estimated directly, we need to skip it
       if (cam_from_worlds.find(image_id) == cam_from_worlds.end()) continue;

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "glomap/scene/camera.h"
-#include "glomap/scene/camera_rig.h"
 #include "glomap/scene/image.h"
 #include "glomap/scene/image_pair.h"
 #include "glomap/scene/types.h"
@@ -16,23 +15,26 @@ class ViewGraph {
 
   // Mark the image which is not connected to any other images as not registered
   // Return: the number of images in the largest connected component
-  int KeepLargestConnectedComponentsIndividual(
-      std::unordered_map<image_t, Image>& images);
-
   int KeepLargestConnectedComponents(
       std::unordered_map<frame_t, Frame>& frames,
       std::unordered_map<image_t, Image>& images);
 
   // Mark the cluster of the cameras (cluster_id sort by the the number of
   // images)
-  int MarkConnectedComponents(std::unordered_map<image_t, Image>& images,
+  int MarkConnectedComponents(std::unordered_map<frame_t, Frame>& frames,
+                              std::unordered_map<image_t, Image>& images,
                               int min_num_img = -1);
 
   // Establish the adjacency list
   void EstablishAdjacencyList();
 
+  // Establish the frame based adjacency list
+  void EstablishAdjacencyListFrame(std::unordered_map<image_t, Image>& images);
+
   inline const std::unordered_map<image_t, std::unordered_set<image_t>>&
   GetAdjacencyList() const;
+  inline const std::unordered_map<frame_t, std::unordered_set<frame_t>>&
+  GetAdjacencyListFrame() const;
 
   // Data
   std::unordered_map<image_pair_t, ImagePair> image_pairs;
@@ -49,12 +51,18 @@ class ViewGraph {
 
   // Data for processing
   std::unordered_map<image_t, std::unordered_set<image_t>> adjacency_list;
+  std::unordered_map<frame_t, std::unordered_set<frame_t>> adjacency_list_frame;
   std::vector<std::unordered_set<image_t>> connected_components;
 };
 
 const std::unordered_map<image_t, std::unordered_set<image_t>>&
 ViewGraph::GetAdjacencyList() const {
   return adjacency_list;
+}
+
+const std::unordered_map<frame_t, std::unordered_set<frame_t>>&
+ViewGraph::GetAdjacencyListFrame() const {
+  return adjacency_list_frame;
 }
 
 void ViewGraph::RemoveInvalidPair(image_pair_t pair_id) {
