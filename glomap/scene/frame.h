@@ -16,11 +16,11 @@ struct GravityInfo {
   const Eigen::Matrix3d& GetRAlign() const { return R_align_; }
 
   inline void SetGravity(const Eigen::Vector3d& g);
-  inline Eigen::Vector3d GetGravity() const { return gravity_; };
+  inline Eigen::Vector3d GetGravity() const { return gravity_in_rig_; };
 
  private:
   // Direction of the gravity
-  Eigen::Vector3d gravity_ = Eigen::Vector3d::Zero();
+  Eigen::Vector3d gravity_in_rig_ = Eigen::Vector3d::Zero();
 
   // Alignment matrix, the second column is the gravity direction
   Eigen::Matrix3d R_align_ = Eigen::Matrix3d::Identity();
@@ -40,7 +40,7 @@ struct Frame : public colmap::Frame {
 bool Frame::HasGravity() const { return gravity_info.has_gravity; }
 
 void GravityInfo::SetGravity(const Eigen::Vector3d& g) {
-  gravity_ = g;
+  gravity_in_rig_ = g;
   R_align_ = GetAlignRot(g);
   has_gravity = true;
 }
