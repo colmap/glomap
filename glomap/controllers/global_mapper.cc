@@ -23,7 +23,7 @@ bool GlobalMapper::Solve(const colmap::Database& database,
                          std::unordered_map<frame_t, Frame>& frames,
                          std::unordered_map<image_t, Image>& images,
                          std::unordered_map<track_t, Track>& tracks) {
-  // Check out the rig scales. If the some rigs are with known sensor_from_rig,
+  // Check out the rig scales. If some rigs are with known sensor_from_rig,
   // then do not normalize scale
   bool normalize_scale = true;
   for (auto& [rig_id, rig] : rigs) {
@@ -64,7 +64,7 @@ bool GlobalMapper::Solve(const colmap::Database& database,
   }
 
   // 2. Run relative pose estimation
-  //   TODO: Use the rigged relative pose estimation
+  //   TODO: Use generalized relative pose estimation for rigs.
   if (!options_.skip_relative_pose_estimation) {
     std::cout << "-------------------------------------" << std::endl;
     std::cout << "Running relative pose estimation ..." << std::endl;
