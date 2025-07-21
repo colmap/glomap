@@ -20,7 +20,6 @@ struct Image {
   // The id of the camera
   camera_t camera_id;
 
-
   // Frame info
   // By default, set it to be invalid index
   frame_t frame_id = -1;
