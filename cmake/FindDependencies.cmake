@@ -7,6 +7,7 @@ if(NOT TARGET SuiteSparse::CHOLMOD)
 endif()
 find_package(Ceres REQUIRED COMPONENTS SuiteSparse)
 find_package(Boost REQUIRED)
+find_package(OpenMP REQUIRED COMPONENTS C CXX)
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     find_package(Glog REQUIRED)
@@ -40,7 +41,7 @@ message(STATUS "Configuring PoseLib... done")
 
 FetchContent_Declare(COLMAP
     GIT_REPOSITORY    https://github.com/colmap/colmap.git
-    GIT_TAG           78f1eefacae542d753c2e4f6a26771a0d976227d
+    GIT_TAG           f2137129796fe3b0edfbb379220b375bcf8a635e
     EXCLUDE_FROM_ALL
 )
 message(STATUS "Configuring COLMAP...")

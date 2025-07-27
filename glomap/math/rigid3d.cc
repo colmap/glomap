@@ -69,4 +69,9 @@ Eigen::Matrix3d AngleAxisToRotation(const Eigen::Vector3d& aa_vec) {
     return R;
   }
 }
+
+Eigen::Vector3d CenterFromPose(const Rigid3d& pose) {
+  return pose.rotation.inverse() * -pose.translation;
+}
+
 }  // namespace glomap

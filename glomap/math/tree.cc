@@ -84,7 +84,7 @@ image_t MaximumSpanningTree(const ViewGraph& view_graph,
   std::unordered_map<int, image_t> idx_to_image_id;
   idx_to_image_id.reserve(images.size());
   for (auto& [image_id, image] : images) {
-    if (image.is_registered == false) continue;
+    if (image.IsRegistered() == false) continue;
     idx_to_image_id[image_id_to_idx.size()] = image_id;
     image_id_to_idx[image_id] = image_id_to_idx.size();
   }
@@ -110,7 +110,7 @@ image_t MaximumSpanningTree(const ViewGraph& view_graph,
     const Image& image1 = images.at(image_pair.image_id1);
     const Image& image2 = images.at(image_pair.image_id2);
 
-    if (image1.is_registered == false || image2.is_registered == false) {
+    if (image1.IsRegistered() == false || image2.IsRegistered() == false) {
       continue;
     }
 

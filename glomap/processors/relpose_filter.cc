@@ -15,11 +15,11 @@ void RelPoseFilter::FilterRotations(
     const Image& image1 = images.at(image_pair.image_id1);
     const Image& image2 = images.at(image_pair.image_id2);
 
-    if (image1.is_registered == false || image2.is_registered == false) {
+    if (image1.IsRegistered() == false || image2.IsRegistered() == false) {
       continue;
     }
 
-    Rigid3d pose_calc = image2.cam_from_world * Inverse(image1.cam_from_world);
+    Rigid3d pose_calc = image2.CamFromWorld() * Inverse(image1.CamFromWorld());
 
     double angle = CalcAngle(pose_calc, image_pair.cam2_from_cam1);
     if (angle > max_angle) {
