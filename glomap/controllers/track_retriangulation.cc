@@ -15,13 +15,20 @@ bool RetriangulateTracks(const TriangulatorOptions& options,
                          std::unordered_map<camera_t, Camera>& cameras,
                          std::unordered_map<image_t, Image>& images,
                          std::unordered_map<track_t, Track>& tracks) {
+  // Collect the registered images
+  std::unordered_set<std::string> registered_image_names;
+  for (const auto& [image_id, image] : images) {
+    if (image.is_registered) {
+      registered_image_names.insert(image.file_name);
+    }
+  }
   // Following code adapted from COLMAP
-  auto database_cache =
-      colmap::DatabaseCache::Create(database,
-                                    options.min_num_matches,
-                                    false,  // ignore_watermarks
-                                    {}      // reconstruct all possible images
-      );
+  auto database_cache = colmap::DatabaseCache::Create(
+      database,
+      options.min_num_matches,
+      false,                  // ignore_watermarks
+      registered_image_names  // reconstruct all possible images
+  );
 
   // Check whether the image is in the database cache. If not, set the image
   // as not registered to avoid memory error.
