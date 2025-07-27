@@ -54,12 +54,14 @@ void EstimateRelativePoses(ViewGraph& view_graph,
         // Collect the original 2D points
         points2D_1.clear();
         points2D_2.clear();
-        for (size_t idx = 0; idx < matches.rows(); idx++) {
-          points2D_1.push_back(image1.features[matches(idx, 0)]);
-          points2D_2.push_back(image2.features[matches(idx, 1)]);
-        }
-        // If the camera model is not supported by poselib
-        if (!valid_camera_model) {
+
+        if (valid_camera_model) {
+          for (size_t idx = 0; idx < matches.rows(); idx++) {
+            points2D_1.push_back(image1.features[matches(idx, 0)]);
+            points2D_2.push_back(image2.features[matches(idx, 1)]);
+          }
+        } else {
+          // If the camera model is not supported by poselib
           // Undistort points
           // Note that here, we still rescale by the focal length (to avoid
           // change the RANSAC threshold)
@@ -70,8 +72,15 @@ void EstimateRelativePoses(ViewGraph& view_graph,
           K2_new(0, 0) = camera2.FocalLengthX();
           K2_new(1, 1) = camera2.FocalLengthY();
           for (size_t idx = 0; idx < matches.rows(); idx++) {
-            points2D_1[idx] = K1_new * camera1.CamFromImg(points2D_1[idx]);
-            points2D_2[idx] = K2_new * camera2.CamFromImg(points2D_2[idx]);
+            std::optional<Eigen::Vector2d> p1 = 
+                camera1.CamFromImg(image1.features[matches(idx, 0)]);
+            std::optional<Eigen::Vector2d> p2 = 
+                camera1.CamFromImg(image2.features[matches(idx, 1)]);
+
+            if (!p1 || !p2) continue;
+
+            points2D_1.push_back(p1.value());
+            points2D_2.push_back(p2.value());
           }
 
           // Reset the camera to be the pinhole camera with original focal
@@ -89,13 +98,13 @@ void EstimateRelativePoses(ViewGraph& view_graph,
         }
         inliers.clear();
         poselib::CameraPose pose_rel_calc;
+
         try {
           poselib::estimate_relative_pose(points2D_1,
                                           points2D_2,
                                           camera_poselib1,
                                           camera_poselib2,
-                                          options.ransac_options,
-                                          options.bundle_options,
+                                          options.relpose_options,
                                           &pose_rel_calc,
                                           &inliers);
         } catch (const std::exception& e) {
