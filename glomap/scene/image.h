@@ -18,7 +18,7 @@ struct GravityInfo {
   const Eigen::Matrix3d& GetRAlign() const { return R_align; }
 
   inline void SetGravity(const Eigen::Vector3d& g);
-  inline Eigen::Vector3d GetGravity();
+  inline Eigen::Vector3d GetGravity() const { return gravity; };
 
  private:
   // Direction of the gravity
@@ -73,5 +73,4 @@ void GravityInfo::SetGravity(const Eigen::Vector3d& g) {
   has_gravity = true;
 }
 
-Eigen::Vector3d GravityInfo::GetGravity() { return gravity; }
 }  // namespace glomap

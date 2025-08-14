@@ -233,20 +233,18 @@ void ConvertDatabaseToGlomap(const colmap::Database& database,
 
   // Read keypoints
   for (auto& [image_id, image] : images) {
-    colmap::FeatureKeypoints keypoints = database.ReadKeypoints(image_id);
-
-    image.features.reserve(keypoints.size());
-    for (int i = 0; i < keypoints.size(); i++) {
-      image.features.emplace_back(
-          Eigen::Vector2d(keypoints[i].x, keypoints[i].y));
+    const colmap::FeatureKeypoints keypoints = database.ReadKeypoints(image_id);
+    const int num_keypoints = keypoints.size();
+    image.features.resize(num_keypoints);
+    for (int i = 0; i < num_keypoints; i++) {
+      image.features[i] = Eigen::Vector2d(keypoints[i].x, keypoints[i].y);
     }
   }
 
   // Add the cameras
   std::vector<colmap::Camera> cameras_colmap = database.ReadAllCameras();
   for (auto& camera : cameras_colmap) {
-    camera_t camera_id = camera.camera_id;
-    cameras[camera_id] = camera;
+    cameras[camera.camera_id] = camera;
   }
 
   // Add the matches

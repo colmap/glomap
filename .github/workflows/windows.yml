@@ -17,11 +17,11 @@ jobs:
       matrix:
         config: [
           {
-            os: windows-2019,
+            os: windows-2022,
             cmakeBuildType: Release,
-            cudaEnabled: false,
+            cudaEnabled: true,
             testsEnabled: true,
-            exportPackage: false,
+            exportPackage: true,
           },
           {
             os: windows-2022,
@@ -37,18 +37,35 @@ jobs:
       COMPILER_CACHE_DIR: ${{ github.workspace }}/compiler-cache
       CCACHE_DIR: ${{ github.workspace }}/compiler-cache/ccache
       CCACHE_BASEDIR: ${{ github.workspace }}
-      VCPKG_COMMIT_ID: e01906b2ba7e645a76ee021a19de616edc98d29f
-      VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
+      VCPKG_COMMIT_ID: bc3512a509f9d29b37346a7e7e929f9a26e66c7e
+      GLOG_v: 1
+      GLOG_logtostderr: 1
 
     steps:
       - uses: actions/checkout@v4
-
-      - name: Export GitHub Actions cache env
-        uses: actions/github-script@v7
-        with:
-          script: |
-            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
-            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+      
+      # We define the vcpkg binary sources using separate variables for read and
+      # write operations:
+      # * Read sources are defined as inline. These can be read by anyone and,
+      #   in particular, pull requests from forks. Unfortunately, we cannot
+      #   define these as action environment variables. See:
+      #   https://github.com/orgs/community/discussions/44322
+      # * Write sources are defined as action secret variables. These cannot be
+      #   read by pull requests from forks but only from pull requests from
+      #   within the target repository (i.e., created by a repository owner).
+      #   This protects us from malicious actors accessing our secrets and
+      #   gaining write access to our binary cache. For more information, see:
+      #   https://securitylab.github.com/resources/github-actions-preventing-pwn-requests/
+      - name: Setup vcpkg binary cache
+        shell: pwsh
+        run: |
+          # !!!PLEASE!!! be nice and don't use this cache for your own purposes. This is only meant for CI purposes in this repository.
+          $VCPKG_BINARY_SOURCES = "clear;x-azblob,https://colmap.blob.core.windows.net/github-actions-cache,sp=r&st=2024-12-10T17:29:32Z&se=2030-12-31T01:29:32Z&spr=https&sv=2022-11-02&sr=c&sig=bWydkilTMjRn3LHKTxLgdWrFpV4h%2Finzoe9QCOcPpYQ%3D,read"
+          if ("${{ secrets.VCPKG_BINARY_CACHE_AZBLOB_URL }}") {
+            # The secrets are only accessible in runs triggered from within the target repository and not forks.
+            $VCPKG_BINARY_SOURCES += ";x-azblob,${{ secrets.VCPKG_BINARY_CACHE_AZBLOB_URL }},${{ secrets.VCPKG_BINARY_CACHE_AZBLOB_SAS }},write"
+          }
+          echo "VCPKG_BINARY_SOURCES=${VCPKG_BINARY_SOURCES}" >> "${env:GITHUB_ENV}"
 
       - name: Compiler cache
         uses: actions/cache@v4
@@ -63,15 +80,19 @@ jobs:
         run: |
           New-Item -ItemType Directory -Force -Path "${{ env.CCACHE_DIR }}"
           echo "${{ env.COMPILER_CACHE_DIR }}/bin" | Out-File -Encoding utf8 -Append -FilePath $env:GITHUB_PATH
-
           if (Test-Path -PathType Leaf "${{ env.COMPILER_CACHE_DIR }}/bin/ccache.exe") {
             exit
           }
-
           .github/workflows/install-ccache.ps1 -Destination "${{ env.COMPILER_CACHE_DIR }}/bin"
 
-      - name: Install CMake and Ninja
-        uses: lukka/get-cmake@latest
+      - name: Install CUDA
+        uses: Jimver/cuda-toolkit@v0.2.18
+        if: matrix.config.cudaEnabled
+        id: cuda-toolkit
+        with:
+          cuda: '12.6.2'
+          sub-packages: '["nvcc", "nvtx", "cudart", "curand", "curand_dev", "nvrtc_dev"]'
+          method: 'network'
 
       - name: Setup vcpkg
         shell: pwsh
@@ -82,6 +103,12 @@ jobs:
           cd vcpkg
           git reset --hard ${{ env.VCPKG_COMMIT_ID }}
           ./bootstrap-vcpkg.bat
+
+      - name: Install CMake and Ninja
+        uses: lukka/get-cmake@latest
+        with:
+          cmakeVersion: "3.31.0"
+          ninjaVersion: "1.12.1"
 
       - name: Configure and build
         shell: pwsh
@@ -96,10 +123,11 @@ jobs:
             -DCMAKE_MAKE_PROGRAM=ninja `
             -DCMAKE_BUILD_TYPE=Release `
             -DTESTS_ENABLED=ON `
-            -DCUDA_ENABLED=OFF `
+            -DCUDA_ENABLED=${{ matrix.config.cudaEnabled }} `
             -DGUI_ENABLED=OFF `
             -DCGAL_ENABLED=OFF `
             -DCMAKE_CUDA_ARCHITECTURES=all-major `
+            -DCUDAToolkit_ROOT="${{ steps.cuda-toolkit.outputs.CUDA_PATH }}" `
             -DCMAKE_TOOLCHAIN_FILE="${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake" `
             -DVCPKG_TARGET_TRIPLET=x64-windows-release `
             -DCMAKE_INSTALL_PREFIX=install
@@ -123,15 +151,27 @@ jobs:
 
           ../vcpkg/vcpkg.exe install `
               --triplet=x64-windows-release
+              $(if ($${{ matrix.config.cudaEnabled }}) { echo "--x-feature=cuda" })
           ../vcpkg/vcpkg.exe export --raw --output-dir vcpkg_export --output glomap
           cp vcpkg_export/glomap/installed/x64-windows/bin/*.dll install/bin
           cp vcpkg_export/glomap/installed/x64-windows-release/bin/*.dll install/bin
+          if ($${{ matrix.config.cudaEnabled }}) {
+              cp "${{ steps.cuda-toolkit.outputs.CUDA_PATH }}/bin/cudart64_*.dll" install/bin
+              cp "${{ steps.cuda-toolkit.outputs.CUDA_PATH }}/bin/curand64_*.dll" install/bin
+          }
 
       - name: Upload package
         uses: actions/upload-artifact@v4
-        if: ${{ matrix.config.exportPackage }}
+        if: ${{ matrix.config.exportPackage && matrix.config.cudaEnabled }}
         with:
-          name: glomap-x64-windows
+          name: glomap-x64-windows-cuda
+          path: build/install
+
+      - name: Upload package
+        uses: actions/upload-artifact@v4
+        if: ${{ matrix.config.exportPackage && !matrix.config.cudaEnabled }}
+        with:
+          name: glomap-x64-windows-nocuda
           path: build/install
 
       - name: Cleanup compiler cache

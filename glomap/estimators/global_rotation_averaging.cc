@@ -16,6 +16,15 @@ double RelAngleError(double angle_12, double angle_1, double angle_2) {
 
   while (est < -EIGEN_PI) est += TWO_PI;
 
+  // Inject random noise if the angle is too close to the boundary to break the
+  // possible balance at the local minima
+  if (est > EIGEN_PI - 0.01 || est < -EIGEN_PI + 0.01) {
+    if (est < 0)
+      est += (rand() % 1000) / 1000.0 * 0.01;
+    else
+      est -= (rand() % 1000) / 1000.0 * 0.01;
+  }
+
   return est;
 }
 }  // namespace
@@ -56,6 +65,9 @@ bool RotationEstimator::EstimateRotations(
       image.cam_from_world.rotation = Eigen::Quaterniond(AngleAxisToRotation(
           rotation_estimated_.segment(image_id_to_idx_[image_id], 3)));
     }
+    // Restore the prior position (t = -Rc = R * R_ori * t_ori = R * t_ori)
+    image.cam_from_world.translation =
+        (image.cam_from_world.rotation * image.cam_from_world.translation);
   }
 
   return true;
@@ -207,6 +219,8 @@ void RotationEstimator::SetupLinearSystem(
 
   // Establish linear systems
   size_t curr_pos = 0;
+  std::vector<double> weights;
+  weights.reserve(3 * view_graph.image_pairs.size());
   for (const auto& [pair_id, image_pair] : view_graph.image_pairs) {
     if (!image_pair.is_valid) continue;
 
@@ -221,6 +235,10 @@ void RotationEstimator::SetupLinearSystem(
     if (rel_temp_info_[pair_id].has_gravity) {
       coeffs.emplace_back(Eigen::Triplet<double>(curr_pos, vector_idx1, -1));
       coeffs.emplace_back(Eigen::Triplet<double>(curr_pos, vector_idx2, 1));
+      if (image_pair.weight >= 0)
+        weights.emplace_back(image_pair.weight);
+      else
+        weights.emplace_back(1);
       curr_pos++;
     } else {
       // If it is not gravity aligned, then we need to consider 3 dof
@@ -245,6 +263,12 @@ void RotationEstimator::SetupLinearSystem(
       } else
         coeffs.emplace_back(
             Eigen::Triplet<double>(curr_pos + 1, vector_idx2, 1));
+      for (int i = 0; i < 3; i++) {
+        if (image_pair.weight >= 0)
+          weights.emplace_back(image_pair.weight);
+        else
+          weights.emplace_back(1);
+      }
 
       curr_pos += 3;
     }
@@ -257,17 +281,27 @@ void RotationEstimator::SetupLinearSystem(
       images[fixed_camera_id_].gravity_info.has_gravity) {
     coeffs.emplace_back(Eigen::Triplet<double>(
         curr_pos, image_id_to_idx_[fixed_camera_id_], 1));
+    weights.emplace_back(1);
     curr_pos++;
   } else {
     for (int i = 0; i < 3; i++) {
       coeffs.emplace_back(Eigen::Triplet<double>(
           curr_pos + i, image_id_to_idx_[fixed_camera_id_] + i, 1));
+      weights.emplace_back(1);
     }
     curr_pos += 3;
   }
 
   sparse_matrix_.resize(curr_pos, num_dof);
   sparse_matrix_.setFromTriplets(coeffs.begin(), coeffs.end());
+
+  // Set up the weight matrix for the linear system
+  if (!options_.use_weight) {
+    weights_ = Eigen::ArrayXd::Ones(curr_pos);
+  } else {
+    weights_ = Eigen::ArrayXd(weights.size());
+    for (size_t i = 0; i < weights.size(); i++) weights_[i] = weights[i];
+  }
 
   // Initialize x and b
   tangent_space_step_.resize(num_dof);
@@ -279,8 +313,8 @@ bool RotationEstimator::SolveL1Regression(
   L1SolverOptions opt_l1_solver;
   opt_l1_solver.max_num_iterations = 10;
 
-  L1Solver<Eigen::SparseMatrix<double>> l1_solver(opt_l1_solver,
-                                                  sparse_matrix_);
+  L1Solver<Eigen::SparseMatrix<double>> l1_solver(
+      opt_l1_solver, weights_.matrix().asDiagonal() * sparse_matrix_);
   double last_norm = 0;
   double curr_norm = 0;
 
@@ -295,7 +329,8 @@ bool RotationEstimator::SolveL1Regression(
     // use the current residual as b (Ax - b)
 
     tangent_space_step_.setZero();
-    l1_solver.Solve(tangent_space_residual_, &tangent_space_step_);
+    l1_solver.Solve(weights_.matrix().asDiagonal() * tangent_space_residual_,
+                    &tangent_space_step_);
     if (tangent_space_step_.array().isNaN().any()) {
       LOG(ERROR) << "nan error";
       iteration++;
@@ -393,7 +428,9 @@ bool RotationEstimator::SolveIRLS(const ViewGraph& view_graph,
     }
 
     // Update the factorization for the weighted values.
-    at_weight = sparse_matrix_.transpose() * weights_irls.matrix().asDiagonal();
+    at_weight = sparse_matrix_.transpose() *
+                weights_irls.matrix().asDiagonal() *
+                weights_.matrix().asDiagonal();
 
     llt.factorize(at_weight * sparse_matrix_);
 

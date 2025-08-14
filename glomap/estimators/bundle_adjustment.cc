@@ -6,6 +6,8 @@
 #include <colmap/estimators/cost_functions.h>
 #include <colmap/estimators/manifold.h>
 #include <colmap/sensor/models.h>
+#include <colmap/util/cuda.h>
+#include <colmap/util/misc.h>
 
 namespace glomap {
 namespace {
@@ -69,6 +71,58 @@ bool BundleAdjuster::Solve(const ViewGraph& view_graph,
 
   // Set the solver options.
   ceres::Solver::Summary summary;
+
+  int num_images = images.size();
+#ifdef GLOMAP_CUDA_ENABLED
+  bool cuda_solver_enabled = false;
+
+#if (CERES_VERSION_MAJOR >= 3 ||                                \
+     (CERES_VERSION_MAJOR == 2 && CERES_VERSION_MINOR >= 2)) && \
+    !defined(CERES_NO_CUDA)
+  if (options_.use_gpu && num_images >= options_.min_num_images_gpu_solver) {
+    cuda_solver_enabled = true;
+    options_.solver_options.dense_linear_algebra_library_type = ceres::CUDA;
+  }
+#else
+  if (options_.use_gpu) {
+    LOG_FIRST_N(WARNING, 1)
+        << "Requested to use GPU for bundle adjustment, but Ceres was "
+           "compiled without CUDA support. Falling back to CPU-based dense "
+           "solvers.";
+  }
+#endif
+
+#if (CERES_VERSION_MAJOR >= 3 ||                                \
+     (CERES_VERSION_MAJOR == 2 && CERES_VERSION_MINOR >= 3)) && \
+    !defined(CERES_NO_CUDSS)
+  if (options_.use_gpu && num_images >= options_.min_num_images_gpu_solver) {
+    cuda_solver_enabled = true;
+    options_.solver_options.sparse_linear_algebra_library_type =
+        ceres::CUDA_SPARSE;
+  }
+#else
+  if (options_.use_gpu) {
+    LOG_FIRST_N(WARNING, 1)
+        << "Requested to use GPU for bundle adjustment, but Ceres was "
+           "compiled without cuDSS support. Falling back to CPU-based sparse "
+           "solvers.";
+  }
+#endif
+
+  if (cuda_solver_enabled) {
+    const std::vector<int> gpu_indices =
+        colmap::CSVToVector<int>(options_.gpu_index);
+    THROW_CHECK_GT(gpu_indices.size(), 0);
+    colmap::SetBestCudaDevice(gpu_indices[0]);
+  }
+#else
+  if (options_.use_gpu) {
+    LOG_FIRST_N(WARNING, 1)
+        << "Requested to use GPU for bundle adjustment, but COLMAP was "
+           "compiled without CUDA support. Falling back to CPU-based "
+           "solvers.";
+  }
+#endif  // GLOMAP_CUDA_ENABLED
 
   // Do not use the iterative solver, as it does not seem to be helpful
   options_.solver_options.linear_solver_type = ceres::SPARSE_SCHUR;
@@ -188,14 +242,16 @@ void BundleAdjuster::ParameterizeVariables(
     }
   }
 
-  // Set the first camera to be fixed to remove the gauge ambiguity.
-  problem_->SetParameterBlockConstant(
-      images[center].cam_from_world.rotation.coeffs().data());
-  problem_->SetParameterBlockConstant(
-      images[center].cam_from_world.translation.data());
+  if (counter > 0) {
+    // Set the first camera to be fixed to remove the gauge ambiguity.
+    problem_->SetParameterBlockConstant(
+        images[center].cam_from_world.rotation.coeffs().data());
+    problem_->SetParameterBlockConstant(
+        images[center].cam_from_world.translation.data());
+  }
 
   // Parameterize the camera parameters, or set them to be constant if desired
-  if (options_.optimize_intrinsics) {
+  if (options_.optimize_intrinsics && !options_.optimize_principal_point) {
     for (auto& [camera_id, camera] : cameras) {
       if (problem_->HasParameterBlock(camera.params.data())) {
         std::vector<int> principal_point_idxs;
@@ -208,8 +264,8 @@ void BundleAdjuster::ParameterizeVariables(
                                   camera.params.data());
       }
     }
-
-  } else {
+  } else if (!options_.optimize_intrinsics &&
+             !options_.optimize_principal_point) {
     for (auto& [camera_id, camera] : cameras) {
       if (problem_->HasParameterBlock(camera.params.data())) {
         problem_->SetParameterBlockConstant(camera.params.data());

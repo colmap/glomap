@@ -2,6 +2,9 @@
 
 #include "glomap/estimators/cost_function.h"
 
+#include <colmap/util/cuda.h>
+#include <colmap/util/misc.h>
+
 namespace glomap {
 namespace {
 Eigen::Vector3d RandVector3d(std::mt19937& random_generator,
@@ -396,6 +399,58 @@ void GlobalPositioner::ParameterizeVariables(
       problem_->SetParameterBlockConstant(&scale);
     }
   }
+
+  int num_images = images.size();
+#ifdef GLOMAP_CUDA_ENABLED
+  bool cuda_solver_enabled = false;
+
+#if (CERES_VERSION_MAJOR >= 3 ||                                \
+     (CERES_VERSION_MAJOR == 2 && CERES_VERSION_MINOR >= 2)) && \
+    !defined(CERES_NO_CUDA)
+  if (options_.use_gpu && num_images >= options_.min_num_images_gpu_solver) {
+    cuda_solver_enabled = true;
+    options_.solver_options.dense_linear_algebra_library_type = ceres::CUDA;
+  }
+#else
+  if (options_.use_gpu) {
+    LOG_FIRST_N(WARNING, 1)
+        << "Requested to use GPU for bundle adjustment, but Ceres was "
+           "compiled without CUDA support. Falling back to CPU-based dense "
+           "solvers.";
+  }
+#endif
+
+#if (CERES_VERSION_MAJOR >= 3 ||                                \
+     (CERES_VERSION_MAJOR == 2 && CERES_VERSION_MINOR >= 3)) && \
+    !defined(CERES_NO_CUDSS)
+  if (options_.use_gpu && num_images >= options_.min_num_images_gpu_solver) {
+    cuda_solver_enabled = true;
+    options_.solver_options.sparse_linear_algebra_library_type =
+        ceres::CUDA_SPARSE;
+  }
+#else
+  if (options_.use_gpu) {
+    LOG_FIRST_N(WARNING, 1)
+        << "Requested to use GPU for bundle adjustment, but Ceres was "
+           "compiled without cuDSS support. Falling back to CPU-based sparse "
+           "solvers.";
+  }
+#endif
+
+  if (cuda_solver_enabled) {
+    const std::vector<int> gpu_indices =
+        colmap::CSVToVector<int>(options_.gpu_index);
+    THROW_CHECK_GT(gpu_indices.size(), 0);
+    colmap::SetBestCudaDevice(gpu_indices[0]);
+  }
+#else
+  if (options_.use_gpu) {
+    LOG_FIRST_N(WARNING, 1)
+        << "Requested to use GPU for bundle adjustment, but COLMAP was "
+           "compiled without CUDA support. Falling back to CPU-based "
+           "solvers.";
+  }
+#endif  // GLOMAP_CUDA_ENABLED
 
   // Set up the options for the solver
   // Do not use iterative solvers, for its suboptimal performance.

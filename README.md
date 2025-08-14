@@ -20,6 +20,7 @@ If you use this project for your research, please cite
     year={2024},
 }
 ```
+To use the seperate rotation averaging module, refer to [this README](docs/rotation_averager.md).
 
 ## Getting Started
 
@@ -40,7 +41,7 @@ glomap mapper --database_path DATABASE_PATH --output_path OUTPUT_PATH --image_pa
 ```
 For more details on the command line interface, one can type `glomap -h` or `glomap mapper -h` for help.
 
-We also provide a guide on improving the obtained reconstruction, which can be found [here](docs/getting_started.md)
+We also provide a guide on improving the obtained reconstruction, which can be found [here](docs/getting_started.md).
 
 Note:
 - GLOMAP depends on two external libraries - [COLMAP](https://github.com/colmap/colmap) and [PoseLib](https://github.com/PoseLib/PoseLib).

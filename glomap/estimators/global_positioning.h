@@ -35,6 +35,10 @@ struct GlobalPositionerOptions : public OptimizationBaseOptions {
   bool optimize_points = true;
   bool optimize_scales = true;
 
+  bool use_gpu = true;
+  std::string gpu_index = "-1";
+  int min_num_images_gpu_solver = 50;
+
   // Constrain the minimum number of views per track
   int min_num_view_per_track = 3;
 
