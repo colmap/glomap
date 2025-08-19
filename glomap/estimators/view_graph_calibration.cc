@@ -55,6 +55,11 @@ void ViewGraphCalibrator::Reset(
   focals_.reserve(cameras.size());
   for (const auto& [camera_id, camera] : cameras) {
     focals_[camera_id] = camera.Focal();
+    // Avoid zero focal length
+    if (focals_[camera_id] < 1e-3) {
+      focals_[camera_id] =
+          std::max(std::max(camera.width, camera.height) * 1.2, 1e-3);
+    }
   }
 
   // Set up the problem
