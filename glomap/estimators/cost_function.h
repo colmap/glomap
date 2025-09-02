@@ -137,7 +137,7 @@ struct RigUnknownBATAPairwiseDirectionError {
 
   // TODO: add covariance
   const Eigen::Vector3d translation_obs_;
-  const Eigen::Quaterniond& rig_from_world_rot_;  // = c_R_w^T * c_t_r
+  const Eigen::Quaterniond rig_from_world_rot_;  // = c_R_w^T * c_t_r
 };
 
 // ----------------------------------------
