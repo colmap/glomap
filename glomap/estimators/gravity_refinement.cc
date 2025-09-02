@@ -137,6 +137,7 @@ void GravityRefiner::IdentifyErrorProneGravity(
 
   // image_id: (mistake, total)
   std::unordered_map<frame_t, std::pair<int, int>> frame_counter;
+  frame_counter.reserve(frames.size());
   // Set the counter of all images to 0
   for (const auto& [frame_id, frame] : frames) {
     frame_counter[frame_id] = std::make_pair(0, 0);
