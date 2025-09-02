@@ -23,20 +23,6 @@ bool GlobalMapper::Solve(const colmap::Database& database,
                          std::unordered_map<frame_t, Frame>& frames,
                          std::unordered_map<image_t, Image>& images,
                          std::unordered_map<track_t, Track>& tracks) {
-  // Check out the rig scales. If some rigs are with known sensor_from_rig,
-  // then do not normalize scale
-  bool normalize_scale = true;
-  for (auto& [rig_id, rig] : rigs) {
-    auto sensors = rig.Sensors();
-    for (auto& [sensor_id, sensor_from_rig] : sensors) {
-      if (sensor_from_rig.has_value()) {
-        normalize_scale = false;
-        break;
-      }
-    }
-    if (!normalize_scale) break;
-  }
-
   // 0. Preprocessing
   if (!options_.skip_preprocessing) {
     std::cout << "-------------------------------------" << std::endl;
@@ -182,11 +168,10 @@ bool GlobalMapper::Solve(const colmap::Database& database,
         tracks,
         options_.inlier_thresholds.max_angle_error);
 
-    // TODO: determine the logic for reconstruction normalization
     // Normalize the structure
     // If the camera rig is used, the structure do not need to be normalized
     NormalizeReconstruction(
-        rigs, cameras, frames, images, tracks, !normalize_scale);
+        rigs, cameras, frames, images, tracks);
 
     run_timer.PrintSeconds();
   }
@@ -230,10 +215,9 @@ bool GlobalMapper::Solve(const colmap::Database& database,
       if (ite != options_.num_iteration_bundle_adjustment - 1)
         run_timer.PrintSeconds();
 
-      // TODO: determine the logic for reconstruction normalization
       // Normalize the structure
       NormalizeReconstruction(
-          rigs, cameras, frames, images, tracks, !normalize_scale);
+          rigs, cameras, frames, images, tracks);
 
       // 6.3. Filter tracks based on the estimation
       // For the filtering, in each round, the criteria for outlier is
@@ -325,7 +309,7 @@ bool GlobalMapper::Solve(const colmap::Database& database,
 
     // Normalize the structure
     NormalizeReconstruction(
-        rigs, cameras, frames, images, tracks, !normalize_scale);
+        rigs, cameras, frames, images, tracks);
 
     // Filter tracks based on the estimation
     UndistortImages(cameras, images, true);

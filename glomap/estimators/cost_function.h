@@ -102,11 +102,6 @@ struct RigUnknownBATAPairwiseDirectionError {
                   const T* scale,
                   T* residuals) const {
     Eigen::Map<Eigen::Matrix<T, 3, 1>> residuals_vec(residuals);
-    // Eigen::Matrix<T, 3, 1> translation_rig =
-    // rig_from_world_rot_.toRotationMatrix().cast<T>() *
-    //     (Eigen::Map<const Eigen::Matrix<T, 3, 1>>(point3d) -
-    //                 Eigen::Map<const Eigen::Matrix<T, 3,
-    //                 1>>(rig_from_world_center));
 
     Eigen::Matrix<T, 3, 1> translation_rig =
         rig_from_world_rot_.toRotationMatrix().transpose() *
