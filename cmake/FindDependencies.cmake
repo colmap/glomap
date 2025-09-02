@@ -27,7 +27,7 @@ endif()
 include(FetchContent)
 FetchContent_Declare(PoseLib
     GIT_REPOSITORY    https://github.com/PoseLib/PoseLib.git
-    GIT_TAG           0439b2d361125915b8821043fca9376e6cc575b9
+    GIT_TAG           7e9f5f53372e43f89655040d4dfc4a00e5ace11c  # 2.0.5
     EXCLUDE_FROM_ALL
     SYSTEM
 )
@@ -41,30 +41,14 @@ message(STATUS "Configuring PoseLib... done")
 
 FetchContent_Declare(COLMAP
     GIT_REPOSITORY    https://github.com/colmap/colmap.git
-    GIT_TAG           f2137129796fe3b0edfbb379220b375bcf8a635e
+    GIT_TAG           fe704d01e5ba60accec7623d5ddff3b62de7a548  # 3.12.5
     EXCLUDE_FROM_ALL
 )
 message(STATUS "Configuring COLMAP...")
 set(UNINSTALL_ENABLED OFF CACHE INTERNAL "")
+set(GUI_ENABLED OFF CACHE INTERNAL "")
 if (FETCH_COLMAP)
     FetchContent_MakeAvailable(COLMAP)
-
-    # Define where to store the patch
-    set(COLMAP_PATCH_PATH ${CMAKE_BINARY_DIR}/fix_poisson.patch)
-
-    # Download the patch from GitHub
-    file(DOWNLOAD
-        https://github.com/colmap/colmap/commit/a586e7cb223cc86c609105246ecd3a10e0c55131.patch
-        ${COLMAP_PATCH_PATH}
-        SHOW_PROGRESS
-        STATUS PATCH_DOWNLOAD_STATUS
-    )
-    # Apply the patch
-    execute_process(
-        COMMAND git apply ${COLMAP_PATCH_PATH}
-        WORKING_DIRECTORY ${colmap_SOURCE_DIR}
-        RESULT_VARIABLE PATCH_RESULT
-    )
 else()
     find_package(COLMAP REQUIRED)
 endif()
