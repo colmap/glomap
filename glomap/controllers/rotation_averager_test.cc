@@ -137,7 +137,6 @@ TEST(RotationEstimator, WithoutNoise) {
   colmap::SynthesizeDataset(
       synthetic_dataset_options, &gt_reconstruction, &database);
 
-  FLAGS_v = 2;
   ViewGraph view_graph;
   std::unordered_map<rig_t, Rig> rigs;
   std::unordered_map<camera_t, Camera> cameras;
@@ -181,7 +180,6 @@ TEST(RotationEstimator, WithoutNoiseWithNoneTrivialKnownRig) {
   colmap::SynthesizeDataset(
       synthetic_dataset_options, &gt_reconstruction, &database);
 
-  FLAGS_v = 2;
   ViewGraph view_graph;
   std::unordered_map<rig_t, Rig> rigs;
   std::unordered_map<camera_t, Camera> cameras;
@@ -225,7 +223,6 @@ TEST(RotationEstimator, WithoutNoiseWithNoneTrivialUnknownRig) {
   colmap::SynthesizeDataset(
       synthetic_dataset_options, &gt_reconstruction, &database);
 
-  FLAGS_v = 2;
   ViewGraph view_graph;
   std::unordered_map<rig_t, Rig> rigs;
   std::unordered_map<camera_t, Camera> cameras;
@@ -265,7 +262,6 @@ TEST(RotationEstimator, WithoutNoiseWithNoneTrivialUnknownRig) {
 TEST(RotationEstimator, WithNoiseAndOutliers) {
   const std::string database_path = colmap::CreateTestDir() + "/database.db";
 
-  // FLAGS_v = 1;
   colmap::Database database(database_path);
   colmap::Reconstruction gt_reconstruction;
   colmap::SyntheticDatasetOptions synthetic_dataset_options;
@@ -312,7 +308,6 @@ TEST(RotationEstimator, WithNoiseAndOutliers) {
 TEST(RotationEstimator, WithNoiseAndOutliersWithNonTrivialKnownRigs) {
   const std::string database_path = colmap::CreateTestDir() + "/database.db";
 
-  // FLAGS_v = 1;
   colmap::Database database(database_path);
   colmap::Reconstruction gt_reconstruction;
   colmap::SyntheticDatasetOptions synthetic_dataset_options;
@@ -358,7 +353,6 @@ TEST(RotationEstimator, WithNoiseAndOutliersWithNonTrivialKnownRigs) {
 TEST(RotationEstimator, RefineGravity) {
   const std::string database_path = colmap::CreateTestDir() + "/database.db";
 
-  // FLAGS_v = 2;
   colmap::Database database(database_path);
   colmap::Reconstruction gt_reconstruction;
   colmap::SyntheticDatasetOptions synthetic_dataset_options;
@@ -401,7 +395,6 @@ TEST(RotationEstimator, RefineGravity) {
 TEST(RotationEstimator, RefineGravityWithNontrivialRigs) {
   const std::string database_path = colmap::CreateTestDir() + "/database.db";
 
-  // FLAGS_v = 2;
   colmap::Database database(database_path);
   colmap::Reconstruction gt_reconstruction;
   colmap::SyntheticDatasetOptions synthetic_dataset_options;
