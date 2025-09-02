@@ -61,8 +61,8 @@ void GravityRefiner::RefineGravity(const ViewGraph& view_graph,
     for (const auto& pair_id : neighbors) {
       image_t image_id1 = image_pairs.at(pair_id).image_id1;
       image_t image_id2 = image_pairs.at(pair_id).image_id2;
-      if (images.at(image_id1).HasGravity() == false ||
-          images.at(image_id2).HasGravity() == false)
+      if (!images.at(image_id1).HasGravity() ||
+          !images.at(image_id2).HasGravity())
         continue;
 
       // Get the cam_from_rig
