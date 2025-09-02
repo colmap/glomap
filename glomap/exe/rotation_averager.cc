@@ -67,7 +67,6 @@ int RunRotationAverager(int argc, char** argv) {
 
   ReadRelPose(relpose_path, images, view_graph);
 
-  // TODO: initialize the null frame for the images
   std::unordered_map<rig_t, Rig> rigs;
   std::unordered_map<camera_t, Camera> cameras;
   std::unordered_map<frame_t, Frame> frames;

@@ -170,8 +170,7 @@ bool GlobalMapper::Solve(const colmap::Database& database,
 
     // Normalize the structure
     // If the camera rig is used, the structure do not need to be normalized
-    NormalizeReconstruction(
-        rigs, cameras, frames, images, tracks);
+    NormalizeReconstruction(rigs, cameras, frames, images, tracks);
 
     run_timer.PrintSeconds();
   }
@@ -216,8 +215,7 @@ bool GlobalMapper::Solve(const colmap::Database& database,
         run_timer.PrintSeconds();
 
       // Normalize the structure
-      NormalizeReconstruction(
-          rigs, cameras, frames, images, tracks);
+      NormalizeReconstruction(rigs, cameras, frames, images, tracks);
 
       // 6.3. Filter tracks based on the estimation
       // For the filtering, in each round, the criteria for outlier is
@@ -308,8 +306,7 @@ bool GlobalMapper::Solve(const colmap::Database& database,
     }
 
     // Normalize the structure
-    NormalizeReconstruction(
-        rigs, cameras, frames, images, tracks);
+    NormalizeReconstruction(rigs, cameras, frames, images, tracks);
 
     // Filter tracks based on the estimation
     UndistortImages(cameras, images, true);
