@@ -53,7 +53,6 @@ bool RotationEstimator::EstimateRotations(
       }
     }
   }
-  // TODO: change this part as well
   // Initialize the rotation from maximum spanning tree
   if (!options_.skip_initialization && !options_.use_gravity) {
     InitializeFromMaximumSpanningTree(view_graph, rigs, frames, images);
@@ -306,7 +305,6 @@ void RotationEstimator::SetupLinearSystem(
             .toRotationMatrix();
 
     // Align the relative rotation to the gravity
-    // TODO: version with gravity is not debugged
     bool has_gravity1 = images[image_id1].HasGravity();
     bool has_gravity2 = images[image_id2].HasGravity();
     if (options_.use_gravity) {
@@ -540,9 +538,6 @@ bool RotationEstimator::SolveIRLS(const ViewGraph& view_graph,
   // TODO: Determine what is the best solver for this part
   Eigen::CholmodSupernodalLLT<Eigen::SparseMatrix<double>> llt;
 
-  // weight_matrix.setIdentity();
-  // sparse_matrix_ = A_ori;
-
   llt.analyzePattern(sparse_matrix_.transpose() * sparse_matrix_);
 
   const double sigma = DegToRad(options_.irls_loss_parameter_sigma);
@@ -703,7 +698,6 @@ void RotationEstimator::ComputeResiduals(
     int idx_cam1 = pair_info.idx_cam1;
     int idx_cam2 = pair_info.idx_cam2;
 
-    // TODO: figure out what to do with the gravity aligned case
     if (pair_info.has_gravity) {
       tangent_space_residual_[pair_info.index] =
           (RelAngleError(pair_info.angle_rel,

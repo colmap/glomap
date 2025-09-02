@@ -73,8 +73,6 @@ struct RotationEstimatorOptions {
   bool use_gravity = false;
 };
 
-// TODO: Implement the stratified camera rotation estimation
-// TODO: Implement the HALF_NORM loss for IRLS
 class RotationEstimator {
  public:
   explicit RotationEstimator(const RotationEstimatorOptions& options)
