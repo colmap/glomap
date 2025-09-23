@@ -19,6 +19,7 @@ struct BundleAdjusterOptions;
 struct TriangulatorOptions;
 struct InlierThresholdOptions;
 struct GravityRefinerOptions;
+struct PosePriorOptions;
 
 class OptionManager {
  public:
@@ -39,6 +40,7 @@ class OptionManager {
   void AddTriangulatorOptions();
   void AddInlierThresholdOptions();
   void AddGravityRefinerOptions();
+  void AddPosePriorOptions();
 
   template <typename T>
   void AddRequiredOption(const std::string& name,
@@ -92,6 +94,7 @@ class OptionManager {
   bool added_triangulation_options_ = false;
   bool added_inliers_options_ = false;
   bool added_gravity_refiner_options_ = false;
+  bool added_pose_prior_options_ = false;
 };
 
 template <typename T>
