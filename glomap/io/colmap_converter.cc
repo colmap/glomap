@@ -121,8 +121,8 @@ void ConvertGlomapToColmap(const std::unordered_map<rig_t, Rig>& rigs,
 
   // Deregister frames
   for (auto& [frame_id, frame] : frames) {
-    if ((cluster_id != 0 && !frame.is_registered) || (frame.cluster_id != cluster_id &&
-                                                     cluster_id != -1)) {
+    if ((cluster_id != 0 && !frame.is_registered) ||
+        (frame.cluster_id != cluster_id && cluster_id != -1)) {
       reconstruction.DeRegisterFrame(frame_id);
     }
   }
