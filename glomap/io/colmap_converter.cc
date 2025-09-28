@@ -95,7 +95,7 @@ void ConvertGlomapToColmap(const std::unordered_map<rig_t, Rig>& rigs,
       colmap_point.track.AddElement(colmap_track_el);
     }
 
-    if (track.observations.size() < min_supports) continue;
+    if (colmap_point.track.Length() < min_supports) continue;
 
     colmap_point.track.Compress();
     reconstruction.AddPoint3D(track_id, std::move(colmap_point));
@@ -110,7 +110,7 @@ void ConvertGlomapToColmap(const std::unordered_map<rig_t, Rig>& rigs,
     if (keep_points) {
       std::vector<track_t>& track_ids = image_to_point3D[image_id];
       for (size_t i = 0; i < image.features.size(); i++) {
-        if (track_ids[i] != -1) {
+        if (track_ids[i] != -1 && reconstruction.ExistsPoint3D(track_ids[i])) {
           image_colmap.SetPoint3DForPoint2D(i, track_ids[i]);
         }
       }
@@ -121,7 +121,10 @@ void ConvertGlomapToColmap(const std::unordered_map<rig_t, Rig>& rigs,
 
   // Deregister frames
   for (auto& [frame_id, frame] : frames) {
-    if (!frame.is_registered) reconstruction.DeRegisterFrame(frame_id);
+    if ((cluster_id != 0 && !frame.is_registered) || (frame.cluster_id != cluster_id &&
+                                                     cluster_id != -1)) {
+      reconstruction.DeRegisterFrame(frame_id);
+    }
   }
 
   reconstruction.UpdatePoint3DErrors();
