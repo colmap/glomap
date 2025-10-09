@@ -195,26 +195,26 @@ void BundleAdjuster::AddPointToCameraConstraints(
 
 void BundleAdjuster::AddImagePositionPriorConstraints(
     std::unordered_map<image_t, Image>& images) {
-    for (auto& [image_id, position] : options_.image_center_priors) {
-      if (images.find(image_id) == images.end()) continue;
+  for (auto& [image_id, position] : options_.image_center_priors) {
+    if (images.find(image_id) == images.end()) continue;
 
-      Image& image = images[image_id];
-      if (!image.IsRegistered()) continue;
-      if (!image.HasTrivialFrame()) {
-        LOG(ERROR) << "Now, only trivial frames are supported for the camera to "
-                      "camera constraints";
-      }
-
-      Frame* frame_ptr = image.frame_ptr;
-
-      ceres::CostFunction* cost_function =
-          colmap::AbsolutePosePositionPriorCostFunctor::Create(position);
-      problem_->AddResidualBlock(
-          cost_function,
-          options_.loss_function_prior,
-          frame_ptr->RigFromWorld().rotation.coeffs().data(),
-          frame_ptr->RigFromWorld().translation.data());
+    Image& image = images[image_id];
+    if (!image.IsRegistered()) continue;
+    if (!image.HasTrivialFrame()) {
+      LOG(ERROR) << "Now, only trivial frames are supported for the camera to "
+                    "camera constraints";
     }
+
+    Frame* frame_ptr = image.frame_ptr;
+
+    ceres::CostFunction* cost_function =
+        colmap::AbsolutePosePositionPriorCostFunctor::Create(position);
+    problem_->AddResidualBlock(
+        cost_function,
+        options_.loss_function_prior,
+        frame_ptr->RigFromWorld().rotation.coeffs().data(),
+        frame_ptr->RigFromWorld().translation.data());
+  }
 }
 
 void BundleAdjuster::AddCamerasAndPointsToParameterGroups(

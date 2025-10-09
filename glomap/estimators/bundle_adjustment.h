@@ -26,6 +26,12 @@ struct BundleAdjusterOptions : public OptimizationBaseOptions {
   // Constrain the minimum number of views per track
   int min_num_view_per_track = 3;
 
+  bool add_prior_loss = true;
+  std::unordered_map<image_t, Eigen::Vector3d>
+      image_center_priors;  // in world frame
+  ceres::LossFunction* loss_function_prior = new ceres::ScaledLoss(
+      new ceres::HuberLoss(1.), 100.0, ceres::TAKE_OWNERSHIP);
+
   BundleAdjusterOptions() : OptimizationBaseOptions() {
     thres_loss_function = 1.;
     solver_options.max_num_iterations = 200;
@@ -61,6 +67,9 @@ class BundleAdjuster {
       std::unordered_map<frame_t, Frame>& frames,
       std::unordered_map<image_t, Image>& images,
       std::unordered_map<track_t, Track>& tracks);
+
+  void AddImagePositionPriorConstraints(
+      std::unordered_map<image_t, Image>& images);
 
   // Set the parameter groups
   void AddCamerasAndPointsToParameterGroups(

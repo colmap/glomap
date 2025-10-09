@@ -8,8 +8,8 @@ namespace glomap {
 // Required data structures
 // IMAGE_NAME CX CY CZ
 void ReadCenters(const std::string& file_path,
-                    std::unordered_map<image_t, Image>& images,
-                    std::unordered_map<image_t, Eigen::Vector3d>& centers);
+                 std::unordered_map<image_t, Image>& images,
+                 std::unordered_map<image_t, Eigen::Vector3d>& centers);
 
 // Required data structures
 // IMAGE_NAME_1 IMAGE_NAME_2 QW QX QY QZ TX TY TZ
