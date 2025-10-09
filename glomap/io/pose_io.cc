@@ -5,6 +5,50 @@
 #include <set>
 
 namespace glomap {
+void ReadCenters(const std::string& file_path,
+                 std::unordered_map<image_t, Image>& images,
+                 std::unordered_map<image_t, Eigen::Vector3d>& centers) {
+  std::unordered_map<std::string, image_t> name_idx;
+  for (const auto& [image_id, image] : images) {
+    name_idx[image.file_name] = image_id;
+  }
+
+  std::ifstream file(file_path);
+
+  // Read in data
+  std::string line;
+  std::string item;
+
+  size_t counter = 0;
+
+  // Required data structures
+  // IMAGE_NAME CX CY CZ
+  while (std::getline(file, line)) {
+    std::stringstream line_stream(line);
+
+    std::string file;
+    std::getline(line_stream, item, ' ');
+    file = item;
+
+    if (name_idx.find(file) == name_idx.end()) {
+      LOG(WARNING) << "Image " << file
+                   << " is not in the current image list, ignore it.";
+      continue;
+    }
+    image_t index = name_idx[file];
+
+    // rotation
+    Eigen::Vector3d center;
+    for (int i = 0; i < 3; i++) {
+      std::getline(line_stream, item, ' ');
+      center[i] = std::stod(item);
+    }
+    centers[index] = center;
+    counter++;
+  }
+  LOG(INFO) << counter << " centers are loaded" << std::endl;
+}
+
 void ReadRelPose(const std::string& file_path,
                  std::unordered_map<image_t, Image>& images,
                  ViewGraph& view_graph) {

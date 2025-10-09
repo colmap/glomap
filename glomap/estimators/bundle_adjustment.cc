@@ -29,6 +29,10 @@ bool BundleAdjuster::Solve(std::unordered_map<rig_t, Rig>& rigs,
   // Add the constraints that the point tracks impose on the problem
   AddPointToCameraConstraints(rigs, cameras, frames, images, tracks);
 
+  if (options_.add_prior_loss) {
+    AddImagePositionPriorConstraints(images);
+  }
+
   // Add the cameras and points to the parameter groups for schur-based
   // optimization
   AddCamerasAndPointsToParameterGroups(cameras, frames, tracks);
@@ -189,6 +193,30 @@ void BundleAdjuster::AddPointToCameraConstraints(
   }
 }
 
+void BundleAdjuster::AddImagePositionPriorConstraints(
+    std::unordered_map<image_t, Image>& images) {
+    for (auto& [image_id, position] : options_.image_center_priors) {
+      if (images.find(image_id) == images.end()) continue;
+
+      Image& image = images[image_id];
+      if (!image.IsRegistered()) continue;
+      if (!image.HasTrivialFrame()) {
+        LOG(ERROR) << "Now, only trivial frames are supported for the camera to "
+                      "camera constraints";
+      }
+
+      Frame* frame_ptr = image.frame_ptr;
+
+      ceres::CostFunction* cost_function =
+          colmap::AbsolutePosePositionPriorCostFunctor::Create(position);
+      problem_->AddResidualBlock(
+          cost_function,
+          options_.loss_function_prior,
+          frame_ptr->RigFromWorld().rotation.coeffs().data(),
+          frame_ptr->RigFromWorld().translation.data());
+    }
+}
+
 void BundleAdjuster::AddCamerasAndPointsToParameterGroups(
     std::unordered_map<camera_t, Camera>& cameras,
     std::unordered_map<frame_t, Frame>& frames,
@@ -228,7 +256,7 @@ void BundleAdjuster::ParameterizeVariables(
     std::unordered_map<camera_t, Camera>& cameras,
     std::unordered_map<frame_t, Frame>& frames,
     std::unordered_map<track_t, Track>& tracks) {
-  frame_t center;
+  frame_t position;
 
   // Parameterize rotations, and set rotations and translations to be constant
   // if desired FUTURE: Consider fix the scale of the reconstruction

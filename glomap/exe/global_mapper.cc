@@ -111,12 +111,14 @@ int RunMapperResume(int argc, char** argv) {
   std::string input_path;
   std::string output_path;
   std::string image_path = "";
+  std::string prior_path = "";
   std::string output_format = "bin";
 
   OptionManager options;
   options.AddRequiredOption("input_path", &input_path);
   options.AddRequiredOption("output_path", &output_path);
   options.AddDefaultOption("image_path", &image_path);
+  options.AddDefaultOption("prior_path", &prior_path);
   options.AddDefaultOption("output_format", &output_format, "{bin, txt}");
   options.AddGlobalMapperResumeFullOptions();
 
@@ -145,6 +147,15 @@ int RunMapperResume(int argc, char** argv) {
   colmap::Reconstruction reconstruction;
   reconstruction.Read(input_path);
   ConvertColmapToGlomap(reconstruction, rigs, cameras, frames, images, tracks);
+
+  if (!prior_path.empty()){
+    if (!colmap::ExistsFile(prior_path)) {
+      LOG(ERROR) << "`prior_path` is not a file";
+      return EXIT_FAILURE;
+    }
+    options.mapper->opt_ba.add_prior_loss = true;
+    ReadCenters(prior_path, images, options.mapper->opt_ba.image_center_priors);
+  }
 
   GlobalMapper global_mapper(*options.mapper);
 
