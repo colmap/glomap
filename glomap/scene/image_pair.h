@@ -66,7 +66,7 @@ image_pair_t ImagePair::ImagePairToPairId(const image_t image_id1,
 void ImagePair::PairIdToImagePair(const image_pair_t pair_id,
                                   image_t& image_id1,
                                   image_t& image_id2) {
-  std::pair<image_t, image_t> image_id_pair = 
+  std::pair<image_t, image_t> image_id_pair =
       colmap::Database::PairIdToImagePair(pair_id);
   image_id1 = image_id_pair.first;
   image_id2 = image_id_pair.second;
