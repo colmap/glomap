@@ -168,6 +168,19 @@ bool GlobalMapper::Solve(const colmap::Database& database,
         tracks,
         options_.inlier_thresholds.max_angle_error);
 
+    // Filter tracks based on triangulation angle and reprojection error
+    TrackFilter::FilterTrackTriangulationAngle(
+        view_graph,
+        images,
+        tracks,
+        options_.inlier_thresholds.min_triangulation_angle);
+    // Set the threshold to be larger to avoid removing too many tracks
+    TrackFilter::FilterTracksByReprojection(
+        view_graph,
+        cameras,
+        images,
+        tracks,
+        10 * options_.inlier_thresholds.max_reprojection_error);
     // Normalize the structure
     // If the camera rig is used, the structure do not need to be normalized
     NormalizeReconstruction(rigs, cameras, frames, images, tracks);
