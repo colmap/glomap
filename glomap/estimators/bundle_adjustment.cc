@@ -301,8 +301,8 @@ void BundleAdjuster::ParameterizeVariables(
         if (sensor_id.type == SensorType::CAMERA) {
           Eigen::Quaterniond& rotation = rig.SensorFromRig(sensor_id).rotation;
           if (problem_->HasParameterBlock(rotation.coeffs().data())) {
-            colmap::SetQuaternionManifold(
-                problem_.get(), rotation.coeffs().data());
+            colmap::SetQuaternionManifold(problem_.get(),
+                                          rotation.coeffs().data());
           }
         }
       }
