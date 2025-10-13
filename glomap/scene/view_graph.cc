@@ -45,6 +45,7 @@ int ViewGraph::KeepLargestConnectedComponents(
     if (image_pair.is_valid) num_pairs++;
   }
 
+  max_img = 0;
   for (auto& [image_id, image] : images) {
     if (image.IsRegistered()) max_img++;
   }
