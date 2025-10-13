@@ -31,10 +31,10 @@ bool BundleAdjuster::Solve(std::unordered_map<rig_t, Rig>& rigs,
 
   // Add the cameras and points to the parameter groups for schur-based
   // optimization
-  AddCamerasAndPointsToParameterGroups(cameras, frames, tracks);
+  AddCamerasAndPointsToParameterGroups(rigs, cameras, frames, tracks);
 
   // Parameterize the variables
-  ParameterizeVariables(cameras, frames, tracks);
+  ParameterizeVariables(rigs, cameras, frames, tracks);
 
   // Set the solver options.
   ceres::Solver::Summary summary;
@@ -190,6 +190,7 @@ void BundleAdjuster::AddPointToCameraConstraints(
 }
 
 void BundleAdjuster::AddCamerasAndPointsToParameterGroups(
+    std::unordered_map<rig_t, Rig>& rigs,
     std::unordered_map<camera_t, Camera>& cameras,
     std::unordered_map<frame_t, Frame>& frames,
     std::unordered_map<track_t, Track>& tracks) {
@@ -217,6 +218,23 @@ void BundleAdjuster::AddCamerasAndPointsToParameterGroups(
     }
   }
 
+  // Add the cam_from_rigs to be estimated into the parameter group
+  for (auto& [rig_id, rig] : rigs) {
+    for (const auto& [sensor_id, sensor] : rig.Sensors()) {
+      if (rig.IsRefSensor(sensor_id)) continue;
+      if (sensor_id.type == SensorType::CAMERA) {
+        Eigen::Vector3d& translation = rig.SensorFromRig(sensor_id).translation;
+        if (problem_->HasParameterBlock(translation.data())) {
+          parameter_ordering->AddElementToGroup(translation.data(), 1);
+        }
+        Eigen::Quaterniond& rotation = rig.SensorFromRig(sensor_id).rotation;
+        if (problem_->HasParameterBlock(rotation.coeffs().data())) {
+          parameter_ordering->AddElementToGroup(rotation.coeffs().data(), 1);
+        }
+      }
+    }
+  }
+
   // Add camera parameters to group 1.
   for (auto& [camera_id, camera] : cameras) {
     if (problem_->HasParameterBlock(camera.params.data()))
@@ -225,6 +243,7 @@ void BundleAdjuster::AddCamerasAndPointsToParameterGroups(
 }
 
 void BundleAdjuster::ParameterizeVariables(
+    std::unordered_map<rig_t, Rig>& rigs,
     std::unordered_map<camera_t, Camera>& cameras,
     std::unordered_map<frame_t, Frame>& frames,
     std::unordered_map<track_t, Track>& tracks) {
@@ -270,6 +289,22 @@ void BundleAdjuster::ParameterizeVariables(
     for (auto& [camera_id, camera] : cameras) {
       if (problem_->HasParameterBlock(camera.params.data())) {
         problem_->SetParameterBlockConstant(camera.params.data());
+      }
+    }
+  }
+
+  // If we optimize the rig poses, then parameterize them
+  if (options_.optimize_rig_poses) {
+    for (auto& [rig_id, rig] : rigs) {
+      for (const auto& [sensor_id, sensor] : rig.Sensors()) {
+        if (rig.IsRefSensor(sensor_id)) continue;
+        if (sensor_id.type == SensorType::CAMERA) {
+          Eigen::Quaterniond& rotation = rig.SensorFromRig(sensor_id).rotation;
+          if (problem_->HasParameterBlock(rotation.coeffs().data())) {
+            colmap::SetQuaternionManifold(
+                problem_.get(), rotation.coeffs().data());
+          }
+        }
       }
     }
   }
