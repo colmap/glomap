@@ -410,8 +410,7 @@ void GlobalPositioner::AddCamerasAndPointsToParameterGroups(
 
   // Add the cam_from_rigs to be estimated into the parameter group
   for (auto& [rig_id, rig] : rigs) {
-    for (const auto& [sensor_id, sensor] : rig.Sensors()) {
-      if (rig.IsRefSensor(sensor_id)) continue;
+    for (const auto& [sensor_id, sensor] : rig.NonRefSensors()) {
       if (sensor_id.type == SensorType::CAMERA) {
         Eigen::Vector3d& translation = rig.SensorFromRig(sensor_id).translation;
         if (problem_->HasParameterBlock(translation.data())) {
@@ -442,8 +441,7 @@ void GlobalPositioner::ParameterizeVariables(
   // the center
   if (options_.optimize_positions) {
     for (auto& [rig_id, rig] : rigs) {
-      for (const auto& [sensor_id, sensor] : rig.Sensors()) {
-        if (rig.IsRefSensor(sensor_id)) continue;
+      for (const auto& [sensor_id, sensor] : rig.NonRefSensors()) {
         if (sensor_id.type == SensorType::CAMERA) {
           Eigen::Vector3d& translation =
               rig.SensorFromRig(sensor_id).translation;
@@ -575,8 +573,7 @@ void GlobalPositioner::ConvertResults(
 
   // Update the rig scales
   for (auto& [rig_id, rig] : rigs) {
-    std::map<sensor_t, std::optional<Rigid3d>>& sensors = rig.Sensors();
-    for (auto& [sensor_id, cam_from_rig] : sensors) {
+    for (auto& [sensor_id, cam_from_rig] : rig.NonRefSensors()) {
       if (cam_from_rig.has_value()) {
         if (problem_->HasParameterBlock(
                 rig.SensorFromRig(sensor_id).translation.data())) {

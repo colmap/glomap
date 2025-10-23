@@ -220,8 +220,7 @@ void BundleAdjuster::AddCamerasAndPointsToParameterGroups(
 
   // Add the cam_from_rigs to be estimated into the parameter group
   for (auto& [rig_id, rig] : rigs) {
-    for (const auto& [sensor_id, sensor] : rig.Sensors()) {
-      if (rig.IsRefSensor(sensor_id)) continue;
+    for (const auto& [sensor_id, sensor] : rig.NonRefSensors()) {
       if (sensor_id.type == SensorType::CAMERA) {
         Eigen::Vector3d& translation = rig.SensorFromRig(sensor_id).translation;
         if (problem_->HasParameterBlock(translation.data())) {
@@ -296,8 +295,7 @@ void BundleAdjuster::ParameterizeVariables(
   // If we optimize the rig poses, then parameterize them
   if (options_.optimize_rig_poses) {
     for (auto& [rig_id, rig] : rigs) {
-      for (const auto& [sensor_id, sensor] : rig.Sensors()) {
-        if (rig.IsRefSensor(sensor_id)) continue;
+      for (const auto& [sensor_id, sensor] : rig.NonRefSensors()) {
         if (sensor_id.type == SensorType::CAMERA) {
           Eigen::Quaterniond& rotation = rig.SensorFromRig(sensor_id).rotation;
           if (problem_->HasParameterBlock(rotation.coeffs().data())) {

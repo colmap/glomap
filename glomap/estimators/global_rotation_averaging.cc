@@ -41,8 +41,7 @@ bool RotationEstimator::EstimateRotations(
   // with known sensor_from_rig
   if (options_.use_gravity) {
     for (auto& [rig_id, rig] : rigs) {
-      for (auto& [sensor_id, sensor] : rig.Sensors()) {
-        if (rig.IsRefSensor(sensor_id)) continue;  // Skip reference sensor
+      for (auto& [sensor_id, sensor] : rig.NonRefSensors()) {
         if (!sensor.has_value()) {
           LOG(ERROR) << "Rig " << rig_id << " has no sensor with ID "
                      << sensor_id.id
@@ -793,7 +792,7 @@ void RotationEstimator::ConvertResults(
 
   // add the estimated
   for (auto& [rig_id, rig] : rigs) {
-    for (auto& [sensor_id, sensor] : rig.Sensors()) {
+    for (auto& [sensor_id, sensor] : rig.NonRefSensors()) {
       if (camera_id_to_idx_.find(sensor_id.id) == camera_id_to_idx_.end()) {
         continue;  // Skip cameras that are not estimated
       }

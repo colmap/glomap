@@ -68,7 +68,7 @@ bool SolveRotationAveraging(ViewGraph& view_graph,
   rig_t max_rig_id = 0;
   for (const auto& [rig_id, rig] : rigs) {
     max_rig_id = std::max(max_rig_id, rig_id);
-    for (auto& [sensor_id, sensor] : rig.Sensors()) {
+    for (const auto& [sensor_id, sensor] : rig.NonRefSensors()) {
       if (sensor_id.type != SensorType::CAMERA) continue;
       if (!rig.MaybeSensorFromRig(sensor_id).has_value()) {
         camera_without_rig.insert(sensor_id.id);
@@ -93,7 +93,7 @@ bool SolveRotationAveraging(ViewGraph& view_graph,
       rig_trivial.AddRefSensor(rig.RefSensorId());
       camera_id_to_rig_id[rig.RefSensorId().id] = rig_id;
 
-      for (auto& [sensor_id, sensor] : rig.Sensors()) {
+      for (const auto& [sensor_id, sensor] : rig.NonRefSensors()) {
         if (sensor_id.type != SensorType::CAMERA) continue;
         if (rig.MaybeSensorFromRig(sensor_id).has_value()) {
           rig_trivial.AddSensor(sensor_id, sensor);

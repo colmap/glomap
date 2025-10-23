@@ -53,7 +53,6 @@ using colmap::data_t;
 // Rig
 using colmap::Rig;
 
-const image_t kMaxNumImages = colmap::Database::kMaxNumImages;
 const image_pair_t kInvalidImagePairId = -1;
 
 }  // namespace glomap

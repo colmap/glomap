@@ -10,7 +10,7 @@ bool ConvertRotationsFromImageToRig(
     std::unordered_map<frame_t, Frame>& frames) {
   std::unordered_map<camera_t, rig_t> camera_id_to_rig_id;
   for (auto& [rig_id, rig] : rigs) {
-    for (auto& [sensor_id, sensor] : rig.Sensors()) {
+    for (auto& [sensor_id, sensor] : rig.NonRefSensors()) {
       if (sensor_id.type != SensorType::CAMERA) continue;
       camera_id_to_rig_id[sensor_id.id] = rig_id;
     }

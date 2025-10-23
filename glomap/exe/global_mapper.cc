@@ -70,8 +70,8 @@ int RunMapper(int argc, char** argv) {
   std::unordered_map<image_t, Image> images;
   std::unordered_map<track_t, Track> tracks;
 
-  const colmap::Database database(database_path);
-  ConvertDatabaseToGlomap(database, view_graph, rigs, cameras, frames, images);
+  auto database = colmap::Database::Open(database_path);
+  ConvertDatabaseToGlomap(*database, view_graph, rigs, cameras, frames, images);
 
   if (view_graph.image_pairs.empty()) {
     LOG(ERROR) << "Can't continue without image pairs";
@@ -85,7 +85,7 @@ int RunMapper(int argc, char** argv) {
   colmap::Timer run_timer;
   run_timer.Start();
   global_mapper.Solve(
-      database, view_graph, rigs, cameras, frames, images, tracks);
+      *database, view_graph, rigs, cameras, frames, images, tracks);
   run_timer.Pause();
 
   LOG(INFO) << "Reconstruction done in " << run_timer.ElapsedSeconds()
@@ -134,8 +134,8 @@ int RunMapperResume(int argc, char** argv) {
   }
 
   // Load the reconstruction
-  ViewGraph view_graph;       // dummy variable
-  colmap::Database database;  // dummy variable
+  ViewGraph view_graph;                        // dummy variable
+  std::shared_ptr<colmap::Database> database;  // dummy variable
 
   std::unordered_map<rig_t, Rig> rigs;
   std::unordered_map<camera_t, Camera> cameras;
@@ -152,7 +152,7 @@ int RunMapperResume(int argc, char** argv) {
   colmap::Timer run_timer;
   run_timer.Start();
   global_mapper.Solve(
-      database, view_graph, rigs, cameras, frames, images, tracks);
+      *database, view_graph, rigs, cameras, frames, images, tracks);
   run_timer.Pause();
 
   LOG(INFO) << "Reconstruction done in " << run_timer.ElapsedSeconds()

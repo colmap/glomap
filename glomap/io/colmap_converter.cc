@@ -296,7 +296,8 @@ void ConvertDatabaseToGlomap(const colmap::Database& database,
     if (sensor_id.type == SensorType::CAMERA) {
       cameras_id_to_rig_id[rig.RefSensorId().id] = rig_id;
     }
-    const std::map<sensor_t, std::optional<Rigid3d>>& sensors = rig.Sensors();
+    const std::map<sensor_t, std::optional<Rigid3d>>& sensors =
+        rig.NonRefSensors();
     for (const auto& [sensor_id, sensor_pose] : sensors) {
       if (sensor_id.type == SensorType::CAMERA) {
         cameras_id_to_rig_id[sensor_id.id] = rig_id;
@@ -352,7 +353,7 @@ void ConvertDatabaseToGlomap(const colmap::Database& database,
     // Read the image pair from COLMAP database
     colmap::image_pair_t pair_id = all_matches[match_idx].first;
     std::pair<colmap::image_t, colmap::image_t> image_pair_colmap =
-        database.PairIdToImagePair(pair_id);
+        colmap::PairIdToImagePair(pair_id);
     colmap::image_t image_id1 = image_pair_colmap.first;
     colmap::image_t image_id2 = image_pair_colmap.second;
 
