@@ -1,3 +1,4 @@
 /build
 /data
 /.vscode
+/compile_commands.json

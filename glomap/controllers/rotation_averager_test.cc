@@ -7,6 +7,7 @@
 #include "glomap/types.h"
 
 #include <colmap/estimators/alignment.h>
+#include <colmap/math/random.h>
 #include <colmap/scene/synthetic.h>
 #include <colmap/util/testing.h>
 
@@ -20,8 +21,8 @@ void CreateRandomRotation(const double stddev, Eigen::Quaterniond& q) {
   std::mt19937 gen{rd()};
 
   // Construct a random axis
-  double theta = double(rand()) / RAND_MAX * 2 * M_PI;
-  double phi = double(rand()) / RAND_MAX * M_PI;
+  double theta = colmap::RandomUniformReal<double>(0, 2 * M_PI);
+  double phi = colmap::RandomUniformReal<double>(0, M_PI);
   Eigen::Vector3d axis(std::cos(theta) * std::sin(phi),
                        std::sin(theta) * std::sin(phi),
                        std::cos(phi));
@@ -34,25 +35,28 @@ void CreateRandomRotation(const double stddev, Eigen::Quaterniond& q) {
 
 void PrepareGravity(const colmap::Reconstruction& gt,
                     std::unordered_map<frame_t, Frame>& frames,
-                    double stddev_gravity = 0.0,
+                    double gravity_noise_stddev = 0.0,
                     double outlier_ratio = 0.0) {
+  const Eigen::Vector3d kGravityInWorld = Eigen::Vector3d(0, 1, 0);
   for (auto& frame_id : gt.RegFrameIds()) {
-    Eigen::Vector3d gravity =
-        gt.Frame(frame_id).RigFromWorld().rotation * Eigen::Vector3d(0, 1, 0);
+    Eigen::Vector3d gravityInRig =
+        gt.Frame(frame_id).RigFromWorld().rotation * kGravityInWorld;
 
-    if (stddev_gravity > 0.0) {
-      Eigen::Quaterniond q;
-      CreateRandomRotation(DegToRad(stddev_gravity), q);
-      gravity = q * gravity;
+    if (gravity_noise_stddev > 0.0) {
+      Eigen::Quaterniond noise;
+      CreateRandomRotation(DegToRad(gravity_noise_stddev), noise);
+      gravityInRig = noise * gravityInRig;
     }
 
-    if (outlier_ratio > 0.0 && double(rand()) / RAND_MAX < outlier_ratio) {
+    if (outlier_ratio > 0.0 &&
+        colmap::RandomUniformReal<double>(0, 1) < outlier_ratio) {
       Eigen::Quaterniond q;
       CreateRandomRotation(1., q);
-      gravity =
+      gravityInRig =
           Rigid3dToAngleAxis(Rigid3d(q, Eigen::Vector3d::Zero())).normalized();
     }
-    frames[frame_id].gravity_info.SetGravity(gravity);
+
+    frames[frame_id].gravity_info.SetGravity(gravityInRig);
     Rigid3d& cam_from_world = frames[frame_id].RigFromWorld();
     cam_from_world.rotation = frames[frame_id].gravity_info.GetRAlign();
   }
@@ -67,7 +71,6 @@ GlobalMapperOptions CreateMapperTestOptions() {
   options.skip_global_positioning = true;
   options.skip_bundle_adjustment = true;
   options.skip_retriangulation = true;
-
   return options;
 }
 
@@ -82,23 +85,21 @@ RotationAveragerOptions CreateRATestOptions(bool use_gravity = false) {
 void ExpectEqualRotations(const colmap::Reconstruction& gt,
                           const colmap::Reconstruction& computed,
                           const double max_rotation_error_deg) {
-  // const std::set<image_t> reg_image_ids_set = gt.RegImageIds();
-  std::vector<image_t> reg_image_ids = gt.RegImageIds();
+  const std::vector<image_t> reg_image_ids = gt.RegImageIds();
   for (size_t i = 0; i < reg_image_ids.size(); i++) {
     const image_t image_id1 = reg_image_ids[i];
-    for (size_t j = 0; j < reg_image_ids.size(); j++) {
-      if (i == j) continue;
+    for (size_t j = 0; j < i; j++) {
       const image_t image_id2 = reg_image_ids[j];
 
       const Rigid3d cam2_from_cam1 =
           computed.Image(image_id2).CamFromWorld() *
-          colmap::Inverse(computed.Image(image_id1).CamFromWorld());
-
+          Inverse(computed.Image(image_id1).CamFromWorld());
       const Rigid3d cam2_from_cam1_gt =
           gt.Image(image_id2).CamFromWorld() *
-          colmap::Inverse(gt.Image(image_id1).CamFromWorld());
+          Inverse(gt.Image(image_id1).CamFromWorld());
 
-      double rotation_error_deg = CalcAngle(cam2_from_cam1_gt, cam2_from_cam1);
+      const double rotation_error_deg =
+          CalcAngle(cam2_from_cam1_gt, cam2_from_cam1);
       EXPECT_LT(rotation_error_deg, max_rotation_error_deg);
     }
   }
@@ -123,6 +124,8 @@ void ExpectEqualGravity(
 }
 
 TEST(RotationEstimator, WithoutNoise) {
+  colmap::SetPRNGSeed(2);
+
   const std::string database_path = colmap::CreateTestDir() + "/database.db";
 
   auto database = colmap::Database::Open(database_path);
@@ -152,8 +155,7 @@ TEST(RotationEstimator, WithoutNoise) {
   global_mapper.Solve(
       *database, view_graph, rigs, cameras, frames, images, tracks);
 
-  // Version with Gravity
-  for (bool use_gravity : {true}) {
+  for (const bool use_gravity : {true, false}) {
     SolveRotationAveraging(
         view_graph, rigs, frames, images, CreateRATestOptions(use_gravity));
 
@@ -195,8 +197,7 @@ TEST(RotationEstimator, WithoutNoiseWithNoneTrivialKnownRig) {
   global_mapper.Solve(
       *database, view_graph, rigs, cameras, frames, images, tracks);
 
-  // Version with Gravity
-  for (bool use_gravity : {true, false}) {
+  for (const bool use_gravity : {true, false}) {
     SolveRotationAveraging(
         view_graph, rigs, frames, images, CreateRATestOptions(use_gravity));
 
@@ -282,7 +283,7 @@ TEST(RotationEstimator, WithNoiseAndOutliers) {
 
   ConvertDatabaseToGlomap(*database, view_graph, rigs, cameras, frames, images);
 
-  PrepareGravity(gt_reconstruction, frames, /*stddev_gravity=*/3e-1);
+  PrepareGravity(gt_reconstruction, frames, /*gravity_noise_stddev=*/3e-1);
 
   GlobalMapper global_mapper(CreateMapperTestOptions());
   global_mapper.Solve(
@@ -327,7 +328,7 @@ TEST(RotationEstimator, WithNoiseAndOutliersWithNonTrivialKnownRigs) {
   std::unordered_map<track_t, Track> tracks;
 
   ConvertDatabaseToGlomap(*database, view_graph, rigs, cameras, frames, images);
-  PrepareGravity(gt_reconstruction, frames, /*stddev_gravity=*/3e-1);
+  PrepareGravity(gt_reconstruction, frames, /*gravity_noise_stddev=*/3e-1);
 
   GlobalMapper global_mapper(CreateMapperTestOptions());
   global_mapper.Solve(
@@ -374,7 +375,7 @@ TEST(RotationEstimator, RefineGravity) {
 
   PrepareGravity(gt_reconstruction,
                  frames,
-                 /*stddev_gravity=*/0.,
+                 /*gravity_noise_stddev=*/0.,
                  /*outlier_ratio=*/0.3);
 
   GlobalMapper global_mapper(CreateMapperTestOptions());
@@ -416,7 +417,7 @@ TEST(RotationEstimator, RefineGravityWithNontrivialRigs) {
 
   PrepareGravity(gt_reconstruction,
                  frames,
-                 /*stddev_gravity=*/0.,
+                 /*gravity_noise_stddev=*/0.,
                  /*outlier_ratio=*/0.3);
 
   GlobalMapper global_mapper(CreateMapperTestOptions());

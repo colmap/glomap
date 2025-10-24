@@ -48,4 +48,5 @@ void GravityInfo::SetGravity(const Eigen::Vector3d& g) {
   R_align_ = GetAlignRot(g);
   has_gravity = true;
 }
+
 }  // namespace glomap

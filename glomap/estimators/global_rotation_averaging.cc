@@ -12,6 +12,7 @@
 
 namespace glomap {
 namespace {
+
 double RelAngleError(double angle_12, double angle_1, double angle_2) {
   double est = (angle_2 - angle_1) - angle_12;
 
@@ -30,6 +31,7 @@ double RelAngleError(double angle_12, double angle_1, double angle_2) {
 
   return est;
 }
+
 }  // namespace
 
 bool RotationEstimator::EstimateRotations(
