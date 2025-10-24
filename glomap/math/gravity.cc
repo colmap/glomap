@@ -9,8 +9,18 @@ namespace glomap {
 
 // The second col of R_align is gravity direction
 Eigen::Matrix3d GetAlignRot(const Eigen::Vector3d& gravity) {
-  return Eigen::Quaterniond::FromTwoVectors(Eigen::Vector3d(0, 1, 0), gravity)
-      .toRotationMatrix();
+  Eigen::Matrix3d R;
+  Eigen::Vector3d v = gravity.normalized();
+  R.col(1) = v;
+
+  Eigen::Matrix3d Q = v.householderQr().householderQ();
+  Eigen::Matrix<double, 3, 2> N = Q.rightCols(2);
+  R.col(0) = N.col(0);
+  R.col(2) = N.col(1);
+  if (R.determinant() < 0) {
+    R.col(2) = -R.col(2);
+  }
+  return R;
 }
 
 double RotUpToAngle(const Eigen::Matrix3d& R_up) {
