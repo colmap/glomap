@@ -16,18 +16,14 @@ bool SolveRotationAveraging(ViewGraph& view_graph,
 
   ViewGraph view_graph_grav;
   image_pair_t total_pairs = 0;
-  image_pair_t grav_pairs = 0;
   if (solve_1dof_system) {
     // Prepare two sets: ones all with gravity, and one does not have gravity.
     // Solve them separately first, then solve them in a single system
     for (const auto& [pair_id, image_pair] : view_graph.image_pairs) {
       if (!image_pair.is_valid) continue;
 
-      image_t image_id1 = image_pair.image_id1;
-      image_t image_id2 = image_pair.image_id2;
-
-      Image& image1 = images[image_id1];
-      Image& image2 = images[image_id2];
+      const Image& image1 = images[image_pair.image_id1];
+      const Image& image2 = images[image_pair.image_id2];
 
       if (!image1.IsRegistered() || !image2.IsRegistered()) continue;
 
@@ -36,23 +32,28 @@ bool SolveRotationAveraging(ViewGraph& view_graph,
       if (image1.HasGravity() && image2.HasGravity()) {
         view_graph_grav.image_pairs.emplace(
             pair_id,
-            ImagePair(image_id1, image_id2, image_pair.cam2_from_cam1));
-        grav_pairs++;
+            ImagePair(image_pair.image_id1,
+                      image_pair.image_id2,
+                      image_pair.cam2_from_cam1));
       }
     }
   }
 
+  const size_t grav_pairs = view_graph_grav.image_pairs.size();
+
+  LOG(INFO) << "Total image pairs: " << total_pairs
+            << ", gravity image pairs: " << grav_pairs;
+
   // If there is no image pairs with gravity or most image pairs are with
   // gravity, then just run the 3dof version
-  const bool status = (grav_pairs == 0) || (grav_pairs > total_pairs * 0.95);
-  solve_1dof_system = solve_1dof_system && (!status);
+  const bool status = grav_pairs == 0 || grav_pairs > total_pairs * 0.95;
+  solve_1dof_system = solve_1dof_system && !status;
 
   if (solve_1dof_system) {
     // Run the 1dof optimization
     LOG(INFO) << "Solving subset 1DoF rotation averaging problem in the mixed "
                  "prior system";
-    int num_img_grv =
-        view_graph_grav.KeepLargestConnectedComponents(frames, images);
+    view_graph_grav.KeepLargestConnectedComponents(frames, images);
     RotationEstimator rotation_estimator_grav(options);
     if (!rotation_estimator_grav.EstimateRotations(
             view_graph_grav, rigs, frames, images)) {
@@ -61,31 +62,30 @@ bool SolveRotationAveraging(ViewGraph& view_graph,
     view_graph.KeepLargestConnectedComponents(frames, images);
   }
 
-  // By default, run trivial rotation averaging for rigged cameras if some
-  // cam_from_rig are not estimated Check if there are rigs with non-trivial
-  // cam_from_rig
-  std::unordered_set<camera_t> camera_without_rig;
+  // By default, run trivial rotation averaging for cameras with unknown
+  // cam_from_rig.
+  std::unordered_set<camera_t> unknown_cams_from_rig;
   rig_t max_rig_id = 0;
   for (const auto& [rig_id, rig] : rigs) {
     max_rig_id = std::max(max_rig_id, rig_id);
     for (const auto& [sensor_id, sensor] : rig.NonRefSensors()) {
       if (sensor_id.type != SensorType::CAMERA) continue;
       if (!rig.MaybeSensorFromRig(sensor_id).has_value()) {
-        camera_without_rig.insert(sensor_id.id);
+        unknown_cams_from_rig.insert(sensor_id.id);
       }
     }
   }
 
   bool status_ra = false;
   // If the trivial rotation averaging is enabled, run it
-  if (camera_without_rig.size() > 0 && !options.skip_initialization) {
+  if (!unknown_cams_from_rig.empty() && !options.skip_initialization) {
     LOG(INFO) << "Running trivial rotation averaging for rigged cameras";
     // Create a rig for each camera
     std::unordered_map<rig_t, Rig> rigs_trivial;
     std::unordered_map<frame_t, Frame> frames_trivial;
     std::unordered_map<image_t, Image> images_trivial;
 
-    // For cameras without rigs, create a trivial rig
+    // For cameras with known cam_from_rig, create rigs with only those sensors.
     std::unordered_map<camera_t, rig_t> camera_id_to_rig_id;
     for (const auto& [rig_id, rig] : rigs) {
       Rig rig_trivial;
@@ -103,8 +103,8 @@ bool SolveRotationAveraging(ViewGraph& view_graph,
       rigs_trivial[rig_trivial.RigId()] = rig_trivial;
     }
 
-    // Then, for each camera without rig, create a trivial rig
-    for (const auto& camera_id : camera_without_rig) {
+    // For each camera with unknown cam_from_rig, create a separate trivial rig.
+    for (const auto& camera_id : unknown_cams_from_rig) {
       Rig rig_trivial;
       rig_trivial.SetRigId(++max_rig_id);
       rig_trivial.AddRefSensor(sensor_t(SensorType::CAMERA, camera_id));
@@ -113,8 +113,8 @@ bool SolveRotationAveraging(ViewGraph& view_graph,
     }
 
     frame_t max_frame_id = 0;
-    for (const auto& [frame_id, frame] : frames) {
-      if (frame_id == colmap::kInvalidFrameId) continue;
+    for (const auto& [frame_id, _] : frames) {
+      THROW_CHECK_NE(frame_id, colmap::kInvalidFrameId);
       max_frame_id = std::max(max_frame_id, frame_id);
     }
     max_frame_id++;
@@ -129,26 +129,25 @@ bool SolveRotationAveraging(ViewGraph& view_graph,
                                   : nullptr);
       frames_trivial[frame_id] = frame_trivial;
 
-      for (const auto& data_id : frame.DataIds()) {
-        image_t image_id = data_id.id;
-        if (images.find(image_id) == images.end()) continue;
-        const auto& image = images.at(image_id);
+      for (const auto& data_id : frame.ImageIds()) {
+        const auto& image = images.at(data_id.id);
         if (!image.IsRegistered()) continue;
-        images_trivial.insert(std::make_pair(
-            image_id, Image(image_id, image.camera_id, image.file_name)));
+        auto& image_trivial =
+            images_trivial
+                .emplace(data_id.id,
+                         Image(data_id.id, image.camera_id, image.file_name))
+                .first->second;
 
-        if (camera_without_rig.find(images_trivial[image_id].camera_id) ==
-            camera_without_rig.end()) {
-          // images_trivial_to_frame_id[image_id] = frame_id;
-
-          frames_trivial[frame_id].AddDataId(images_trivial[image_id].DataId());
-          images_trivial[image_id].frame_id = frame_id;
-          images_trivial[image_id].frame_ptr = &frames_trivial[frame_id];
+        if (unknown_cams_from_rig.find(image_trivial.camera_id) ==
+            unknown_cams_from_rig.end()) {
+          frames_trivial[frame_id].AddDataId(image_trivial.DataId());
+          image_trivial.frame_id = frame_id;
+          image_trivial.frame_ptr = &frames_trivial[frame_id];
         } else {
           // If the camera is not in any rig, then create a trivial frame
           // for it
           CreateFrameForImage(Rigid3d(),
-                              images_trivial[image_id],
+                              image_trivial,
                               rigs_trivial,
                               frames_trivial,
                               camera_id_to_rig_id[image.camera_id],
@@ -167,13 +166,13 @@ bool SolveRotationAveraging(ViewGraph& view_graph,
         view_graph, rigs_trivial, frames_trivial, images_trivial);
 
     // Collect the results
-    std::unordered_map<image_t, Rigid3d> cam_from_worlds;
+    std::unordered_map<image_t, Rigid3d> cams_from_world;
     for (const auto& [image_id, image] : images_trivial) {
       if (!image.IsRegistered()) continue;
-      cam_from_worlds[image_id] = image.CamFromWorld();
+      cams_from_world[image_id] = image.CamFromWorld();
     }
 
-    ConvertRotationsFromImageToRig(cam_from_worlds, images, rigs, frames);
+    ConvertRotationsFromImageToRig(cams_from_world, images, rigs, frames);
 
     RotationEstimatorOptions options_ra = options;
     options_ra.skip_initialization = true;
@@ -186,7 +185,7 @@ bool SolveRotationAveraging(ViewGraph& view_graph,
     // For cases where there are some cameras without known cam_from_rig
     // transformation, we need to run the rotation averaging with the
     // skip_initialization flag set to false for convergence
-    if (camera_without_rig.size() > 0) {
+    if (unknown_cams_from_rig.size() > 0) {
       options_ra.skip_initialization = false;
     }
 
