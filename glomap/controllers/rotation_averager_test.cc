@@ -124,6 +124,8 @@ void ExpectEqualGravity(
 }
 
 TEST(RotationEstimator, WithoutNoise) {
+  colmap::SetPRNGSeed(1);
+
   const std::string database_path = colmap::CreateTestDir() + "/database.db";
 
   auto database = colmap::Database::Open(database_path);
@@ -153,8 +155,8 @@ TEST(RotationEstimator, WithoutNoise) {
   global_mapper.Solve(
       *database, view_graph, rigs, cameras, frames, images, tracks);
 
-  // TODO: The current 1-dof rotation averaging sometimes fail to pick the right
-  // solution (e.g., 180 deg flipped).
+  // TODO: The current 1-dof rotation averaging sometimes fails to pick the
+  // right solution (e.g., 180 deg flipped).
   for (const bool use_gravity : {false}) {
     SolveRotationAveraging(
         view_graph, rigs, frames, images, CreateRATestOptions(use_gravity));
@@ -168,6 +170,8 @@ TEST(RotationEstimator, WithoutNoise) {
 }
 
 TEST(RotationEstimator, WithoutNoiseWithNoneTrivialKnownRig) {
+  colmap::SetPRNGSeed(1);
+
   const std::string database_path = colmap::CreateTestDir() + "/database.db";
 
   auto database = colmap::Database::Open(database_path);
@@ -210,6 +214,8 @@ TEST(RotationEstimator, WithoutNoiseWithNoneTrivialKnownRig) {
 }
 
 TEST(RotationEstimator, WithoutNoiseWithNoneTrivialUnknownRig) {
+  colmap::SetPRNGSeed(1);
+
   const std::string database_path = colmap::CreateTestDir() + "/database.db";
 
   auto database = colmap::Database::Open(database_path);
@@ -246,8 +252,8 @@ TEST(RotationEstimator, WithoutNoiseWithNoneTrivialUnknownRig) {
   global_mapper.Solve(
       *database, view_graph, rigs, cameras, frames, images, tracks);
 
-  // For unknown rigs, it is not supported to use gravity
-  for (bool use_gravity : {false}) {
+  // For unknown rigs, it is not supported to use gravity.
+  for (const bool use_gravity : {false}) {
     SolveRotationAveraging(
         view_graph, rigs, frames, images, CreateRATestOptions(use_gravity));
 
@@ -260,6 +266,8 @@ TEST(RotationEstimator, WithoutNoiseWithNoneTrivialUnknownRig) {
 }
 
 TEST(RotationEstimator, WithNoiseAndOutliers) {
+  colmap::SetPRNGSeed(1);
+
   const std::string database_path = colmap::CreateTestDir() + "/database.db";
 
   auto database = colmap::Database::Open(database_path);
@@ -289,7 +297,7 @@ TEST(RotationEstimator, WithNoiseAndOutliers) {
   global_mapper.Solve(
       *database, view_graph, rigs, cameras, frames, images, tracks);
 
-  for (bool use_gravity : {true, false}) {
+  for (const bool use_gravity : {true, false}) {
     SolveRotationAveraging(
         view_graph, rigs, frames, images, CreateRATestOptions(use_gravity));
 
@@ -306,6 +314,8 @@ TEST(RotationEstimator, WithNoiseAndOutliers) {
 }
 
 TEST(RotationEstimator, WithNoiseAndOutliersWithNonTrivialKnownRigs) {
+  colmap::SetPRNGSeed(1);
+
   const std::string database_path = colmap::CreateTestDir() + "/database.db";
 
   auto database = colmap::Database::Open(database_path);
@@ -334,7 +344,9 @@ TEST(RotationEstimator, WithNoiseAndOutliersWithNonTrivialKnownRigs) {
   global_mapper.Solve(
       *database, view_graph, rigs, cameras, frames, images, tracks);
 
-  for (bool use_gravity : {true, false}) {
+  // TODO: The current 1-dof rotation averaging sometimes fails to pick the
+  // right solution (e.g., 180 deg flipped).
+  for (const bool use_gravity : {true, false}) {
     SolveRotationAveraging(
         view_graph, rigs, frames, images, CreateRATestOptions(use_gravity));
 
@@ -351,6 +363,8 @@ TEST(RotationEstimator, WithNoiseAndOutliersWithNonTrivialKnownRigs) {
 }
 
 TEST(RotationEstimator, RefineGravity) {
+  colmap::SetPRNGSeed(1);
+
   const std::string database_path = colmap::CreateTestDir() + "/database.db";
 
   auto database = colmap::Database::Open(database_path);
@@ -393,6 +407,8 @@ TEST(RotationEstimator, RefineGravity) {
 }
 
 TEST(RotationEstimator, RefineGravityWithNontrivialRigs) {
+  colmap::SetPRNGSeed(1);
+
   const std::string database_path = colmap::CreateTestDir() + "/database.db";
 
   auto database = colmap::Database::Open(database_path);
