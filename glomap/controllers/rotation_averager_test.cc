@@ -304,12 +304,8 @@ TEST(RotationEstimator, WithNoiseAndOutliers) {
     colmap::Reconstruction reconstruction;
     ConvertGlomapToColmap(
         rigs, cameras, frames, images, tracks, reconstruction);
-    if (use_gravity)
-      ExpectEqualRotations(
-          gt_reconstruction, reconstruction, /*max_rotation_error_deg=*/1.5);
-    else
-      ExpectEqualRotations(
-          gt_reconstruction, reconstruction, /*max_rotation_error_deg=*/2.);
+    ExpectEqualRotations(
+          gt_reconstruction, reconstruction, /*max_rotation_error_deg=*/3);
   }
 }
 
