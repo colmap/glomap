@@ -305,7 +305,7 @@ TEST(RotationEstimator, WithNoiseAndOutliers) {
     ConvertGlomapToColmap(
         rigs, cameras, frames, images, tracks, reconstruction);
     ExpectEqualRotations(
-          gt_reconstruction, reconstruction, /*max_rotation_error_deg=*/3);
+        gt_reconstruction, reconstruction, /*max_rotation_error_deg=*/3);
   }
 }
 
