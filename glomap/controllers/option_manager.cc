@@ -209,6 +209,8 @@ void OptionManager::AddBundleAdjusterOptions() {
                               &mapper->opt_ba.use_gpu);
   AddAndRegisterDefaultOption("BundleAdjustment.gpu_index",
                               &mapper->opt_ba.gpu_index);
+  AddAndRegisterDefaultOption("BundleAdjustment.optimize_rig_poses",
+                              &mapper->opt_ba.optimize_rig_poses);
   AddAndRegisterDefaultOption("BundleAdjustment.optimize_rotations",
                               &mapper->opt_ba.optimize_rotations);
   AddAndRegisterDefaultOption("BundleAdjustment.optimize_translation",

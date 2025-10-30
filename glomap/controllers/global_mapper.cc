@@ -1,5 +1,6 @@
 #include "global_mapper.h"
 
+#include "glomap/controllers/rotation_averager.h"
 #include "glomap/io/colmap_converter.h"
 #include "glomap/processors/image_pair_inliers.h"
 #include "glomap/processors/image_undistorter.h"
@@ -14,9 +15,12 @@
 
 namespace glomap {
 
+// TODO: Rig normalizaiton has not be done
 bool GlobalMapper::Solve(const colmap::Database& database,
                          ViewGraph& view_graph,
+                         std::unordered_map<rig_t, Rig>& rigs,
                          std::unordered_map<camera_t, Camera>& cameras,
+                         std::unordered_map<frame_t, Frame>& frames,
                          std::unordered_map<image_t, Image>& images,
                          std::unordered_map<track_t, Track>& tracks) {
   // 0. Preprocessing
@@ -46,6 +50,7 @@ bool GlobalMapper::Solve(const colmap::Database& database,
   }
 
   // 2. Run relative pose estimation
+  //   TODO: Use generalized relative pose estimation for rigs.
   if (!options_.skip_relative_pose_estimation) {
     std::cout << "-------------------------------------" << std::endl;
     std::cout << "Running relative pose estimation ..." << std::endl;
@@ -66,7 +71,7 @@ bool GlobalMapper::Solve(const colmap::Database& database,
     RelPoseFilter::FilterInlierRatio(
         view_graph, options_.inlier_thresholds.min_inlier_ratio);
 
-    if (view_graph.KeepLargestConnectedComponents(images) == 0) {
+    if (view_graph.KeepLargestConnectedComponents(frames, images) == 0) {
       LOG(ERROR) << "no connected components are found";
       return false;
     }
@@ -83,24 +88,24 @@ bool GlobalMapper::Solve(const colmap::Database& database,
     colmap::Timer run_timer;
     run_timer.Start();
 
-    RotationEstimator ra_engine(options_.opt_ra);
     // The first run is for filtering
-    ra_engine.EstimateRotations(view_graph, images);
+    SolveRotationAveraging(view_graph, rigs, frames, images, options_.opt_ra);
 
     RelPoseFilter::FilterRotations(
         view_graph, images, options_.inlier_thresholds.max_rotation_error);
-    if (view_graph.KeepLargestConnectedComponents(images) == 0) {
+    if (view_graph.KeepLargestConnectedComponents(frames, images) == 0) {
       LOG(ERROR) << "no connected components are found";
       return false;
     }
 
     // The second run is for final estimation
-    if (!ra_engine.EstimateRotations(view_graph, images)) {
+    if (!SolveRotationAveraging(
+            view_graph, rigs, frames, images, options_.opt_ra)) {
       return false;
     }
     RelPoseFilter::FilterRotations(
         view_graph, images, options_.inlier_thresholds.max_rotation_error);
-    image_t num_img = view_graph.KeepLargestConnectedComponents(images);
+    image_t num_img = view_graph.KeepLargestConnectedComponents(frames, images);
     if (num_img == 0) {
       LOG(ERROR) << "no connected components are found";
       return false;
@@ -137,6 +142,12 @@ bool GlobalMapper::Solve(const colmap::Database& database,
     std::cout << "Running global positioning ..." << std::endl;
     std::cout << "-------------------------------------" << std::endl;
 
+    if (options_.opt_gp.constraint_type !=
+        GlobalPositionerOptions::ConstraintType::ONLY_POINTS) {
+      LOG(ERROR) << "Only points are used for solving camera positions";
+      return false;
+    }
+
     colmap::Timer run_timer;
     run_timer.Start();
     // Undistort images in case all previous steps are skipped
@@ -144,24 +155,11 @@ bool GlobalMapper::Solve(const colmap::Database& database,
     UndistortImages(cameras, images, false);
 
     GlobalPositioner gp_engine(options_.opt_gp);
-    if (!gp_engine.Solve(view_graph, cameras, images, tracks)) {
+
+    // TODO: consider to support other modes as well
+    if (!gp_engine.Solve(view_graph, rigs, cameras, frames, images, tracks)) {
       return false;
     }
-
-    // If only camera-to-camera constraints are used for solving camera
-    // positions, then points needs to be estimated separately
-    if (options_.opt_gp.constraint_type ==
-        GlobalPositionerOptions::ConstraintType::ONLY_CAMERAS) {
-      GlobalPositionerOptions opt_gp_pt = options_.opt_gp;
-      opt_gp_pt.constraint_type =
-          GlobalPositionerOptions::ConstraintType::ONLY_POINTS;
-      opt_gp_pt.optimize_positions = false;
-      GlobalPositioner gp_engine_pt(opt_gp_pt);
-      if (!gp_engine_pt.Solve(view_graph, cameras, images, tracks)) {
-        return false;
-      }
-    }
-
     // Filter tracks based on the estimation
     TrackFilter::FilterTracksByAngle(
         view_graph,
@@ -170,8 +168,22 @@ bool GlobalMapper::Solve(const colmap::Database& database,
         tracks,
         options_.inlier_thresholds.max_angle_error);
 
+    // Filter tracks based on triangulation angle and reprojection error
+    TrackFilter::FilterTrackTriangulationAngle(
+        view_graph,
+        images,
+        tracks,
+        options_.inlier_thresholds.min_triangulation_angle);
+    // Set the threshold to be larger to avoid removing too many tracks
+    TrackFilter::FilterTracksByReprojection(
+        view_graph,
+        cameras,
+        images,
+        tracks,
+        10 * options_.inlier_thresholds.max_reprojection_error);
     // Normalize the structure
-    NormalizeReconstruction(cameras, images, tracks);
+    // If the camera rig is used, the structure do not need to be normalized
+    NormalizeReconstruction(rigs, cameras, frames, images, tracks);
 
     run_timer.PrintSeconds();
   }
@@ -194,7 +206,7 @@ bool GlobalMapper::Solve(const colmap::Database& database,
       // Staged bundle adjustment
       // 6.1. First stage: optimize positions only
       ba_engine_options_inner.optimize_rotations = false;
-      if (!ba_engine.Solve(view_graph, cameras, images, tracks)) {
+      if (!ba_engine.Solve(rigs, cameras, frames, images, tracks)) {
         return false;
       }
       LOG(INFO) << "Global bundle adjustment iteration " << ite + 1 << " / "
@@ -206,7 +218,7 @@ bool GlobalMapper::Solve(const colmap::Database& database,
       ba_engine_options_inner.optimize_rotations =
           options_.opt_ba.optimize_rotations;
       if (ba_engine_options_inner.optimize_rotations &&
-          !ba_engine.Solve(view_graph, cameras, images, tracks)) {
+          !ba_engine.Solve(rigs, cameras, frames, images, tracks)) {
         return false;
       }
       LOG(INFO) << "Global bundle adjustment iteration " << ite + 1 << " / "
@@ -216,7 +228,7 @@ bool GlobalMapper::Solve(const colmap::Database& database,
         run_timer.PrintSeconds();
 
       // Normalize the structure
-      NormalizeReconstruction(cameras, images, tracks);
+      NormalizeReconstruction(rigs, cameras, frames, images, tracks);
 
       // 6.3. Filter tracks based on the estimation
       // For the filtering, in each round, the criteria for outlier is
@@ -273,8 +285,13 @@ bool GlobalMapper::Solve(const colmap::Database& database,
     for (int ite = 0; ite < options_.num_iteration_retriangulation; ite++) {
       colmap::Timer run_timer;
       run_timer.Start();
-      RetriangulateTracks(
-          options_.opt_triangulator, database, cameras, images, tracks);
+      RetriangulateTracks(options_.opt_triangulator,
+                          database,
+                          rigs,
+                          cameras,
+                          frames,
+                          images,
+                          tracks);
       run_timer.PrintSeconds();
 
       std::cout << "-------------------------------------" << std::endl;
@@ -282,7 +299,7 @@ bool GlobalMapper::Solve(const colmap::Database& database,
       std::cout << "-------------------------------------" << std::endl;
       LOG(INFO) << "Bundle adjustment start" << std::endl;
       BundleAdjuster ba_engine(options_.opt_ba);
-      if (!ba_engine.Solve(view_graph, cameras, images, tracks)) {
+      if (!ba_engine.Solve(rigs, cameras, frames, images, tracks)) {
         return false;
       }
 
@@ -295,14 +312,14 @@ bool GlobalMapper::Solve(const colmap::Database& database,
           images,
           tracks,
           options_.inlier_thresholds.max_reprojection_error);
-      if (!ba_engine.Solve(view_graph, cameras, images, tracks)) {
+      if (!ba_engine.Solve(rigs, cameras, frames, images, tracks)) {
         return false;
       }
       run_timer.PrintSeconds();
     }
 
     // Normalize the structure
-    NormalizeReconstruction(cameras, images, tracks);
+    NormalizeReconstruction(rigs, cameras, frames, images, tracks);
 
     // Filter tracks based on the estimation
     UndistortImages(cameras, images, true);
@@ -330,7 +347,7 @@ bool GlobalMapper::Solve(const colmap::Database& database,
     run_timer.Start();
 
     // Prune weakly connected images
-    PruneWeaklyConnectedImages(images, tracks);
+    PruneWeaklyConnectedImages(frames, images, tracks);
 
     run_timer.PrintSeconds();
   }

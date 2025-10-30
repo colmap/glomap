@@ -30,6 +30,9 @@ struct ImagePairTempInfo {
   // angle_rel is the converted angle if gravity prior is available for both
   // images
   double angle_rel = 0;
+
+  int idx_cam1 = -1;  // index of the first camera in the rig
+  int idx_cam2 = -1;  // index of the second camera in the rig
 };
 
 struct RotationEstimatorOptions {
@@ -70,10 +73,6 @@ struct RotationEstimatorOptions {
   bool use_gravity = false;
 };
 
-// TODO: Implement the stratified camera rotation estimation
-// TODO: Implement the HALF_NORM loss for IRLS
-// TODO: Implement the weighted version for rotation averaging
-// TODO: Implement the gravity as prior for rotation averaging
 class RotationEstimator {
  public:
   explicit RotationEstimator(const RotationEstimatorOptions& options)
@@ -82,30 +81,40 @@ class RotationEstimator {
   // Estimates the global orientations of all views based on an initial
   // guess. Returns true on successful estimation and false otherwise.
   bool EstimateRotations(const ViewGraph& view_graph,
+                         std::unordered_map<rig_t, Rig>& rigs,
+                         std::unordered_map<frame_t, Frame>& frames,
                          std::unordered_map<image_t, Image>& images);
 
  protected:
   // Initialize the rotation from the maximum spanning tree
   // Number of inliers serve as weights
   void InitializeFromMaximumSpanningTree(
-      const ViewGraph& view_graph, std::unordered_map<image_t, Image>& images);
+      const ViewGraph& view_graph,
+      std::unordered_map<rig_t, Rig>& rigs,
+      std::unordered_map<frame_t, Frame>& frames,
+      std::unordered_map<image_t, Image>& images);
 
   // Sets up the sparse linear system such that dR_ij = dR_j - dR_i. This is the
   // first-order approximation of the angle-axis rotations. This should only be
   // called once.
   void SetupLinearSystem(const ViewGraph& view_graph,
+                         std::unordered_map<rig_t, Rig>& rigs,
+                         std::unordered_map<frame_t, Frame>& frames,
                          std::unordered_map<image_t, Image>& images);
 
   // Performs the L1 robust loss minimization.
   bool SolveL1Regression(const ViewGraph& view_graph,
+                         std::unordered_map<frame_t, Frame>& frames,
                          std::unordered_map<image_t, Image>& images);
 
   // Performs the iteratively reweighted least squares.
   bool SolveIRLS(const ViewGraph& view_graph,
+                 std::unordered_map<frame_t, Frame>& frames,
                  std::unordered_map<image_t, Image>& images);
 
   // Updates the global rotations based on the current rotation change.
   void UpdateGlobalRotations(const ViewGraph& view_graph,
+                             std::unordered_map<frame_t, Frame>& frames,
                              std::unordered_map<image_t, Image>& images);
 
   // Computes the relative rotation (tangent space) residuals based on the
@@ -117,7 +126,13 @@ class RotationEstimator {
   // The is the average over all non-fixed global_orientations_ of their
   // rotation magnitudes.
   double ComputeAverageStepSize(
-      const std::unordered_map<image_t, Image>& images);
+      const std::unordered_map<frame_t, Frame>& frames);
+
+  // Converts the results from the tangent space to the global rotations and
+  // updates the frames and images with the new rotations.
+  void ConvertResults(std::unordered_map<rig_t, Rig>& rigs,
+                      std::unordered_map<frame_t, Frame>& frames,
+                      std::unordered_map<image_t, Image>& images);
 
   // Data
   // Options for the solver.
@@ -136,7 +151,10 @@ class RotationEstimator {
   Eigen::VectorXd rotation_estimated_;
 
   // Varaibles for intermidiate results
-  std::unordered_map<image_t, image_t> image_id_to_idx_;
+  std::unordered_map<image_t, int> image_id_to_idx_;
+  std::unordered_map<frame_t, int> frame_id_to_idx_;
+  std::unordered_map<camera_t, int>
+      camera_id_to_idx_;  // Note: for reference cameras, it does not have this
   std::unordered_map<image_pair_t, ImagePairTempInfo> rel_temp_info_;
 
   // The fixed camera id. This is used to remove the ambiguity of the linear

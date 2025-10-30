@@ -1,5 +1,4 @@
 #pragma once
-
 #include "glomap/controllers/track_establishment.h"
 #include "glomap/controllers/track_retriangulation.h"
 #include "glomap/estimators/bundle_adjustment.h"
@@ -42,13 +41,16 @@ struct GlobalMapperOptions {
   bool skip_pruning = true;
 };
 
+// TODO: Refactor the code to reuse the pipeline code more
 class GlobalMapper {
  public:
   GlobalMapper(const GlobalMapperOptions& options) : options_(options) {}
 
   bool Solve(const colmap::Database& database,
              ViewGraph& view_graph,
+             std::unordered_map<rig_t, Rig>& rigs,
              std::unordered_map<camera_t, Camera>& cameras,
+             std::unordered_map<frame_t, Frame>& frames,
              std::unordered_map<image_t, Image>& images,
              std::unordered_map<track_t, Track>& tracks);
 

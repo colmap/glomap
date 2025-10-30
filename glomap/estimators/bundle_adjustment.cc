@@ -8,8 +8,9 @@
 
 namespace glomap {
 
-bool BundleAdjuster::Solve(const ViewGraph& view_graph,
+bool BundleAdjuster::Solve(std::unordered_map<rig_t, Rig>& rigs,
                            std::unordered_map<camera_t, Camera>& cameras,
+                           std::unordered_map<frame_t, Frame>& frames,
                            std::unordered_map<image_t, Image>& images,
                            std::unordered_map<track_t, Track>& tracks) {
   // Check if the input data is valid
@@ -26,14 +27,14 @@ bool BundleAdjuster::Solve(const ViewGraph& view_graph,
   Reset();
 
   // Add the constraints that the point tracks impose on the problem
-  AddPointToCameraConstraints(view_graph, cameras, images, tracks);
+  AddPointToCameraConstraints(rigs, cameras, frames, images, tracks);
 
   // Add the cameras and points to the parameter groups for schur-based
   // optimization
-  AddCamerasAndPointsToParameterGroups(cameras, images, tracks);
+  AddCamerasAndPointsToParameterGroups(rigs, cameras, frames, tracks);
 
   // Parameterize the variables
-  ParameterizeVariables(cameras, images, tracks);
+  ParameterizeVariables(rigs, cameras, frames, tracks);
 
   // Set the solver options.
   ceres::Solver::Summary summary;
@@ -112,8 +113,9 @@ void BundleAdjuster::Reset() {
 }
 
 void BundleAdjuster::AddPointToCameraConstraints(
-    const ViewGraph& view_graph,
+    std::unordered_map<rig_t, Rig>& rigs,
     std::unordered_map<camera_t, Camera>& cameras,
+    std::unordered_map<frame_t, Frame>& frames,
     std::unordered_map<image_t, Image>& images,
     std::unordered_map<track_t, Track>& tracks) {
   for (auto& [track_id, track] : tracks) {
@@ -123,20 +125,61 @@ void BundleAdjuster::AddPointToCameraConstraints(
       if (images.find(observation.first) == images.end()) continue;
 
       Image& image = images[observation.first];
+      Frame* frame_ptr = image.frame_ptr;
+      camera_t camera_id = image.camera_id;
+      image_t rig_id = image.frame_ptr->RigId();
 
-      ceres::CostFunction* cost_function =
-          colmap::CreateCameraCostFunction<colmap::ReprojErrorCostFunctor>(
-              cameras[image.camera_id].model_id,
-              image.features[observation.second]);
-
-      if (cost_function != nullptr) {
+      ceres::CostFunction* cost_function = nullptr;
+      // if (image_id_to_camera_rig_index_.find(observation.first) ==
+      //     image_id_to_camera_rig_index_.end()) {
+      if (image.HasTrivialFrame()) {
+        cost_function =
+            colmap::CreateCameraCostFunction<colmap::ReprojErrorCostFunctor>(
+                cameras[image.camera_id].model_id,
+                image.features[observation.second]);
         problem_->AddResidualBlock(
             cost_function,
             loss_function_.get(),
-            image.cam_from_world.rotation.coeffs().data(),
-            image.cam_from_world.translation.data(),
+            frame_ptr->RigFromWorld().rotation.coeffs().data(),
+            frame_ptr->RigFromWorld().translation.data(),
             tracks[track_id].xyz.data(),
             cameras[image.camera_id].params.data());
+      } else if (!options_.optimize_rig_poses) {
+        const Rigid3d& cam_from_rig = rigs[rig_id].SensorFromRig(
+            sensor_t(SensorType::CAMERA, image.camera_id));
+        cost_function = colmap::CreateCameraCostFunction<
+            colmap::RigReprojErrorConstantRigCostFunctor>(
+            cameras[image.camera_id].model_id,
+            image.features[observation.second],
+            cam_from_rig);
+        problem_->AddResidualBlock(
+            cost_function,
+            loss_function_.get(),
+            frame_ptr->RigFromWorld().rotation.coeffs().data(),
+            frame_ptr->RigFromWorld().translation.data(),
+            tracks[track_id].xyz.data(),
+            cameras[image.camera_id].params.data());
+      } else {
+        // If the image is part of a camera rig, use the RigBATA error
+        // Down weight the uncalibrated cameras
+        Rigid3d& cam_from_rig = rigs[rig_id].SensorFromRig(
+            sensor_t(SensorType::CAMERA, image.camera_id));
+        cost_function =
+            colmap::CreateCameraCostFunction<colmap::RigReprojErrorCostFunctor>(
+                cameras[image.camera_id].model_id,
+                image.features[observation.second]);
+        problem_->AddResidualBlock(
+            cost_function,
+            loss_function_.get(),
+            cam_from_rig.rotation.coeffs().data(),
+            cam_from_rig.translation.data(),
+            frame_ptr->RigFromWorld().rotation.coeffs().data(),
+            frame_ptr->RigFromWorld().translation.data(),
+            tracks[track_id].xyz.data(),
+            cameras[image.camera_id].params.data());
+      }
+
+      if (cost_function != nullptr) {
       } else {
         LOG(ERROR) << "Camera model not supported: "
                    << colmap::CameraModelIdToName(
@@ -147,8 +190,9 @@ void BundleAdjuster::AddPointToCameraConstraints(
 }
 
 void BundleAdjuster::AddCamerasAndPointsToParameterGroups(
+    std::unordered_map<rig_t, Rig>& rigs,
     std::unordered_map<camera_t, Camera>& cameras,
-    std::unordered_map<image_t, Image>& images,
+    std::unordered_map<frame_t, Frame>& frames,
     std::unordered_map<track_t, Track>& tracks) {
   if (tracks.size() == 0) return;
 
@@ -163,13 +207,30 @@ void BundleAdjuster::AddCamerasAndPointsToParameterGroups(
       parameter_ordering->AddElementToGroup(track.xyz.data(), 0);
   }
 
-  // Add camera parameters to group 1.
-  for (auto& [image_id, image] : images) {
-    if (problem_->HasParameterBlock(image.cam_from_world.translation.data())) {
+  // Add frame parameters to group 1.
+  for (auto& [frame_id, frame] : frames) {
+    if (!frame.HasPose()) continue;
+    if (problem_->HasParameterBlock(frame.RigFromWorld().translation.data())) {
       parameter_ordering->AddElementToGroup(
-          image.cam_from_world.translation.data(), 1);
+          frame.RigFromWorld().translation.data(), 1);
       parameter_ordering->AddElementToGroup(
-          image.cam_from_world.rotation.coeffs().data(), 1);
+          frame.RigFromWorld().rotation.coeffs().data(), 1);
+    }
+  }
+
+  // Add the cam_from_rigs to be estimated into the parameter group
+  for (auto& [rig_id, rig] : rigs) {
+    for (const auto& [sensor_id, sensor] : rig.NonRefSensors()) {
+      if (sensor_id.type == SensorType::CAMERA) {
+        Eigen::Vector3d& translation = rig.SensorFromRig(sensor_id).translation;
+        if (problem_->HasParameterBlock(translation.data())) {
+          parameter_ordering->AddElementToGroup(translation.data(), 1);
+        }
+        Eigen::Quaterniond& rotation = rig.SensorFromRig(sensor_id).rotation;
+        if (problem_->HasParameterBlock(rotation.coeffs().data())) {
+          parameter_ordering->AddElementToGroup(rotation.coeffs().data(), 1);
+        }
+      }
     }
   }
 
@@ -181,39 +242,31 @@ void BundleAdjuster::AddCamerasAndPointsToParameterGroups(
 }
 
 void BundleAdjuster::ParameterizeVariables(
+    std::unordered_map<rig_t, Rig>& rigs,
     std::unordered_map<camera_t, Camera>& cameras,
-    std::unordered_map<image_t, Image>& images,
+    std::unordered_map<frame_t, Frame>& frames,
     std::unordered_map<track_t, Track>& tracks) {
-  image_t center;
+  frame_t center;
 
   // Parameterize rotations, and set rotations and translations to be constant
   // if desired FUTURE: Consider fix the scale of the reconstruction
   int counter = 0;
-  for (auto& [image_id, image] : images) {
+  for (auto& [frame_id, frame] : frames) {
+    if (!frame.HasPose()) continue;
     if (problem_->HasParameterBlock(
-            image.cam_from_world.rotation.coeffs().data())) {
+            frame.RigFromWorld().rotation.coeffs().data())) {
       colmap::SetQuaternionManifold(
-          problem_.get(), image.cam_from_world.rotation.coeffs().data());
+          problem_.get(), frame.RigFromWorld().rotation.coeffs().data());
 
-      if (counter == 0) {
-        center = image_id;
-        counter++;
-      }
-      if (!options_.optimize_rotations)
+      if (!options_.optimize_rotations || counter == 0)
         problem_->SetParameterBlockConstant(
-            image.cam_from_world.rotation.coeffs().data());
-      if (!options_.optimize_translation)
+            frame.RigFromWorld().rotation.coeffs().data());
+      if (!options_.optimize_translation || counter == 0)
         problem_->SetParameterBlockConstant(
-            image.cam_from_world.translation.data());
+            frame.RigFromWorld().translation.data());
+
+      counter++;
     }
-  }
-
-  if (counter > 0) {
-    // Set the first camera to be fixed to remove the gauge ambiguity.
-    problem_->SetParameterBlockConstant(
-        images[center].cam_from_world.rotation.coeffs().data());
-    problem_->SetParameterBlockConstant(
-        images[center].cam_from_world.translation.data());
   }
 
   // Parameterize the camera parameters, or set them to be constant if desired
@@ -235,6 +288,21 @@ void BundleAdjuster::ParameterizeVariables(
     for (auto& [camera_id, camera] : cameras) {
       if (problem_->HasParameterBlock(camera.params.data())) {
         problem_->SetParameterBlockConstant(camera.params.data());
+      }
+    }
+  }
+
+  // If we optimize the rig poses, then parameterize them
+  if (options_.optimize_rig_poses) {
+    for (auto& [rig_id, rig] : rigs) {
+      for (const auto& [sensor_id, sensor] : rig.NonRefSensors()) {
+        if (sensor_id.type == SensorType::CAMERA) {
+          Eigen::Quaterniond& rotation = rig.SensorFromRig(sensor_id).rotation;
+          if (problem_->HasParameterBlock(rotation.coeffs().data())) {
+            colmap::SetQuaternionManifold(problem_.get(),
+                                          rotation.coeffs().data());
+          }
+        }
       }
     }
   }

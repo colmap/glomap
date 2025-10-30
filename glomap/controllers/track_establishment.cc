@@ -173,7 +173,7 @@ size_t TrackEngine::FindTracksForProblem(
   // corresponding to those images
   std::unordered_map<track_t, Track> tracks;
   for (const auto& [image_id, image] : images_) {
-    if (!image.is_registered) continue;
+    if (!image.IsRegistered()) continue;
 
     tracks_per_camera[image_id] = 0;
   }

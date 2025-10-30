@@ -35,4 +35,7 @@ Eigen::Vector3d RotationToAngleAxis(const Eigen::Matrix3d& rot);
 // Convert angle axis to rotation matrix
 Eigen::Matrix3d AngleAxisToRotation(const Eigen::Vector3d& aa);
 
+// Calculate the center of the pose
+Eigen::Vector3d CenterFromPose(const Rigid3d& pose);
+
 }  // namespace glomap

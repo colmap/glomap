@@ -40,8 +40,8 @@ jobs:
 
       - name: Setup Mac
         run: |
+          brew upgrade cmake || brew install cmake
           brew install \
-            cmake \
             ninja \
             boost \
             eigen \
@@ -56,6 +56,7 @@ jobs:
             cgal \
             sqlite3 \
             ccache
+          brew link --force libomp
 
       - name: Configure and build
         run: |

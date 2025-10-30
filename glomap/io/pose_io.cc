@@ -16,6 +16,11 @@ void ReadRelPose(const std::string& file_path,
     max_image_id = std::max(max_image_id, image_id);
   }
 
+  // Mark every edge in te view graph as invalid
+  for (auto& [pair_id, image_pair] : view_graph.image_pairs) {
+    image_pair.is_valid = false;
+  }
+
   std::ifstream file(file_path);
 
   // Read in data
@@ -65,8 +70,15 @@ void ReadRelPose(const std::string& file_path,
       pose_rel.translation[i] = std::stod(item);
     }
 
-    view_graph.image_pairs.insert(
-        std::make_pair(pair_id, ImagePair(index1, index2, pose_rel)));
+    if (view_graph.image_pairs.find(pair_id) == view_graph.image_pairs.end()) {
+      view_graph.image_pairs.insert(
+          std::make_pair(pair_id, ImagePair(index1, index2, pose_rel)));
+    } else {
+      view_graph.image_pairs[pair_id].cam2_from_cam1 = pose_rel;
+      view_graph.image_pairs[pair_id].is_valid = true;
+      view_graph.image_pairs[pair_id].config =
+          colmap::TwoViewGeometry::CALIBRATED;
+    }
     counter++;
   }
   LOG(INFO) << counter << " relpose are loaded" << std::endl;
@@ -118,6 +130,8 @@ void ReadRelWeight(const std::string& file_path,
   LOG(INFO) << counter << " weights are used are loaded" << std::endl;
 }
 
+// TODO: now, we only store 1 single gravity per rig.
+// for ease of implementation, we only store from the image with trivial frame
 void ReadGravity(const std::string& gravity_path,
                  std::unordered_map<image_t, Image>& images) {
   std::unordered_map<std::string, image_t> name_idx;
@@ -148,10 +162,14 @@ void ReadGravity(const std::string& gravity_path,
     auto ite = name_idx.find(name);
     if (ite != name_idx.end()) {
       counter++;
-      images[ite->second].gravity_info.SetGravity(gravity);
-      // Make sure the initialization is aligned with the gravity
-      images[ite->second].cam_from_world.rotation =
-          images[ite->second].gravity_info.GetRAlign().transpose();
+      if (images[ite->second].HasTrivialFrame()) {
+        images[ite->second].frame_ptr->gravity_info.SetGravity(gravity);
+        Rigid3d& cam_from_world = images[ite->second].frame_ptr->RigFromWorld();
+        // Set the rotation from the camera to the world
+        // Make sure the initialization is aligned with the gravity
+        cam_from_world.rotation = Eigen::Quaterniond(
+            images[ite->second].frame_ptr->gravity_info.GetRAlign());
+      }
     }
   }
   LOG(INFO) << counter << " images are loaded with gravity" << std::endl;
@@ -162,16 +180,17 @@ void WriteGlobalRotation(const std::string& file_path,
   std::ofstream file(file_path);
   std::set<image_t> existing_images;
   for (const auto& [image_id, image] : images) {
-    if (image.is_registered) {
+    if (image.IsRegistered()) {
       existing_images.insert(image_id);
     }
   }
   for (const auto& image_id : existing_images) {
     const auto image = images.at(image_id);
-    if (!image.is_registered) continue;
+    if (!image.IsRegistered()) continue;
     file << image.file_name;
+    Rigid3d cam_from_world = image.CamFromWorld();
     for (int i = 0; i < 4; i++) {
-      file << " " << image.cam_from_world.rotation.coeffs()[(i + 3) % 4];
+      file << " " << cam_from_world.rotation.coeffs()[(i + 3) % 4];
     }
     file << "\n";
   }
