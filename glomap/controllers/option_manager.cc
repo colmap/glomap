@@ -288,11 +288,6 @@ void OptionManager::Reset() {
 
   desc_ = std::make_shared<boost::program_options::options_description>();
 
-  options_bool_.clear();
-  options_int_.clear();
-  options_double_.clear();
-  options_string_.clear();
-
   added_mapper_options_ = false;
   added_view_graph_calibration_options_ = false;
   added_relative_pose_options_ = false;
