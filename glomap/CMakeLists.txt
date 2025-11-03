@@ -100,6 +100,9 @@ else()
         -Werror
         -Wno-sign-compare
         -Wno-unused-variable
+        -Wno-maybe-uninitialized
+        -Wno-array-bounds
+        -Wno-stringop-overflow
     )
 endif()
 
