@@ -21,12 +21,13 @@ namespace {
 void RestoreTranslationToPriorPosition(
     std::unordered_map<image_t, Image>& images) {
   for (auto& [_, image] : images) {
-    if (!image.pose_prior) {
+    if (!image.frame_ptr->pose_prior) {
       continue;
     }
     // t=-Rc
-    image.cam_from_world.translation =
-        -(image.cam_from_world.rotation * image.pose_prior->position);
+    image.frame_ptr->RigFromWorld().translation =
+        -(image.frame_ptr->RigFromWorld().rotation *
+          image.frame_ptr->pose_prior->position);
   }
 }
 
@@ -188,7 +189,6 @@ bool GlobalMapper::Solve(const colmap::Database& database,
     gp_engine.GetOptions().generate_random_positions =
         !options_.opt_pose_prior.use_pose_position_prior;
 
-
     // TODO: consider to support other modes as well
     if (!gp_engine.Solve(view_graph, rigs, cameras, frames, images, tracks)) {
       return false;
@@ -216,7 +216,7 @@ bool GlobalMapper::Solve(const colmap::Database& database,
         10 * options_.inlier_thresholds.max_reprojection_error);
     // Normalize the structure if do not use prior position.
     if (!options_.opt_pose_prior.use_pose_position_prior) {
-    // If the camera rig is used, the structure do not need to be normalized
+      // If the camera rig is used, the structure do not need to be normalized
       NormalizeReconstruction(rigs, cameras, frames, images, tracks);
     }
 
@@ -250,7 +250,7 @@ bool GlobalMapper::Solve(const colmap::Database& database,
       // Staged bundle adjustment
       // 6.1. First stage: optimize positions only
       ba_engine_options_inner.optimize_rotations = false;
-      if (!ba_engine.Solve(rigs, cameras, frames, images, tracks)) {
+      if (!ba_engine->Solve(rigs, cameras, frames, images, tracks)) {
         return false;
       }
       LOG(INFO) << "Global bundle adjustment iteration " << ite + 1 << " / "
@@ -262,7 +262,7 @@ bool GlobalMapper::Solve(const colmap::Database& database,
       ba_engine_options_inner.optimize_rotations =
           options_.opt_ba.optimize_rotations;
       if (ba_engine_options_inner.optimize_rotations &&
-          !ba_engine.Solve(rigs, cameras, frames, images, tracks)) {
+          !ba_engine->Solve(rigs, cameras, frames, images, tracks)) {
         return false;
       }
       LOG(INFO) << "Global bundle adjustment iteration " << ite + 1 << " / "
@@ -369,7 +369,7 @@ bool GlobalMapper::Solve(const colmap::Database& database,
           images,
           tracks,
           options_.inlier_thresholds.max_reprojection_error);
-      if (!ba_engine.Solve(rigs, cameras, frames, images, tracks)) {
+      if (!ba_engine->Solve(rigs, cameras, frames, images, tracks)) {
         return false;
       }
       run_timer.PrintSeconds();

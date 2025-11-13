@@ -46,11 +46,11 @@ class BundleAdjuster {
   // Returns true if the optimization was a success, false if there was a
   // failure.
   // Assume tracks here are already filtered
-  bool Solve(std::unordered_map<rig_t, Rig>& rigs,
-             std::unordered_map<camera_t, Camera>& cameras,
-             std::unordered_map<frame_t, Frame>& frames,
-             std::unordered_map<image_t, Image>& images,
-             std::unordered_map<track_t, Track>& tracks);
+  virtual bool Solve(std::unordered_map<rig_t, Rig>& rigs,
+                     std::unordered_map<camera_t, Camera>& cameras,
+                     std::unordered_map<frame_t, Frame>& frames,
+                     std::unordered_map<image_t, Image>& images,
+                     std::unordered_map<track_t, Track>& tracks);
 
   BundleAdjusterOptions& GetOptions() { return options_; }
 
@@ -127,8 +127,9 @@ class PosePriorBundleAdjuster : public BundleAdjuster {
       const PosePriorBundleAdjusterOptions& prior_options);
   virtual ~PosePriorBundleAdjuster() = default;
 
-  bool Solve(const ViewGraph& view_graph,
+  bool Solve(std::unordered_map<rig_t, Rig>& rigs,
              std::unordered_map<camera_t, Camera>& cameras,
+             std::unordered_map<frame_t, Frame>& frames,
              std::unordered_map<image_t, Image>& images,
              std::unordered_map<track_t, Track>& tracks) override;
 

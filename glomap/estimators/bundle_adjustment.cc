@@ -17,8 +17,8 @@ ExtractsValidPosePriorsFromImgaes(
     const std::unordered_map<image_t, Image>& images) {
   std::unordered_map<image_t, colmap::PosePrior> pose_priors;
   for (const auto& [image_t, image] : images) {
-    if (image.pose_prior.has_value()) {
-      pose_priors[image_t] = image.pose_prior.value();
+    if (image.frame_ptr->pose_prior.has_value()) {
+      pose_priors[image_t] = image.frame_ptr->pose_prior.value();
     }
   }
   return pose_priors;
@@ -31,8 +31,9 @@ void DenormalizeReconstruction(const colmap::Sim3d& normalized_from_metric,
                                std::unordered_map<track_t, Track>& tracks) {
   colmap::Sim3d tform = Inverse(normalized_from_metric);
   for (auto& [_, image] : images) {
-    if (image.is_registered) {
-      image.cam_from_world = TransformCameraWorld(tform, image.cam_from_world);
+    if (image.frame_ptr->is_registered) {
+      image.frame_ptr->RigFromWorld() =
+          TransformCameraWorld(tform, image.frame_ptr->RigFromWorld());
     }
   }
 
@@ -371,8 +372,9 @@ PosePriorBundleAdjuster::PosePriorBundleAdjuster(
 }
 
 bool PosePriorBundleAdjuster::Solve(
-    const ViewGraph& view_graph,
+    std::unordered_map<rig_t, Rig>& rigs,
     std::unordered_map<camera_t, Camera>& cameras,
+    std::unordered_map<frame_t, Frame>& frames,
     std::unordered_map<image_t, Image>& images,
     std::unordered_map<track_t, Track>& tracks) {
   // Check if the input data is valid
@@ -396,12 +398,12 @@ bool PosePriorBundleAdjuster::Solve(
       AlignReconstruction(pose_priors_, images, tracks);
 
   // Add the constraints that the point tracks impose on the problem
-  AddPointToCameraConstraints(view_graph, cameras, images, tracks);
+  AddPointToCameraConstraints(rigs, cameras, frames, images, tracks);
 
   Sim3d normalized_from_metric;
   if (use_prior_position) {
-    normalized_from_metric =
-        NormalizeReconstruction(cameras, images, tracks, true);
+    normalized_from_metric = NormalizeReconstruction(
+        rigs, cameras, frames, images, tracks, /*fixed_scale=*/true);
 
     AddPosePositionPriorConstraints(
         pose_priors_, normalized_from_metric, images);
@@ -409,17 +411,17 @@ bool PosePriorBundleAdjuster::Solve(
 
   // Add the cameras and points to the parameter groups for schur-based
   // optimization
-  AddCamerasAndPointsToParameterGroups(cameras, images, tracks);
+  AddCamerasAndPointsToParameterGroups(rigs, cameras, frames, tracks);
 
   // Parameterize the variables
-  ParameterizeVariables(cameras, images, tracks);
+  ParameterizeVariables(rigs, cameras, frames, tracks);
 
   // If we confirm to optimize translation with prior position, than make sure
   // all translations are variable.
   if (use_prior_position && options_.optimize_translation) {
     std::for_each(images.begin(), images.end(), [&](auto& id_image_pair) {
       problem_->SetParameterBlockVariable(
-          id_image_pair.second.cam_from_world.translation.data());
+          id_image_pair.second.frame_ptr->RigFromWorld().translation.data());
     });
     ;
   }
@@ -497,8 +499,8 @@ void PosePriorBundleAdjuster::AddPosePositionPriorConstraints(
       problem_->AddResidualBlock(
           cost_function,
           prior_options_.prior_position_loss_function.get(),
-          image.cam_from_world.rotation.coeffs().data(),
-          image.cam_from_world.translation.data());
+          image.frame_ptr->RigFromWorld().rotation.coeffs().data(),
+          image.frame_ptr->RigFromWorld().translation.data());
     } else {
       LOG(ERROR) << "Could not create position prior cost function for image: "
                  << image_id;

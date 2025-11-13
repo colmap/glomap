@@ -133,8 +133,8 @@ bool RetriangulateTracks(const TriangulatorOptions& options,
   // Stash pose priors.
   std::unordered_map<image_t, colmap::PosePrior> pose_priors;
   for (const auto& [image_t, image] : images) {
-    if (image.pose_prior) {
-      pose_priors[image_t] = image.pose_prior.value();
+    if (image.frame_ptr->pose_prior) {
+      pose_priors[image_t] = image.frame_ptr->pose_prior.value();
     }
   }
 
@@ -144,8 +144,8 @@ bool RetriangulateTracks(const TriangulatorOptions& options,
 
   // Restore pose priors in images.
   for (auto& [image_t, image] : images) {
-    if(pose_priors.count(image_t)){
-      image.pose_prior = pose_priors.at(image_t);
+    if (pose_priors.count(image_t)) {
+      image.frame_ptr->pose_prior = pose_priors.at(image_t);
     }
   }
   return true;

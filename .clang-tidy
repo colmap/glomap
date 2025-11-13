@@ -10,6 +10,7 @@ Checks: >
   -bugprone-reserved-identifier,
   -bugprone-unchecked-optional-access,
   -performance-enum-size,
+  -performance-avoid-endl,
   cppcoreguidelines-virtual-class-destructor,
   google-explicit-constructor,
   google-build-using-namespace,

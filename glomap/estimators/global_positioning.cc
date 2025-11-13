@@ -111,7 +111,7 @@ bool GlobalPositioner::Solve(const ViewGraph& view_graph,
     LOG(INFO) << summary.BriefReport();
   }
 
-  ConvertResults(rigs, frames);
+  ConvertResults(rigs, frames, tracks);
   return summary.IsSolutionUsable();
 }
 
@@ -482,7 +482,9 @@ void GlobalPositioner::ParameterizeVariables(
           Eigen::Vector3d& translation =
               rig.SensorFromRig(sensor_id).translation;
           if (problem_->HasParameterBlock(translation.data())) {
-            translation = RandVector3d(random_generator_, -1, 1);
+            translation = RandVector3d(random_generator_,
+                                       options_.cameras_bbox.first,
+                                       options_.cameras_bbox.second);
           }
         }
       }
@@ -597,7 +599,8 @@ void GlobalPositioner::ParameterizeVariables(
 
 void GlobalPositioner::ConvertResults(
     std::unordered_map<rig_t, Rig>& rigs,
-    std::unordered_map<frame_t, Frame>& frames) {
+    std::unordered_map<frame_t, Frame>& frames,
+    std::unordered_map<track_t, Track>& tracks) {
   Sim3d prior_frame_from_cameras_bbox =
       colmap::Inverse(cameras_bbox_from_prior_frame_);
 

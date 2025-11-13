@@ -43,9 +43,9 @@ bool AlignReconstructionToPosePositionPriors(
   // Apply similarity transformation
   if (success) {
     for (auto& [image_id, image] : images) {
-      if (image.is_registered) {
-        image.cam_from_world =
-            TransformCameraWorld(tform, image.cam_from_world);
+      if (image.frame_ptr->is_registered) {
+        image.frame_ptr->RigFromWorld() =
+            TransformCameraWorld(tform, image.frame_ptr->RigFromWorld());
       }
     }
 

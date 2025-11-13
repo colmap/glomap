@@ -14,7 +14,7 @@ namespace glomap {
 struct Image {
   Image() : image_id(-1), file_name("") {}
   Image(image_t img_id, camera_t cam_id, std::string file_name)
-      : image_id(img_id), file_name(file_name), camera_id(cam_id) {}
+      : image_id(img_id), file_name(std::move(file_name)), camera_id(cam_id) {}
 
   // Basic information
   // image_id, file_name need to be specified at construction time
@@ -28,9 +28,6 @@ struct Image {
   // By default, set it to be invalid index
   frame_t frame_id = -1;
   struct Frame* frame_ptr = nullptr;
-
-    // Pose prior of the image, now only contains prior position.
-  std::optional<colmap::PosePrior> pose_prior = std::nullopt;
 
   // Distorted feature points in pixels.
   std::vector<Eigen::Vector2d> features;
