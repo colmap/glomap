@@ -3,7 +3,9 @@
 namespace glomap {
 
 colmap::Sim3d NormalizeReconstruction(
+    std::unordered_map<rig_t, Rig>& rigs,
     std::unordered_map<camera_t, Camera>& cameras,
+    std::unordered_map<frame_t, Frame>& frames,
     std::unordered_map<image_t, Image>& images,
     std::unordered_map<track_t, Track>& tracks,
     bool fixed_scale,
@@ -19,7 +21,7 @@ colmap::Sim3d NormalizeReconstruction(
   coords_y.reserve(images.size());
   coords_z.reserve(images.size());
   for (const auto& [image_id, image] : images) {
-    if (!image.is_registered) continue;
+    if (!image.IsRegistered()) continue;
     const Eigen::Vector3d proj_center = image.Center();
     coords_x.push_back(static_cast<float>(proj_center(0)));
     coords_y.push_back(static_cast<float>(proj_center(1)));
@@ -59,9 +61,19 @@ colmap::Sim3d NormalizeReconstruction(
   colmap::Sim3d tform(
       scale, Eigen::Quaterniond::Identity(), -scale * mean_coord);
 
-  for (auto& [_, image] : images) {
-    if (image.is_registered) {
-      image.cam_from_world = TransformCameraWorld(tform, image.cam_from_world);
+  for (auto& [_, frame] : frames) {
+    if (!frame.HasPose()) continue;
+    Rigid3d& rig_from_world = frame.RigFromWorld();
+    rig_from_world = TransformCameraWorld(tform, rig_from_world);
+  }
+
+  for (auto& [_, rig] : rigs) {
+    for (auto& [sensor_id, sensor_from_rig_opt] : rig.NonRefSensors()) {
+      if (sensor_from_rig_opt.has_value()) {
+        Rigid3d sensor_from_rig = sensor_from_rig_opt.value();
+        sensor_from_rig.translation *= scale;
+        rig.SetSensorFromRig(sensor_id, sensor_from_rig);
+      }
     }
   }
 

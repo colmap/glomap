@@ -60,18 +60,16 @@ struct ImagePair {
 
 image_pair_t ImagePair::ImagePairToPairId(const image_t image_id1,
                                           const image_t image_id2) {
-  if (image_id1 > image_id2) {
-    return static_cast<image_pair_t>(kMaxNumImages) * image_id2 + image_id1;
-  } else {
-    return static_cast<image_pair_t>(kMaxNumImages) * image_id1 + image_id2;
-  }
+  return colmap::ImagePairToPairId(image_id1, image_id2);
 }
 
 void ImagePair::PairIdToImagePair(const image_pair_t pair_id,
                                   image_t& image_id1,
                                   image_t& image_id2) {
-  image_id1 = static_cast<image_t>(pair_id % kMaxNumImages);
-  image_id2 = static_cast<image_t>((pair_id - image_id1) / kMaxNumImages);
+  std::pair<image_t, image_t> image_id_pair =
+      colmap::PairIdToImagePair(pair_id);
+  image_id1 = image_id_pair.first;
+  image_id2 = image_id_pair.second;
 }
 
 }  // namespace glomap

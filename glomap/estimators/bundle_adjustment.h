@@ -1,5 +1,6 @@
 #pragma once
 
+// #include "glomap/estimators/bundle_adjustment.h"
 #include "glomap/estimators/optimization_base.h"
 #include "glomap/scene/types_sfm.h"
 #include "glomap/types.h"
@@ -13,6 +14,7 @@ namespace glomap {
 struct BundleAdjusterOptions : public OptimizationBaseOptions {
  public:
   // Flags for which parameters to optimize
+  bool optimize_rig_poses = false;  // Whether to optimize the rig poses
   bool optimize_rotations = true;
   bool optimize_translation = true;
   bool optimize_intrinsics = true;
@@ -35,7 +37,6 @@ struct BundleAdjusterOptions : public OptimizationBaseOptions {
     return std::make_shared<ceres::HuberLoss>(thres_loss_function);
   }
 };
-
 class BundleAdjuster {
  public:
   explicit BundleAdjuster(const BundleAdjusterOptions& options)
@@ -45,10 +46,11 @@ class BundleAdjuster {
   // Returns true if the optimization was a success, false if there was a
   // failure.
   // Assume tracks here are already filtered
-  virtual bool Solve(const ViewGraph& view_graph,
-                     std::unordered_map<camera_t, Camera>& cameras,
-                     std::unordered_map<image_t, Image>& images,
-                     std::unordered_map<track_t, Track>& tracks);
+  bool Solve(std::unordered_map<rig_t, Rig>& rigs,
+             std::unordered_map<camera_t, Camera>& cameras,
+             std::unordered_map<frame_t, Frame>& frames,
+             std::unordered_map<image_t, Image>& images,
+             std::unordered_map<track_t, Track>& tracks);
 
   BundleAdjusterOptions& GetOptions() { return options_; }
 
@@ -58,20 +60,23 @@ class BundleAdjuster {
 
   // Add tracks to the problem
   void AddPointToCameraConstraints(
-      const ViewGraph& view_graph,
+      std::unordered_map<rig_t, Rig>& rigs,
       std::unordered_map<camera_t, Camera>& cameras,
+      std::unordered_map<frame_t, Frame>& frames,
       std::unordered_map<image_t, Image>& images,
       std::unordered_map<track_t, Track>& tracks);
 
   // Set the parameter groups
   void AddCamerasAndPointsToParameterGroups(
+      std::unordered_map<rig_t, Rig>& rigs,
       std::unordered_map<camera_t, Camera>& cameras,
-      std::unordered_map<image_t, Image>& images,
+      std::unordered_map<frame_t, Frame>& frames,
       std::unordered_map<track_t, Track>& tracks);
 
   // Parameterize the variables, set some variables to be constant if desired
-  void ParameterizeVariables(std::unordered_map<camera_t, Camera>& cameras,
-                             std::unordered_map<image_t, Image>& images,
+  void ParameterizeVariables(std::unordered_map<rig_t, Rig>& rigs,
+                             std::unordered_map<camera_t, Camera>& cameras,
+                             std::unordered_map<frame_t, Frame>& frames,
                              std::unordered_map<track_t, Track>& tracks);
 
   BundleAdjusterOptions options_;

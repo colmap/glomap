@@ -16,7 +16,7 @@ int TrackFilter::FilterTracksByReprojection(
     std::vector<Observation> observation_new;
     for (auto& [image_id, feature_id] : track.observations) {
       const Image& image = images.at(image_id);
-      Eigen::Vector3d pt_calc = image.cam_from_world * track.xyz;
+      Eigen::Vector3d pt_calc = image.CamFromWorld() * track.xyz;
       if (pt_calc(2) < EPS) continue;
 
       double reprojection_error = max_reprojection_error;
@@ -29,9 +29,10 @@ int TrackFilter::FilterTracksByReprojection(
             (pt_reproj - feature_undist.head(2) / (feature_undist(2) + EPS))
                 .norm();
       } else {
-        Eigen::Vector2d pt_reproj = pt_calc.head(2) / pt_calc(2);
         Eigen::Vector2d pt_dist;
-        pt_dist = cameras.at(image.camera_id).ImgFromCam(pt_reproj);
+        pt_dist = cameras.at(image.camera_id)
+                      .ImgFromCam(pt_calc)
+                      .value_or(Eigen::Vector2d::Zero());
         reprojection_error = (pt_dist - image.features.at(feature_id)).norm();
       }
 
@@ -66,7 +67,7 @@ int TrackFilter::FilterTracksByAngle(
       // const Camera& camera = image.camera;
       const Eigen::Vector3d& feature_undist =
           image.features_undist.at(feature_id);
-      Eigen::Vector3d pt_calc = image.cam_from_world * track.xyz;
+      Eigen::Vector3d pt_calc = image.CamFromWorld() * track.xyz;
       if (pt_calc(2) < EPS) continue;
 
       pt_calc = pt_calc.normalized();

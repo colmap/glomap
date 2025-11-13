@@ -41,6 +41,101 @@ struct BATAPairwiseDirectionError {
 };
 
 // ----------------------------------------
+// RigBATAPairwiseDirectionError
+// ----------------------------------------
+// Computes the error between a translation direction and the direction formed
+// from two positions such that t_ij - scale * (c_j - c_i + scale_rig * t_rig)
+// is minimized.
+struct RigBATAPairwiseDirectionError {
+  RigBATAPairwiseDirectionError(const Eigen::Vector3d& translation_obs,
+                                const Eigen::Vector3d& translation_rig)
+      : translation_obs_(translation_obs), translation_rig_(translation_rig) {}
+
+  // The error is given by the position error described above.
+  template <typename T>
+  bool operator()(const T* position1,
+                  const T* position2,
+                  const T* scale,
+                  const T* scale_rig,
+                  T* residuals) const {
+    Eigen::Map<Eigen::Matrix<T, 3, 1>> residuals_vec(residuals);
+    residuals_vec =
+        translation_obs_.cast<T>() -
+        scale[0] * (Eigen::Map<const Eigen::Matrix<T, 3, 1>>(position2) -
+                    Eigen::Map<const Eigen::Matrix<T, 3, 1>>(position1) +
+                    scale_rig[0] * translation_rig_.cast<T>());
+    return true;
+  }
+
+  static ceres::CostFunction* Create(const Eigen::Vector3d& translation_obs,
+                                     const Eigen::Vector3d& translation_rig) {
+    return (
+        new ceres::
+            AutoDiffCostFunction<RigBATAPairwiseDirectionError, 3, 3, 3, 1, 1>(
+                new RigBATAPairwiseDirectionError(translation_obs,
+                                                  translation_rig)));
+  }
+
+  // TODO: add covariance
+  const Eigen::Vector3d translation_obs_;
+  const Eigen::Vector3d translation_rig_;  // = c_R_w^T * c_t_r
+};
+
+// ----------------------------------------
+// RigUnknownBATAPairwiseDirectionError
+// ----------------------------------------
+// Computes the error between a translation direction and the direction formed
+// from three positions such that v - scale * ((X - r_c_w) - r_R_w^T * c_c_r) is
+// minimized.
+struct RigUnknownBATAPairwiseDirectionError {
+  RigUnknownBATAPairwiseDirectionError(
+      const Eigen::Vector3d& translation_obs,
+      const Eigen::Quaterniond& rig_from_world_rot)
+      : translation_obs_(translation_obs),
+        rig_from_world_rot_(rig_from_world_rot) {}
+
+  // The error is given by the position error described above.
+  template <typename T>
+  bool operator()(const T* point3d,
+                  const T* rig_from_world_center,
+                  const T* cam_from_rig_center,
+                  const T* scale,
+                  T* residuals) const {
+    Eigen::Map<Eigen::Matrix<T, 3, 1>> residuals_vec(residuals);
+
+    Eigen::Matrix<T, 3, 1> translation_rig =
+        rig_from_world_rot_.toRotationMatrix().transpose() *
+        Eigen::Map<const Eigen::Matrix<T, 3, 1>>(cam_from_rig_center);
+
+    residuals_vec =
+        translation_obs_.cast<T>() -
+        scale[0] *
+            (Eigen::Map<const Eigen::Matrix<T, 3, 1>>(point3d) -
+             Eigen::Map<const Eigen::Matrix<T, 3, 1>>(rig_from_world_center) -
+             translation_rig);
+    return true;
+  }
+
+  static ceres::CostFunction* Create(
+      const Eigen::Vector3d& translation_obs,
+      const Eigen::Quaterniond& rig_from_world_rot) {
+    return (
+        new ceres::AutoDiffCostFunction<RigUnknownBATAPairwiseDirectionError,
+                                        3,
+                                        3,
+                                        3,
+                                        3,
+                                        1>(
+            new RigUnknownBATAPairwiseDirectionError(translation_obs,
+                                                     rig_from_world_rot)));
+  }
+
+  // TODO: add covariance
+  const Eigen::Vector3d translation_obs_;
+  const Eigen::Quaterniond rig_from_world_rot_;  // = c_R_w^T * c_t_r
+};
+
+// ----------------------------------------
 // FetzerFocalLengthCost
 // ----------------------------------------
 // Below are assets for DMAP by Philipp Lindenberger

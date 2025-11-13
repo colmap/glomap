@@ -1,4 +1,3 @@
-
 #include "glomap/controllers/rotation_averager.h"
 
 #include "glomap/controllers/option_manager.h"
@@ -68,6 +67,23 @@ int RunRotationAverager(int argc, char** argv) {
 
   ReadRelPose(relpose_path, images, view_graph);
 
+  std::unordered_map<rig_t, Rig> rigs;
+  std::unordered_map<camera_t, Camera> cameras;
+  std::unordered_map<frame_t, Frame> frames;
+
+  for (auto& [image_id, image] : images) {
+    image.camera_id = image.image_id;
+    cameras[image.camera_id] = Camera();
+  }
+
+  CreateOneRigPerCamera(cameras, rigs);
+
+  // For frames that are not in any rig, add camera rigs
+  // For images without frames, initialize trivial frames
+  for (auto& [image_id, image] : images) {
+    CreateFrameForImage(Rigid3d(), image, rigs, frames);
+  }
+
   if (gravity_path != "") {
     ReadGravity(gravity_path, images);
   }
@@ -76,18 +92,19 @@ int RunRotationAverager(int argc, char** argv) {
     ReadRelWeight(weight_path, images, view_graph);
   }
 
-  int num_img = view_graph.KeepLargestConnectedComponents(images);
+  int num_img = view_graph.KeepLargestConnectedComponents(frames, images);
   LOG(INFO) << num_img << " / " << images.size()
             << " are within the largest connected component";
 
   if (refine_gravity && gravity_path != "") {
     GravityRefiner grav_refiner(*options.gravity_refiner);
-    grav_refiner.RefineGravity(view_graph, images);
+    grav_refiner.RefineGravity(view_graph, frames, images);
   }
 
   colmap::Timer run_timer;
   run_timer.Start();
-  if (!SolveRotationAveraging(view_graph, images, rotation_averager_options)) {
+  if (!SolveRotationAveraging(
+          view_graph, rigs, frames, images, rotation_averager_options)) {
     LOG(ERROR) << "Failed to solve global rotation averaging";
     return EXIT_FAILURE;
   }

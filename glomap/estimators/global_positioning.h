@@ -72,7 +72,9 @@ class GlobalPositioner {
   // failure.
   // Assume tracks here are already filtered
   bool Solve(const ViewGraph& view_graph,
+             std::unordered_map<rig_t, Rig>& rigs,
              std::unordered_map<camera_t, Camera>& cameras,
+             std::unordered_map<frame_t, Frame>& frames,
              std::unordered_map<image_t, Image>& images,
              std::unordered_map<track_t, Track>& tracks);
 
@@ -80,10 +82,12 @@ class GlobalPositioner {
 
  protected:
   void SetupProblem(const ViewGraph& view_graph,
+                    const std::unordered_map<rig_t, Rig>& rigs,
                     const std::unordered_map<track_t, Track>& tracks);
 
   // Initialize all cameras to be random.
   void InitializeRandomPositions(const ViewGraph& view_graph,
+                                 std::unordered_map<frame_t, Frame>& frames,
                                  std::unordered_map<image_t, Image>& images,
                                  std::unordered_map<track_t, Track>& tracks);
 
@@ -93,29 +97,35 @@ class GlobalPositioner {
 
   // Add tracks to the problem
   void AddPointToCameraConstraints(
+      std::unordered_map<rig_t, Rig>& rigs,
       std::unordered_map<camera_t, Camera>& cameras,
+      std::unordered_map<frame_t, Frame>& frames,
       std::unordered_map<image_t, Image>& images,
       std::unordered_map<track_t, Track>& tracks);
 
   // Add a single track to the problem
   void AddTrackToProblem(track_t track_id,
+                         std::unordered_map<rig_t, Rig>& rigs,
                          std::unordered_map<camera_t, Camera>& cameras,
+                         std::unordered_map<frame_t, Frame>& frames,
                          std::unordered_map<image_t, Image>& images,
                          std::unordered_map<track_t, Track>& tracks);
 
   // Set the parameter groups
   void AddCamerasAndPointsToParameterGroups(
-      std::unordered_map<image_t, Image>& images,
+      std::unordered_map<rig_t, Rig>& rigs,
+      std::unordered_map<frame_t, Frame>& frames,
       std::unordered_map<track_t, Track>& tracks);
 
   // Parameterize the variables, set some variables to be constant if desired
-  void ParameterizeVariables(std::unordered_map<image_t, Image>& images,
+  void ParameterizeVariables(std::unordered_map<rig_t, Rig>& rigs,
+                             std::unordered_map<frame_t, Frame>& frames,
                              std::unordered_map<track_t, Track>& tracks);
 
   // During the optimization, the camera translation is set to be the camera
   // center Convert the results back to camera poses
-  void ConvertResults(std::unordered_map<image_t, Image>& images,
-                      std::unordered_map<track_t, Track>& tracks);
+  void ConvertResults(std::unordered_map<rig_t, Rig>& rigs,
+                      std::unordered_map<frame_t, Frame>& frames);
 
   GlobalPositionerOptions options_;
 
@@ -133,6 +143,8 @@ class GlobalPositioner {
 
   // Auxiliary scale variables.
   std::vector<double> scales_;
+
+  std::unordered_map<rig_t, double> rig_scales_;
 };
 
 }  // namespace glomap

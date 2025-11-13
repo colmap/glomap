@@ -11,13 +11,14 @@ on:
 
 jobs:
   build:
-    name: ${{ matrix.config.os }} ${{ matrix.config.cmakeBuildType }} ${{ matrix.config.cudaEnabled && 'CUDA' || '' }} ${{ matrix.config.asanEnabled && 'ASan' || '' }}
+    name: ${{ matrix.config.os }} ${{ matrix.config.cmakeBuildType }} ${{ matrix.config.cudaEnabled && 'CUDA' || '' }} ${{ matrix.config.asanEnabled && 'ASan' || '' }} ${{ matrix.config.coverageEnabled && 'Coverage' || '' }}
     runs-on: ${{ matrix.config.os }}
     strategy:
       matrix:
         config: [
           {
             os: ubuntu-24.04,
+            qtVersion: 6,
             cmakeBuildType: RelWithDebInfo,
             asanEnabled: false,
             cudaEnabled: false,
@@ -25,6 +26,7 @@ jobs:
           },
           {
             os: ubuntu-22.04,
+            qtVersion: 6,
             cmakeBuildType: Release,
             asanEnabled: false,
             cudaEnabled: false,
@@ -32,20 +34,23 @@ jobs:
           },
           {
             os: ubuntu-22.04,
+            qtVersion: 5,
             cmakeBuildType: Release,
             asanEnabled: false,
             cudaEnabled: true,
             checkCodeFormat: false,
           },
           {
-            os: ubuntu-22.04,
+            os: ubuntu-24.04,
+            qtVersion: 6,
             cmakeBuildType: Release,
             asanEnabled: true,
             cudaEnabled: false,
             checkCodeFormat: false,
           },
           {
-            os: ubuntu-22.04,
+            os: ubuntu-24.04,
+            qtVersion: 6,
             cmakeBuildType: ClangTidy,
             asanEnabled: false,
             cudaEnabled: false,
@@ -59,6 +64,8 @@ jobs:
       CCACHE_DIR: ${{ github.workspace }}/compiler-cache/ccache
       CCACHE_BASEDIR: ${{ github.workspace }}
       CTCACHE_DIR: ${{ github.workspace }}/compiler-cache/ctcache
+      GLOG_v: 2
+      GLOG_logtostderr: 1
 
     steps:
       - uses: actions/checkout@v4
@@ -100,6 +107,12 @@ jobs:
 
       - name: Setup Ubuntu
         run: |
+          if [ "${{ matrix.config.qtVersion }}" == "5" ]; then
+            qt_packages="qtbase5-dev libqt5opengl5-dev libcgal-qt5-dev"
+          elif [ "${{ matrix.config.qtVersion }}" == "6" ]; then
+            qt_packages="qt6-base-dev libqt6opengl6-dev libqt6openglwidgets6"
+          fi
+
           sudo apt-get update && sudo apt-get install -y \
             build-essential \
             cmake \
@@ -117,7 +130,7 @@ jobs:
             libgmock-dev \
             libsqlite3-dev \
             libglew-dev \
-            qtbase5-dev \
+            $qt_packages \
             libqt5opengl5-dev \
             libcgal-dev \
             libcgal-qt5-dev \
@@ -145,15 +158,15 @@ jobs:
           fi
 
           if [ "${{ matrix.config.asanEnabled }}" == "true" ]; then
-            sudo apt-get install -y clang-15 libomp-15-dev
-            echo "CC=/usr/bin/clang-15" >> $GITHUB_ENV
-            echo "CXX=/usr/bin/clang++-15" >> $GITHUB_ENV
+            sudo apt-get install -y clang-18 libomp-18-dev
+            echo "CC=/usr/bin/clang-18" >> $GITHUB_ENV
+            echo "CXX=/usr/bin/clang++-18" >> $GITHUB_ENV
           fi
 
           if [ "${{ matrix.config.cmakeBuildType }}" == "ClangTidy" ]; then
-            sudo apt-get install -y clang-15 clang-tidy-15 libomp-15-dev
-            echo "CC=/usr/bin/clang-15" >> $GITHUB_ENV
-            echo "CXX=/usr/bin/clang++-15" >> $GITHUB_ENV
+            sudo apt-get install -y clang-18 clang-tidy-18 libomp-18-dev
+            echo "CC=/usr/bin/clang-18" >> $GITHUB_ENV
+            echo "CXX=/usr/bin/clang++-18" >> $GITHUB_ENV
           fi
 
       - name: Upgrade CMake
@@ -183,7 +196,7 @@ jobs:
 
       - name: Run tests
         if: ${{ matrix.config.cmakeBuildType != 'ClangTidy' }}
-        run: |          
+        run: |
           export DISPLAY=":99.0"
           export QT_QPA_PLATFORM="offscreen"
           Xvfb :99 &

@@ -9,6 +9,7 @@ set(SOURCES
     estimators/global_rotation_averaging.cc
     estimators/gravity_refinement.cc
     estimators/relpose_estimation.cc
+    estimators/rotation_initializer.cc
     estimators/view_graph_calibration.cc
     io/colmap_converter.cc
     io/colmap_io.cc
@@ -39,8 +40,9 @@ set(HEADERS
     estimators/global_positioning.h
     estimators/global_rotation_averaging.h
     estimators/gravity_refinement.h
-    estimators/relpose_estimation.h
     estimators/optimization_base.h
+    estimators/relpose_estimation.h
+    estimators/rotation_initializer.h
     estimators/view_graph_calibration.h
     io/colmap_converter.h
     io/colmap_io.h
@@ -60,6 +62,7 @@ set(HEADERS
     processors/track_filter.h
     processors/view_graph_manipulation.h
     scene/camera.h
+    scene/frame.h
     scene/image_pair.h
     scene/image.h
     scene/track.h
@@ -86,6 +89,7 @@ target_link_libraries(
         Eigen3::Eigen
         Ceres::ceres
         SuiteSparse::CHOLMOD
+        OpenMP::OpenMP_CXX
         ${BOOST_LIBRARIES}
 )
 target_include_directories(glomap PUBLIC ..)
@@ -113,7 +117,6 @@ target_link_libraries(glomap_main glomap)
 
 set_target_properties(glomap_main PROPERTIES OUTPUT_NAME glomap)
 install(TARGETS glomap_main DESTINATION bin)
-
 
 if(TESTS_ENABLED)
     add_executable(glomap_test

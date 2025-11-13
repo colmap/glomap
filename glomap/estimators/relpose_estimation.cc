@@ -70,8 +70,10 @@ void EstimateRelativePoses(ViewGraph& view_graph,
           K2_new(0, 0) = camera2.FocalLengthX();
           K2_new(1, 1) = camera2.FocalLengthY();
           for (size_t idx = 0; idx < matches.rows(); idx++) {
-            points2D_1[idx] = K1_new * camera1.CamFromImg(points2D_1[idx]);
-            points2D_2[idx] = K2_new * camera2.CamFromImg(points2D_2[idx]);
+            points2D_1[idx] = K1_new * camera1.CamFromImg(points2D_1[idx])
+                                           .value_or(Eigen::Vector2d::Zero());
+            points2D_2[idx] = K2_new * camera2.CamFromImg(points2D_2[idx])
+                                           .value_or(Eigen::Vector2d::Zero());
           }
 
           // Reset the camera to be the pinhole camera with original focal
