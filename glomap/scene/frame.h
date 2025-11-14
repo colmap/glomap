@@ -37,6 +37,9 @@ struct Frame : public colmap::Frame {
   // Gravity information
   GravityInfo gravity_info;
 
+  // Pose prior of the image, now only contains prior position.
+  std::optional<colmap::PosePrior> pose_prior = std::nullopt;
+
   // Easy way to check if the image has gravity information
   inline bool HasGravity() const;
 };

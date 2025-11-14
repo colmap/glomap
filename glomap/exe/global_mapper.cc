@@ -10,6 +10,25 @@
 #include <colmap/util/timer.h>
 
 namespace glomap {
+namespace {
+void UpdateDatabasePosePriorsCovariance(colmap::Database& database,
+                                        const Eigen::Matrix3d& covariance) {
+  colmap::DatabaseTransaction database_transaction(&database);
+
+  LOG(INFO)
+      << "Setting up database pose priors with the same covariance matrix: \n"
+      << covariance << "\n";
+
+  for (const auto& image : database.ReadAllImages()) {
+    if (database.ExistsPosePrior(image.ImageId())) {
+      colmap::PosePrior prior = database.ReadPosePrior(image.ImageId());
+      prior.position_covariance = covariance;
+      database.UpdatePosePrior(image.ImageId(), prior);
+    }
+  }
+}
+}  // namespace
+
 // -------------------------------------
 // Mappers starting from COLMAP database
 // -------------------------------------
@@ -71,7 +90,23 @@ int RunMapper(int argc, char** argv) {
   std::unordered_map<track_t, Track> tracks;
 
   auto database = colmap::Database::Open(database_path);
-  ConvertDatabaseToGlomap(*database, view_graph, rigs, cameras, frames, images);
+  ConvertDatabaseToGlomap(*database,
+                          view_graph,
+                          rigs,
+                          cameras,
+                          frames,
+                          images,
+                          options.mapper->opt_pose_prior.use_prior_position);
+
+  if (options.mapper->opt_pose_prior.overwrite_position_priors_covariance) {
+    std::vector<double> prior_stddev = colmap::CSVToVector<double>(
+        options.mapper->opt_pose_prior.prior_position_stddev);
+    const Eigen::Matrix3d covariance =
+        Eigen::Vector3d(prior_stddev[0], prior_stddev[1], prior_stddev[2])
+            .cwiseAbs2()
+            .asDiagonal();
+    UpdateDatabasePosePriorsCovariance(*database, covariance);
+  }
 
   if (view_graph.image_pairs.empty()) {
     LOG(ERROR) << "Can't continue without image pairs";

@@ -1,6 +1,7 @@
 #include "global_mapper.h"
 
 #include "glomap/controllers/rotation_averager.h"
+#include "glomap/estimators/bundle_adjustment.h"
 #include "glomap/io/colmap_converter.h"
 #include "glomap/processors/image_pair_inliers.h"
 #include "glomap/processors/image_undistorter.h"
@@ -13,7 +14,37 @@
 #include <colmap/util/file.h>
 #include <colmap/util/timer.h>
 
+#include <memory>
+
 namespace glomap {
+namespace {
+void RestoreTranslationToPriorPosition(
+    std::unordered_map<image_t, Image>& images) {
+  for (auto& [_, image] : images) {
+    if (!image.frame_ptr->pose_prior) {
+      continue;
+    }
+    // t=-Rc
+    image.frame_ptr->RigFromWorld().translation =
+        -(image.frame_ptr->RigFromWorld().rotation *
+          image.frame_ptr->pose_prior->position);
+  }
+}
+
+PosePriorBundleAdjusterOptions ExtractPosePriorBAOptions(
+    const GlobalMapperOptions& options) {
+  PosePriorBundleAdjusterOptions pose_prior_options;
+  pose_prior_options.use_robust_loss_on_prior_position =
+      options.opt_pose_prior.use_robust_loss_on_prior_position;
+  pose_prior_options.prior_position_loss_threshold =
+      options.opt_pose_prior.prior_position_loss_threshold;
+  pose_prior_options.prior_position_scaled_loss_factor =
+      options.opt_pose_prior.prior_position_scaled_loss_factor;
+  pose_prior_options.alignment_ransac_options.max_error =
+      options.opt_pose_prior.alignment_ransac_max_error;
+  return pose_prior_options;
+}
+}  // namespace
 
 // TODO: Rig normalizaiton has not be done
 bool GlobalMapper::Solve(const colmap::Database& database,
@@ -113,6 +144,8 @@ bool GlobalMapper::Solve(const colmap::Database& database,
     LOG(INFO) << num_img << " / " << images.size()
               << " images are within the connected component." << std::endl;
 
+    RestoreTranslationToPriorPosition(images);
+
     run_timer.PrintSeconds();
   }
 
@@ -156,6 +189,10 @@ bool GlobalMapper::Solve(const colmap::Database& database,
 
     GlobalPositioner gp_engine(options_.opt_gp);
 
+    // Do not gernerate random image positions if use prior position.
+    gp_engine.GetOptions().generate_random_positions =
+        !options_.opt_pose_prior.use_prior_position;
+
     // TODO: consider to support other modes as well
     if (!gp_engine.Solve(view_graph, rigs, cameras, frames, images, tracks)) {
       return false;
@@ -181,9 +218,11 @@ bool GlobalMapper::Solve(const colmap::Database& database,
         images,
         tracks,
         10 * options_.inlier_thresholds.max_reprojection_error);
-    // Normalize the structure
-    // If the camera rig is used, the structure do not need to be normalized
-    NormalizeReconstruction(rigs, cameras, frames, images, tracks);
+    // Normalize the structure if do not use prior position.
+    if (!options_.opt_pose_prior.use_prior_position) {
+      // If the camera rig is used, the structure do not need to be normalized
+      NormalizeReconstruction(rigs, cameras, frames, images, tracks);
+    }
 
     run_timer.PrintSeconds();
   }
@@ -199,14 +238,23 @@ bool GlobalMapper::Solve(const colmap::Database& database,
     run_timer.Start();
 
     for (int ite = 0; ite < options_.num_iteration_bundle_adjustment; ite++) {
-      BundleAdjuster ba_engine(options_.opt_ba);
+      std::unique_ptr<BundleAdjuster> ba_engine;
 
-      BundleAdjusterOptions& ba_engine_options_inner = ba_engine.GetOptions();
+      if (options_.opt_pose_prior.use_prior_position) {
+        PosePriorBundleAdjusterOptions opt_prior_ba =
+            ExtractPosePriorBAOptions(options_);
+        ba_engine = std::make_unique<PosePriorBundleAdjuster>(options_.opt_ba,
+                                                              opt_prior_ba);
+      } else {
+        ba_engine = std::make_unique<BundleAdjuster>(options_.opt_ba);
+      }
+
+      BundleAdjusterOptions& ba_engine_options_inner = ba_engine->GetOptions();
 
       // Staged bundle adjustment
       // 6.1. First stage: optimize positions only
       ba_engine_options_inner.optimize_rotations = false;
-      if (!ba_engine.Solve(rigs, cameras, frames, images, tracks)) {
+      if (!ba_engine->Solve(rigs, cameras, frames, images, tracks)) {
         return false;
       }
       LOG(INFO) << "Global bundle adjustment iteration " << ite + 1 << " / "
@@ -218,7 +266,7 @@ bool GlobalMapper::Solve(const colmap::Database& database,
       ba_engine_options_inner.optimize_rotations =
           options_.opt_ba.optimize_rotations;
       if (ba_engine_options_inner.optimize_rotations &&
-          !ba_engine.Solve(rigs, cameras, frames, images, tracks)) {
+          !ba_engine->Solve(rigs, cameras, frames, images, tracks)) {
         return false;
       }
       LOG(INFO) << "Global bundle adjustment iteration " << ite + 1 << " / "
@@ -227,8 +275,10 @@ bool GlobalMapper::Solve(const colmap::Database& database,
       if (ite != options_.num_iteration_bundle_adjustment - 1)
         run_timer.PrintSeconds();
 
-      // Normalize the structure
-      NormalizeReconstruction(rigs, cameras, frames, images, tracks);
+      // Normalize the structure if do not use prior position.
+      if (!options_.opt_pose_prior.use_prior_position) {
+        NormalizeReconstruction(rigs, cameras, frames, images, tracks);
+      }
 
       // 6.3. Filter tracks based on the estimation
       // For the filtering, in each round, the criteria for outlier is
@@ -298,8 +348,19 @@ bool GlobalMapper::Solve(const colmap::Database& database,
       std::cout << "Running bundle adjustment ..." << std::endl;
       std::cout << "-------------------------------------" << std::endl;
       LOG(INFO) << "Bundle adjustment start" << std::endl;
-      BundleAdjuster ba_engine(options_.opt_ba);
-      if (!ba_engine.Solve(rigs, cameras, frames, images, tracks)) {
+
+      std::unique_ptr<BundleAdjuster> ba_engine;
+
+      if (options_.opt_pose_prior.use_prior_position) {
+        PosePriorBundleAdjusterOptions pose_prior_ba_options =
+            ExtractPosePriorBAOptions(options_);
+        ba_engine = std::make_unique<PosePriorBundleAdjuster>(
+            options_.opt_ba, pose_prior_ba_options);
+      } else {
+        ba_engine = std::make_unique<BundleAdjuster>(options_.opt_ba);
+      }
+
+      if (!ba_engine->Solve(rigs, cameras, frames, images, tracks)) {
         return false;
       }
 
@@ -312,14 +373,16 @@ bool GlobalMapper::Solve(const colmap::Database& database,
           images,
           tracks,
           options_.inlier_thresholds.max_reprojection_error);
-      if (!ba_engine.Solve(rigs, cameras, frames, images, tracks)) {
+      if (!ba_engine->Solve(rigs, cameras, frames, images, tracks)) {
         return false;
       }
       run_timer.PrintSeconds();
     }
 
-    // Normalize the structure
-    NormalizeReconstruction(rigs, cameras, frames, images, tracks);
+    // Normalize the structure if do not use prior position.
+    if (!options_.opt_pose_prior.use_prior_position) {
+      NormalizeReconstruction(rigs, cameras, frames, images, tracks);
+    }
 
     // Filter tracks based on the estimation
     UndistortImages(cameras, images, true);

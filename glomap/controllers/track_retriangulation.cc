@@ -7,6 +7,7 @@
 #include <colmap/scene/database_cache.h>
 
 #include <set>
+#include <unordered_map>
 
 namespace glomap {
 
@@ -129,10 +130,24 @@ bool RetriangulateTracks(const TriangulatorOptions& options,
     reconstruction_ptr->AddImage(std::move(image_colmap));
   }
 
+  // Stash pose priors.
+  std::unordered_map<image_t, colmap::PosePrior> pose_priors;
+  for (const auto& [image_t, image] : images) {
+    if (image.frame_ptr->pose_prior) {
+      pose_priors[image_t] = image.frame_ptr->pose_prior.value();
+    }
+  }
+
   // Convert the colmap data structures back to glomap data structures
   ConvertColmapToGlomap(
       *reconstruction_ptr, rigs, cameras, frames, images, tracks);
 
+  // Restore pose priors in images.
+  for (auto& [image_t, image] : images) {
+    if (pose_priors.count(image_t)) {
+      image.frame_ptr->pose_prior = pose_priors.at(image_t);
+    }
+  }
   return true;
 }
 

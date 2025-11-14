@@ -215,9 +215,11 @@ void ConvertDatabaseToGlomap(const colmap::Database& database,
                              std::unordered_map<rig_t, Rig>& rigs,
                              std::unordered_map<camera_t, Camera>& cameras,
                              std::unordered_map<frame_t, Frame>& frames,
-                             std::unordered_map<image_t, Image>& images) {
+                             std::unordered_map<image_t, Image>& images,
+                             bool extract_pose_priors) {
   // Add the images
-  std::vector<colmap::Image> images_colmap = database.ReadAllImages();
+  const std::vector<colmap::Image> images_colmap = database.ReadAllImages();
+
   image_t counter = 0;
   for (auto& image : images_colmap) {
     std::cout << "\r Loading Images " << counter + 1 << " / "
@@ -228,18 +230,6 @@ void ConvertDatabaseToGlomap(const colmap::Database& database,
     if (image_id == colmap::kInvalidImageId) continue;
     images.insert(std::make_pair(
         image_id, Image(image_id, image.CameraId(), image.Name())));
-
-    // TODO: Implement the logic of reading prior pose from the database
-    // const colmap::PosePrior prior = database.ReadPosePrior(image_id);
-    // if (prior.IsValid()) {
-    //   const colmap::Rigid3d
-    //   world_from_cam_prior(Eigen::Quaterniond::Identity(),
-    //                                              prior.position);
-    //   ite.first->second.cam_from_world =
-    //   Rigid3d(Inverse(world_from_cam_prior));
-    // } else {
-    //   ite.first->second.cam_from_world = Rigid3d();
-    // }
   }
   std::cout << std::endl;
 
@@ -280,8 +270,41 @@ void ConvertDatabaseToGlomap(const colmap::Database& database,
     for (auto data_id : frame.ImageIds()) {
       image_t image_id = data_id.id;
       if (images.find(image_id) != images.end()) {
-        images[image_id].frame_id = frame_id;
-        images[image_id].frame_ptr = &frames[frame_id];
+        auto& image = images[image_id];
+        image.frame_id = frame_id;
+        image.frame_ptr = &frames[frame_id];
+
+        colmap::PosePrior prior = database.ReadPosePrior(image_id);
+        if (prior.IsValid()) {
+          // Thransform prior position to XYZ if needed.
+          if (prior.coordinate_system ==
+              colmap::PosePrior::CoordinateSystem::WGS84) {
+            colmap::GPSTransform gps_transform(
+                colmap::GPSTransform::Ellipsoid::WGS84);
+            // TODO: Add an option to control which cartesian frame to
+            // use(ECEF/ENU/UTM). Note EllToENU doesn't support single input up
+            // to the colmap commit #590c509.
+            prior.position = gps_transform
+                                 .EllipsoidToUTM(std::vector<Eigen::Vector3d>{
+                                     prior.position})
+                                 .first.front();
+            prior.coordinate_system =
+                colmap::PosePrior::CoordinateSystem::CARTESIAN;
+          } else if (prior.coordinate_system ==
+                     colmap::PosePrior::CoordinateSystem::UNDEFINED) {
+            LOG(WARNING) << "Unknown coordinate system for image " << image_id
+                         << ", assuming cartesian.";
+          }
+
+          const colmap::Rigid3d world_from_cam_prior(
+              Eigen::Quaterniond::Identity(), prior.position);
+          image.frame_ptr->SetRigFromWorld(
+              Rigid3d(Inverse(world_from_cam_prior)));
+          image.frame_ptr->pose_prior = prior;
+        } else {
+          image.frame_ptr->SetRigFromWorld(Rigid3d());
+          image.frame_ptr->pose_prior = std::nullopt;
+        }
       }
     }
   }

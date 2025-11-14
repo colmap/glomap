@@ -19,6 +19,7 @@ struct BundleAdjusterOptions;
 struct TriangulatorOptions;
 struct InlierThresholdOptions;
 struct GravityRefinerOptions;
+struct PosePriorOptions;
 
 class OptionManager {
  public:
@@ -39,6 +40,7 @@ class OptionManager {
   void AddTriangulatorOptions();
   void AddInlierThresholdOptions();
   void AddGravityRefinerOptions();
+  void AddPosePriorOptions();
 
   template <typename T>
   void AddRequiredOption(const std::string& name,
@@ -92,6 +94,7 @@ class OptionManager {
   bool added_triangulation_options_ = false;
   bool added_inliers_options_ = false;
   bool added_gravity_refiner_options_ = false;
+  bool added_pose_prior_options_ = false;
 };
 
 template <typename T>
@@ -107,10 +110,18 @@ template <typename T>
 void OptionManager::AddDefaultOption(const std::string& name,
                                      T* option,
                                      const std::string& help_text) {
-  desc_->add_options()(
-      name.c_str(),
-      boost::program_options::value<T>(option)->default_value(*option),
-      help_text.c_str());
+  if constexpr (std::is_floating_point<T>::value) {
+    desc_->add_options()(
+        name.c_str(),
+        boost::program_options::value<T>(option)->default_value(
+            *option, colmap::StringPrintf("%.3g", *option)),
+        help_text.c_str());
+  } else {
+    desc_->add_options()(
+        name.c_str(),
+        boost::program_options::value<T>(option)->default_value(*option),
+        help_text.c_str());
+  }
 }
 
 template <typename T>
@@ -127,10 +138,7 @@ template <typename T>
 void OptionManager::AddAndRegisterDefaultOption(const std::string& name,
                                                 T* option,
                                                 const std::string& help_text) {
-  desc_->add_options()(
-      name.c_str(),
-      boost::program_options::value<T>(option)->default_value(*option),
-      help_text.c_str());
+  AddDefaultOption(name, option, help_text);
   RegisterOption(name, option);
 }
 
