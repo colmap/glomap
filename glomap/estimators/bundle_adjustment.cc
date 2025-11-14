@@ -1,5 +1,6 @@
 #include "bundle_adjustment.h"
 
+#include "glomap/math/rigid3d.h"
 #include "glomap/processors/reconstruction_aligner.h"
 #include "glomap/processors/reconstruction_normalizer.h"
 
@@ -444,41 +445,62 @@ bool PosePriorBundleAdjuster::Solve(
   if (use_prior_position) {
     DenormalizeReconstruction(normalized_from_metric, images, tracks);
   }
-  return summary.IsSolutionUsable();
+
+  if (!summary.IsSolutionUsable()) {
+    return false;
+  }
+
+  if (VLOG_IS_ON(2)) {
+    PrintPoseErrorsRelativeToPrior("Optimized pose error w.r.t. priors:",
+                                   images);
+  }
+
+  return true;
 }
 
 bool PosePriorBundleAdjuster::AlignReconstruction(
     const std::unordered_map<image_t, colmap::PosePrior>& pose_priors,
     std::unordered_map<image_t, Image>& images,
     std::unordered_map<track_t, Track>& tracks) {
-  double max_error = -1;
-  if (prior_options_.ransac_max_error > 0) {
-    max_error = prior_options_.ransac_max_error;
-  } else {
-    double max_stddev_sum = 0;
-    size_t num_valid_covs = 0;
-    for (const auto& [_, pose_prior] : pose_priors) {
-      if (pose_prior.IsCovarianceValid()) {
-        const double max_stddev =
-            std::sqrt(Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d>(
-                          pose_prior.position_covariance)
-                          .eigenvalues()
-                          .maxCoeff());
-        max_stddev_sum += max_stddev;
-        ++num_valid_covs;
+  colmap::RANSACOptions ransac_options =
+      prior_options_.alignment_ransac_options;
+  if (ransac_options.max_error < 0) {
+    std::vector<double> rms_vars;
+    rms_vars.reserve(pose_priors_.size());
+    for (const auto& [_, pose_prior] : pose_priors_) {
+      if (!pose_prior.IsCovarianceValid()) {
+        continue;
       }
+
+      const double trace = pose_prior.position_covariance.trace();
+      if (trace <= 0.0) {
+        continue;
+      }
+      rms_vars.push_back(trace / 3.0);
     }
-    if (num_valid_covs == 0) {
+
+    if (rms_vars.empty()) {
       LOG(WARNING) << "No pose priors with valid covariance found.";
       return false;
     }
-    // Set max error at the 3 sigma confidence interval. Assumes no outliers.
-    max_error = 3 * max_stddev_sum / num_valid_covs;
+
+    // Set max error using the median RMS variance of valid pose priors.
+    // Scaled by sqrt(chi-square 95% quantile, 3 DOF) to approximate a 95%
+    // confidence radius.
+    ransac_options.max_error =
+        std::sqrt(colmap::kChiSquare95ThreeDof * colmap::Median(rms_vars));
   }
 
-  return AlignReconstructionToPosePositionPriors(
-      pose_priors, images, tracks, max_error);
-  ;
+  if (!AlignReconstructionToPosePositionPriors(
+          pose_priors, images, tracks, ransac_options)) {
+    return false;
+  };
+
+  if (VLOG_IS_ON(2)) {
+    PrintPoseErrorsRelativeToPrior("Aligned pose error w.r.t. priors:", images);
+  }
+
+  return true;
 }
 
 void PosePriorBundleAdjuster::AddPosePositionPriorConstraints(
@@ -505,6 +527,39 @@ void PosePriorBundleAdjuster::AddPosePositionPriorConstraints(
       LOG(ERROR) << "Could not create position prior cost function for image: "
                  << image_id;
     }
+  }
+}
+
+void PosePriorBundleAdjuster::PrintPoseErrorsRelativeToPrior(
+    std::string_view title, const std::unordered_map<image_t, Image>& images) {
+  std::vector<double> verr2_wrt_prior_position;
+
+  verr2_wrt_prior_position.reserve(pose_priors_.size());
+
+  for (const auto& [image_id, image] : images) {
+    const auto pose_prior_it = pose_priors_.find(image_id);
+    if (pose_prior_it == pose_priors_.end()) {
+      continue;
+    }
+    const auto& prior = pose_prior_it->second;
+
+    if (prior.IsValid()) {
+      const double position_error =
+          (CenterFromPose(image.frame_ptr->RigFromWorld()) - prior.position)
+              .squaredNorm();
+      verr2_wrt_prior_position.push_back(position_error);
+    }
+  }
+
+  VLOG(2) << title << '\n';
+
+  if (verr2_wrt_prior_position.empty()) {
+    VLOG(2) << "  Position error: No valid priors.";
+  } else {
+    VLOG(2) << "  Position error (RMSE): "
+            << std::sqrt(colmap::Mean(verr2_wrt_prior_position));
+    VLOG(2) << "  Position error (Median): "
+            << std::sqrt(colmap::Median(verr2_wrt_prior_position));
   }
 }
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <colmap/math/math.h>
 #include <colmap/util/logging.h>
 
 #include <iostream>
@@ -34,13 +35,11 @@ struct InlierThresholdOptions {
 
 struct PosePriorOptions {
   // Whether to use pose prior constraints.
-  bool use_pose_position_prior = false;  // now only support position prior
+  bool use_prior_position = false;  // now only support position prior
 
   // Settings for pose prior covariance, takes effect only when the option
   // `overwrite_position_priors_covariance` is true.
-  double prior_position_std_x = 1.;
-  double prior_position_std_y = 1.;
-  double prior_position_std_z = 1.;
+  std::string prior_position_stddev = "1.0,1.0,1.0";
 
   // Now colmap may not have a logic for position priors covariance, make
   // overwrite as a choice.
@@ -51,7 +50,8 @@ struct PosePriorOptions {
   // The threshold for robust loss function (e.g. CauchyLoss scaling parameter)
   // to handle large residuals. This determines the point at which the loss
   // becomes less sensitive to outliers.
-  double prior_position_loss_threshold = 7.815;
+  double prior_position_loss_threshold =
+      std::sqrt(colmap::kChiSquare95ThreeDof);
   // The factor used by ceres::ScaledLoss to scale the loss function applied to
   // prior position residuals. This controls the overall scaling of the loss
   // applied to the residuals.

@@ -33,11 +33,15 @@ void RestoreTranslationToPriorPosition(
 
 PosePriorBundleAdjusterOptions ExtractPosePriorBAOptions(
     const GlobalMapperOptions& options) {
-  PosePriorBundleAdjusterOptions pose_prior_options(
-      options.opt_pose_prior.use_robust_loss_on_prior_position,
-      options.opt_pose_prior.prior_position_loss_threshold,
-      options.opt_pose_prior.prior_position_scaled_loss_factor,
-      options.opt_pose_prior.alignment_ransac_max_error);
+  PosePriorBundleAdjusterOptions pose_prior_options;
+  pose_prior_options.use_robust_loss_on_prior_position =
+      options.opt_pose_prior.use_robust_loss_on_prior_position;
+  pose_prior_options.prior_position_loss_threshold =
+      options.opt_pose_prior.prior_position_loss_threshold;
+  pose_prior_options.prior_position_scaled_loss_factor =
+      options.opt_pose_prior.prior_position_scaled_loss_factor;
+  pose_prior_options.alignment_ransac_options.max_error =
+      options.opt_pose_prior.alignment_ransac_max_error;
   return pose_prior_options;
 }
 }  // namespace
@@ -187,7 +191,7 @@ bool GlobalMapper::Solve(const colmap::Database& database,
 
     // Do not gernerate random image positions if use prior position.
     gp_engine.GetOptions().generate_random_positions =
-        !options_.opt_pose_prior.use_pose_position_prior;
+        !options_.opt_pose_prior.use_prior_position;
 
     // TODO: consider to support other modes as well
     if (!gp_engine.Solve(view_graph, rigs, cameras, frames, images, tracks)) {
@@ -215,7 +219,7 @@ bool GlobalMapper::Solve(const colmap::Database& database,
         tracks,
         10 * options_.inlier_thresholds.max_reprojection_error);
     // Normalize the structure if do not use prior position.
-    if (!options_.opt_pose_prior.use_pose_position_prior) {
+    if (!options_.opt_pose_prior.use_prior_position) {
       // If the camera rig is used, the structure do not need to be normalized
       NormalizeReconstruction(rigs, cameras, frames, images, tracks);
     }
@@ -236,7 +240,7 @@ bool GlobalMapper::Solve(const colmap::Database& database,
     for (int ite = 0; ite < options_.num_iteration_bundle_adjustment; ite++) {
       std::unique_ptr<BundleAdjuster> ba_engine;
 
-      if (options_.opt_pose_prior.use_pose_position_prior) {
+      if (options_.opt_pose_prior.use_prior_position) {
         PosePriorBundleAdjusterOptions opt_prior_ba =
             ExtractPosePriorBAOptions(options_);
         ba_engine = std::make_unique<PosePriorBundleAdjuster>(options_.opt_ba,
@@ -272,7 +276,7 @@ bool GlobalMapper::Solve(const colmap::Database& database,
         run_timer.PrintSeconds();
 
       // Normalize the structure if do not use prior position.
-      if (!options_.opt_pose_prior.use_pose_position_prior) {
+      if (!options_.opt_pose_prior.use_prior_position) {
         NormalizeReconstruction(rigs, cameras, frames, images, tracks);
       }
 
@@ -347,7 +351,7 @@ bool GlobalMapper::Solve(const colmap::Database& database,
 
       std::unique_ptr<BundleAdjuster> ba_engine;
 
-      if (options_.opt_pose_prior.use_pose_position_prior) {
+      if (options_.opt_pose_prior.use_prior_position) {
         PosePriorBundleAdjusterOptions pose_prior_ba_options =
             ExtractPosePriorBAOptions(options_);
         ba_engine = std::make_unique<PosePriorBundleAdjuster>(
@@ -376,7 +380,7 @@ bool GlobalMapper::Solve(const colmap::Database& database,
     }
 
     // Normalize the structure if do not use prior position.
-    if (!options_.opt_pose_prior.use_pose_position_prior) {
+    if (!options_.opt_pose_prior.use_prior_position) {
       NormalizeReconstruction(rigs, cameras, frames, images, tracks);
     }
 

@@ -90,20 +90,19 @@ int RunMapper(int argc, char** argv) {
   std::unordered_map<track_t, Track> tracks;
 
   auto database = colmap::Database::Open(database_path);
-  ConvertDatabaseToGlomap(
-      *database,
-      view_graph,
-      rigs,
-      cameras,
-      frames,
-      images,
-      options.mapper->opt_pose_prior.use_pose_position_prior);
+  ConvertDatabaseToGlomap(*database,
+                          view_graph,
+                          rigs,
+                          cameras,
+                          frames,
+                          images,
+                          options.mapper->opt_pose_prior.use_prior_position);
 
   if (options.mapper->opt_pose_prior.overwrite_position_priors_covariance) {
+    std::vector<double> prior_stddev = colmap::CSVToVector<double>(
+        options.mapper->opt_pose_prior.prior_position_stddev);
     const Eigen::Matrix3d covariance =
-        Eigen::Vector3d(options.mapper->opt_pose_prior.prior_position_std_x,
-                        options.mapper->opt_pose_prior.prior_position_std_y,
-                        options.mapper->opt_pose_prior.prior_position_std_z)
+        Eigen::Vector3d(prior_stddev[0], prior_stddev[1], prior_stddev[2])
             .cwiseAbs2()
             .asDiagonal();
     UpdateDatabasePosePriorsCovariance(*database, covariance);

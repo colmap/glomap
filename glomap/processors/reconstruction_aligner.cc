@@ -9,7 +9,7 @@ bool AlignReconstructionToPosePositionPriors(
     const std::unordered_map<image_t, colmap::PosePrior>& pose_priors,
     std::unordered_map<image_t, Image>& images,
     std::unordered_map<track_t, Track>& tracks,
-    double max_error) {
+    const colmap::RANSACOptions& ransac_options) {
   const int num_images = images.size();
 
   // Robust estimate transformation from image center to position prior
@@ -30,11 +30,9 @@ bool AlignReconstructionToPosePositionPriors(
 
   colmap::Sim3d tform;
   bool success = false;
-  if (max_error > 0) {
-    colmap::RANSACOptions options;
-    options.max_error = max_error;
+  if (ransac_options.max_error > 0) {
     auto report = colmap::EstimateSim3dRobust(
-        src_locations, tgt_locations, options, tform);
+        src_locations, tgt_locations, ransac_options, tform);
     success = report.success;
   } else {
     success = colmap::EstimateSim3d(src_locations, tgt_locations, tform);

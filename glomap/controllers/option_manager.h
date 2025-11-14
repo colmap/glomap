@@ -110,10 +110,18 @@ template <typename T>
 void OptionManager::AddDefaultOption(const std::string& name,
                                      T* option,
                                      const std::string& help_text) {
-  desc_->add_options()(
-      name.c_str(),
-      boost::program_options::value<T>(option)->default_value(*option),
-      help_text.c_str());
+  if constexpr (std::is_floating_point<T>::value) {
+    desc_->add_options()(
+        name.c_str(),
+        boost::program_options::value<T>(option)->default_value(
+            *option, colmap::StringPrintf("%.3g", *option)),
+        help_text.c_str());
+  } else {
+    desc_->add_options()(
+        name.c_str(),
+        boost::program_options::value<T>(option)->default_value(*option),
+        help_text.c_str());
+  }
 }
 
 template <typename T>
@@ -130,10 +138,7 @@ template <typename T>
 void OptionManager::AddAndRegisterDefaultOption(const std::string& name,
                                                 T* option,
                                                 const std::string& help_text) {
-  desc_->add_options()(
-      name.c_str(),
-      boost::program_options::value<T>(option)->default_value(*option),
-      help_text.c_str());
+  AddDefaultOption(name, option, help_text);
   RegisterOption(name, option);
 }
 

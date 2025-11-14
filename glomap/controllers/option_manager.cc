@@ -278,14 +278,10 @@ void OptionManager::AddPosePriorOptions() {
     return;
   }
   added_pose_prior_options_ = true;
-  AddAndRegisterDefaultOption("PosePrior.use_pose_position_prior",
-                              &mapper->opt_pose_prior.use_pose_position_prior);
-  AddAndRegisterDefaultOption("PosePrior.prior_position_std_x",
-                              &mapper->opt_pose_prior.prior_position_std_x);
-  AddAndRegisterDefaultOption("PosePrior.prior_position_std_y",
-                              &mapper->opt_pose_prior.prior_position_std_y);
-  AddAndRegisterDefaultOption("PosePrior.prior_position_std_z",
-                              &mapper->opt_pose_prior.prior_position_std_z);
+  AddAndRegisterDefaultOption("PosePrior.use_prior_position",
+                              &mapper->opt_pose_prior.use_prior_position);
+  AddAndRegisterDefaultOption("PosePrior.prior_position_stddev",
+                              &mapper->opt_pose_prior.prior_position_stddev);
   AddAndRegisterDefaultOption(
       "PosePrior.overwrite_priors_covariance",
       &mapper->opt_pose_prior.overwrite_position_priors_covariance);

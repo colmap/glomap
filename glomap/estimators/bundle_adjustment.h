@@ -90,27 +90,18 @@ struct PosePriorBundleAdjusterOptions {
   bool use_robust_loss_on_prior_position = false;
 
   // Threshold on the residual for the robust loss
-  // (chi2 for 3DoF at 95% = 7.815).
-  double prior_position_loss_threshold = 7.815;
+  double prior_position_loss_threshold =
+      std::sqrt(colmap::kChiSquare95ThreeDof);
 
   // The factor used by ceres::ScaledLoss to scale the loss function applied to
   // prior position residuals.
   double prior_position_scaled_loss_factor = 1.;
 
-  // Maximum RANSAC error for Sim3 alignment.
-  double ransac_max_error = 0.;
+  // RANSAC option for Sim3 alignment.
+  colmap::RANSACOptions alignment_ransac_options;
 
   // Loss function for pose prior.
   std::shared_ptr<ceres::LossFunction> prior_position_loss_function;
-
-  PosePriorBundleAdjusterOptions(bool use_robust_loss,
-                                 double loss_scale,
-                                 double scaled_loss_factor,
-                                 double max_error)
-      : use_robust_loss_on_prior_position(use_robust_loss),
-        prior_position_loss_threshold(loss_scale),
-        prior_position_scaled_loss_factor(scaled_loss_factor),
-        ransac_max_error(max_error) {};
 };
 
 // Solve bundle adjustment with pose prior constraints, now support position
@@ -145,6 +136,9 @@ class PosePriorBundleAdjuster : public BundleAdjuster {
       const std::unordered_map<image_t, PosePrior>& pose_priors,
       const Sim3d& normalized_from_metric,
       std::unordered_map<image_t, Image>& images);
+
+  void PrintPoseErrorsRelativeToPrior(
+      std::string_view title, const std::unordered_map<image_t, Image>& images);
 
   PosePriorBundleAdjusterOptions prior_options_;
   std::unordered_map<image_t, PosePrior> pose_priors_;
