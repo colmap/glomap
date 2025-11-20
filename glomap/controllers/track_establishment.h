@@ -1,8 +1,9 @@
 
 #pragma once
 
-#include "glomap/math/union_find.h"
 #include "glomap/scene/types_sfm.h"
+
+#include <colmap/math/union_find.h>
 
 namespace glomap {
 
@@ -53,7 +54,7 @@ class TrackEngine {
   const std::unordered_map<image_t, Image>& images_;
 
   // Internal structure used for concatenating tracks
-  UnionFind<image_pair_t> uf_;
+  colmap::UnionFind<image_pair_t> uf_;
 };
 
 }  // namespace glomap

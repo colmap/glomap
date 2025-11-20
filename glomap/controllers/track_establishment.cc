@@ -5,7 +5,7 @@ namespace glomap {
 size_t TrackEngine::EstablishFullTracks(
     std::unordered_map<track_t, Track>& tracks) {
   tracks.clear();
-  uf_.Clear();
+  uf_ = {};
 
   // Blindly concatenate tracks if any matches occur
   BlindConcatenation();

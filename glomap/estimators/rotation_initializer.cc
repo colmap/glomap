@@ -1,6 +1,7 @@
 #include "glomap/estimators/rotation_initializer.h"
 
-#include "colmap/geometry/pose.h"
+#include <colmap/geometry/pose.h>
+
 namespace glomap {
 
 bool ConvertRotationsFromImageToRig(

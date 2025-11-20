@@ -1,8 +1,8 @@
 #include "view_graph_manipulation.h"
 
 #include "glomap/math/two_view_geometry.h"
-#include "glomap/math/union_find.h"
 
+#include <colmap/math/union_find.h>
 #include <colmap/util/threading.h>
 
 namespace glomap {
@@ -77,7 +77,8 @@ image_t ViewGraphManipulater::EstablishStrongClusters(
       view_graph.KeepLargestConnectedComponents(frames, images);
 
   // Construct the initial cluster by keeping the pairs with weight > min_thres
-  UnionFind<image_pair_t> uf;
+  colmap::UnionFind<image_pair_t> uf;
+  uf.Reserve(frames.size());
   // Go through the edges, and add the edge with weight > min_thres
   for (auto& [pair_id, image_pair] : view_graph.image_pairs) {
     if (image_pair.is_valid == false) continue;

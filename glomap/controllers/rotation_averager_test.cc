@@ -135,7 +135,6 @@ TEST(RotationEstimator, WithoutNoise) {
   synthetic_dataset_options.num_cameras_per_rig = 1;
   synthetic_dataset_options.num_frames_per_rig = 5;
   synthetic_dataset_options.num_points3D = 50;
-  synthetic_dataset_options.point2D_stddev = 0;
   synthetic_dataset_options.sensor_from_rig_rotation_stddev = 20.;
   colmap::SynthesizeDataset(
       synthetic_dataset_options, &gt_reconstruction, database.get());
@@ -181,7 +180,6 @@ TEST(RotationEstimator, WithoutNoiseWithNoneTrivialKnownRig) {
   synthetic_dataset_options.num_cameras_per_rig = 2;
   synthetic_dataset_options.num_frames_per_rig = 4;
   synthetic_dataset_options.num_points3D = 50;
-  synthetic_dataset_options.point2D_stddev = 0;
   synthetic_dataset_options.sensor_from_rig_rotation_stddev = 20.;
   colmap::SynthesizeDataset(
       synthetic_dataset_options, &gt_reconstruction, database.get());
@@ -225,7 +223,6 @@ TEST(RotationEstimator, WithoutNoiseWithNoneTrivialUnknownRig) {
   synthetic_dataset_options.num_cameras_per_rig = 2;
   synthetic_dataset_options.num_frames_per_rig = 4;
   synthetic_dataset_options.num_points3D = 50;
-  synthetic_dataset_options.point2D_stddev = 0;
   synthetic_dataset_options.sensor_from_rig_rotation_stddev = 20.;
   colmap::SynthesizeDataset(
       synthetic_dataset_options, &gt_reconstruction, database.get());
@@ -277,10 +274,13 @@ TEST(RotationEstimator, WithNoiseAndOutliers) {
   synthetic_dataset_options.num_cameras_per_rig = 1;
   synthetic_dataset_options.num_frames_per_rig = 7;
   synthetic_dataset_options.num_points3D = 100;
-  synthetic_dataset_options.point2D_stddev = 1;
   synthetic_dataset_options.inlier_match_ratio = 0.6;
   colmap::SynthesizeDataset(
       synthetic_dataset_options, &gt_reconstruction, database.get());
+  colmap::SyntheticNoiseOptions synthetic_noise_options;
+  synthetic_noise_options.point2D_stddev = 1;
+  colmap::SynthesizeNoise(
+      synthetic_noise_options, &gt_reconstruction, database.get());
 
   ViewGraph view_graph;
   std::unordered_map<rig_t, Rig> rigs;
@@ -323,10 +323,13 @@ TEST(RotationEstimator, WithNoiseAndOutliersWithNonTrivialKnownRigs) {
   synthetic_dataset_options.num_cameras_per_rig = 2;
   synthetic_dataset_options.num_frames_per_rig = 7;
   synthetic_dataset_options.num_points3D = 100;
-  synthetic_dataset_options.point2D_stddev = 1;
   synthetic_dataset_options.inlier_match_ratio = 0.6;
   colmap::SynthesizeDataset(
       synthetic_dataset_options, &gt_reconstruction, database.get());
+  colmap::SyntheticNoiseOptions synthetic_noise_options;
+  synthetic_noise_options.point2D_stddev = 1;
+  colmap::SynthesizeNoise(
+      synthetic_noise_options, &gt_reconstruction, database.get());
 
   ViewGraph view_graph;
   std::unordered_map<rig_t, Rig> rigs;
@@ -372,7 +375,6 @@ TEST(RotationEstimator, RefineGravity) {
   synthetic_dataset_options.num_cameras_per_rig = 1;
   synthetic_dataset_options.num_frames_per_rig = 25;
   synthetic_dataset_options.num_points3D = 100;
-  synthetic_dataset_options.point2D_stddev = 0;
   colmap::SynthesizeDataset(
       synthetic_dataset_options, &gt_reconstruction, database.get());
 
@@ -416,7 +418,6 @@ TEST(RotationEstimator, RefineGravityWithNontrivialRigs) {
   synthetic_dataset_options.num_cameras_per_rig = 2;
   synthetic_dataset_options.num_frames_per_rig = 25;
   synthetic_dataset_options.num_points3D = 100;
-  synthetic_dataset_options.point2D_stddev = 0;
   colmap::SynthesizeDataset(
       synthetic_dataset_options, &gt_reconstruction, database.get());
 
