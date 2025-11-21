@@ -20,6 +20,17 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set_property(GLOBAL PROPERTY GLOBAL_DEPENDS_NO_CYCLES ON)
 
+# Determine project compiler.
+if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    set(IS_MSVC TRUE)
+endif()
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    set(IS_GNU TRUE)
+endif()
+if(CMAKE_CXX_COMPILER_ID MATCHES ".*Clang")
+    set(IS_CLANG TRUE)
+endif()
+
 include(cmake/FindDependencies.cmake)
 
 if (TESTS_ENABLED)
