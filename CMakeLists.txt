@@ -73,4 +73,5 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     endif()
 endif()
 
+add_subdirectory(thirdparty)
 add_subdirectory(glomap)
