@@ -96,7 +96,6 @@ if(MSVC)
 else()
     target_compile_options(glomap PRIVATE
         -Wall
-        -Werror
         -Wno-sign-compare
         -Wno-unused-variable
     )
