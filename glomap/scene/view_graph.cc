@@ -3,18 +3,65 @@
 #include <queue>
 
 namespace glomap {
+namespace {
+
+void BreadthFirstSearch(
+    const std::unordered_map<frame_t, std::unordered_set<frame_t>>&
+        adjacency_list,
+    image_t root,
+    std::unordered_map<image_t, bool>& visited,
+    std::unordered_set<image_t>& component) {
+  std::queue<image_t> queue;
+  queue.push(root);
+  visited[root] = true;
+  component.insert(root);
+
+  while (!queue.empty()) {
+    const image_t curr = queue.front();
+    queue.pop();
+
+    for (const image_t neighbor : adjacency_list.at(curr)) {
+      if (!visited[neighbor]) {
+        queue.push(neighbor);
+        visited[neighbor] = true;
+        component.insert(neighbor);
+      }
+    }
+  }
+}
+
+std::vector<std::unordered_set<frame_t>> FindConnectedComponents(
+    const std::unordered_map<frame_t, std::unordered_set<frame_t>>&
+        adjacency_list) {
+  std::vector<std::unordered_set<frame_t>> connected_components;
+  std::unordered_map<frame_t, bool> visited;
+  visited.reserve(adjacency_list.size());
+  for (const auto& [frame_id, neighbors] : adjacency_list) {
+    visited[frame_id] = false;
+  }
+
+  for (auto& [frame_id, _] : adjacency_list) {
+    if (!visited[frame_id]) {
+      std::unordered_set<frame_t> component;
+      BreadthFirstSearch(adjacency_list, frame_id, visited, component);
+      connected_components.push_back(std::move(component));
+    }
+  }
+
+  return connected_components;
+}
+
+}  // namespace
 
 int ViewGraph::KeepLargestConnectedComponents(
     std::unordered_map<frame_t, Frame>& frames,
     std::unordered_map<image_t, Image>& images) {
-  EstablishAdjacencyList();
-  EstablishAdjacencyListFrame(images);
-
-  int num_comp = FindConnectedComponent();
+  const std::vector<std::unordered_set<frame_t>> connected_components =
+      FindConnectedComponents(CreateFrameAdjacencyList(images));
 
   int max_idx = -1;
   int max_img = 0;
-  for (int comp = 0; comp < num_comp; comp++) {
+  for (int comp = 0; comp < connected_components.size(); comp++) {
     if (connected_components[comp].size() > max_img) {
       max_img = connected_components[comp].size();
       max_idx = comp;
@@ -23,7 +70,8 @@ int ViewGraph::KeepLargestConnectedComponents(
 
   if (max_img == 0) return 0;
 
-  std::unordered_set<image_t> largest_component = connected_components[max_idx];
+  const std::unordered_set<frame_t>& largest_component =
+      connected_components[max_idx];
 
   // Set all frames to not registered
   for (auto& [frame_id, frame] : frames) {
@@ -34,13 +82,11 @@ int ViewGraph::KeepLargestConnectedComponents(
     frames[frame_id].is_registered = true;
   }
   // set all pairs not in the largest component to invalid
-  num_pairs = 0;
   for (auto& [pair_id, image_pair] : image_pairs) {
     if (!images[image_pair.image_id1].IsRegistered() ||
         !images[image_pair.image_id2].IsRegistered()) {
       image_pair.is_valid = false;
     }
-    if (image_pair.is_valid) num_pairs++;
   }
 
   for (auto& [image_id, image] : images) {
@@ -49,32 +95,13 @@ int ViewGraph::KeepLargestConnectedComponents(
   return max_img;
 }
 
-int ViewGraph::FindConnectedComponent() {
-  connected_components.clear();
-  std::unordered_map<image_t, bool> visited;
-  for (auto& [frame_id, neighbors] : adjacency_list_frame) {
-    visited[frame_id] = false;
-  }
-
-  for (auto& [frame_id, neighbors] : adjacency_list_frame) {
-    if (!visited[frame_id]) {
-      std::unordered_set<image_t> component;
-      BFS(frame_id, visited, component);
-      connected_components.push_back(component);
-    }
-  }
-
-  return connected_components.size();
-}
-
 int ViewGraph::MarkConnectedComponents(
     std::unordered_map<frame_t, Frame>& frames,
     std::unordered_map<image_t, Image>& images,
     int min_num_img) {
-  EstablishAdjacencyList();
-  EstablishAdjacencyListFrame(images);
-
-  int num_comp = FindConnectedComponent();
+  const std::vector<std::unordered_set<frame_t>> connected_components =
+      FindConnectedComponents(CreateFrameAdjacencyList(images));
+  const int num_comp = connected_components.size();
 
   std::vector<std::pair<int, int>> cluster_num_img(num_comp);
   for (int comp = 0; comp < num_comp; comp++) {
@@ -97,48 +124,31 @@ int ViewGraph::MarkConnectedComponents(
   return comp;
 }
 
-void ViewGraph::BFS(image_t root,
-                    std::unordered_map<image_t, bool>& visited,
-                    std::unordered_set<image_t>& component) {
-  std::queue<image_t> q;
-  q.push(root);
-  visited[root] = true;
-  component.insert(root);
-
-  while (!q.empty()) {
-    image_t curr = q.front();
-    q.pop();
-
-    for (image_t neighbor : adjacency_list_frame[curr]) {
-      if (!visited[neighbor]) {
-        q.push(neighbor);
-        visited[neighbor] = true;
-        component.insert(neighbor);
-      }
-    }
-  }
-}
-
-void ViewGraph::EstablishAdjacencyList() {
-  adjacency_list.clear();
-  for (auto& [pair_id, image_pair] : image_pairs) {
+std::unordered_map<image_t, std::unordered_set<image_t>>
+ViewGraph::CreateImageAdjacencyList() const {
+  std::unordered_map<image_t, std::unordered_set<image_t>> adjacency_list;
+  for (const auto& [_, image_pair] : image_pairs) {
     if (image_pair.is_valid) {
       adjacency_list[image_pair.image_id1].insert(image_pair.image_id2);
       adjacency_list[image_pair.image_id2].insert(image_pair.image_id1);
     }
   }
+  return adjacency_list;
 }
 
-void ViewGraph::EstablishAdjacencyListFrame(
-    std::unordered_map<image_t, Image>& images) {
-  adjacency_list_frame.clear();
-  for (auto& [pair_id, image_pair] : image_pairs) {
+std::unordered_map<frame_t, std::unordered_set<frame_t>>
+ViewGraph::CreateFrameAdjacencyList(
+    const std::unordered_map<image_t, Image>& images) const {
+  std::unordered_map<frame_t, std::unordered_set<frame_t>> adjacency_list;
+  for (const auto& [_, image_pair] : image_pairs) {
     if (image_pair.is_valid) {
-      frame_t frame_id1 = images[image_pair.image_id1].frame_id;
-      frame_t frame_id2 = images[image_pair.image_id2].frame_id;
-      adjacency_list_frame[frame_id1].insert(frame_id2);
-      adjacency_list_frame[frame_id2].insert(frame_id1);
+      const frame_t frame_id1 = images.at(image_pair.image_id1).frame_id;
+      const frame_t frame_id2 = images.at(image_pair.image_id2).frame_id;
+      adjacency_list[frame_id1].insert(frame_id2);
+      adjacency_list[frame_id2].insert(frame_id1);
     }
   }
+  return adjacency_list;
 }
+
 }  // namespace glomap

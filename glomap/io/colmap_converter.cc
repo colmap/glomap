@@ -361,7 +361,7 @@ void ConvertDatabaseToGlomap(const colmap::Database& database,
 
     // Initialize the image pair
     auto ite = image_pairs.insert(
-        std::make_pair(ImagePair::ImagePairToPairId(image_id1, image_id2),
+        std::make_pair(colmap::ImagePairToPairId(image_id1, image_id2),
                        ImagePair(image_id1, image_id2)));
     ImagePair& image_pair = ite.first->second;
 
@@ -419,8 +419,6 @@ void ConvertDatabaseToGlomap(const colmap::Database& database,
     }
     image_pair.matches.conservativeResize(count, 2);
   }
-  std::cout << std::endl;
-
   LOG(INFO) << "Pairs read done. " << invalid_count << " / "
             << view_graph.image_pairs.size() << " are invalid";
 }

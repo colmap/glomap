@@ -56,7 +56,7 @@ void ReadRelPose(const std::string& file_path,
     image_t index1 = name_idx[file1];
     image_t index2 = name_idx[file2];
 
-    image_pair_t pair_id = ImagePair::ImagePairToPairId(index1, index2);
+    const image_pair_t pair_id = colmap::ImagePairToPairId(index1, index2);
 
     // rotation
     Rigid3d pose_rel;
@@ -81,7 +81,7 @@ void ReadRelPose(const std::string& file_path,
     }
     counter++;
   }
-  LOG(INFO) << counter << " relpose are loaded" << std::endl;
+  LOG(INFO) << counter << " relative poses are loaded";
 }
 
 void ReadRelWeight(const std::string& file_path,
@@ -118,7 +118,7 @@ void ReadRelWeight(const std::string& file_path,
     image_t index1 = name_idx[file1];
     image_t index2 = name_idx[file2];
 
-    image_pair_t pair_id = ImagePair::ImagePairToPairId(index1, index2);
+    image_pair_t pair_id = colmap::ImagePairToPairId(index1, index2);
 
     if (view_graph.image_pairs.find(pair_id) == view_graph.image_pairs.end())
       continue;
@@ -127,7 +127,7 @@ void ReadRelWeight(const std::string& file_path,
     view_graph.image_pairs[pair_id].weight = std::stod(item);
     counter++;
   }
-  LOG(INFO) << counter << " weights are used are loaded" << std::endl;
+  LOG(INFO) << counter << " weights are used are loaded";
 }
 
 // TODO: now, we only store 1 single gravity per rig.
@@ -172,7 +172,7 @@ void ReadGravity(const std::string& gravity_path,
       }
     }
   }
-  LOG(INFO) << counter << " images are loaded with gravity" << std::endl;
+  LOG(INFO) << counter << " images are loaded with gravity";
 }
 
 void WriteGlobalRotation(const std::string& file_path,
@@ -185,7 +185,7 @@ void WriteGlobalRotation(const std::string& file_path,
     }
   }
   for (const auto& image_id : existing_images) {
-    const auto image = images.at(image_id);
+    const auto& image = images.at(image_id);
     if (!image.IsRegistered()) continue;
     file << image.file_name;
     Rigid3d cam_from_world = image.CamFromWorld();
@@ -205,8 +205,8 @@ void WriteRelPose(const std::string& file_path,
   std::map<std::string, image_pair_t> name_pair;
   for (const auto& [pair_id, image_pair] : view_graph.image_pairs) {
     if (image_pair.is_valid) {
-      const auto image1 = images.at(image_pair.image_id1);
-      const auto image2 = images.at(image_pair.image_id2);
+      const auto& image1 = images.at(image_pair.image_id1);
+      const auto& image2 = images.at(image_pair.image_id2);
       name_pair[image1.file_name + " " + image2.file_name] = pair_id;
     }
   }
@@ -226,6 +226,6 @@ void WriteRelPose(const std::string& file_path,
     file << "\n";
   }
 
-  LOG(INFO) << name_pair.size() << " relpose are written" << std::endl;
+  LOG(INFO) << name_pair.size() << " relpose are written";
 }
 }  // namespace glomap
