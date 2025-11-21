@@ -19,14 +19,6 @@ elseif(IS_GNU OR IS_CLANG)
     endif()
 endif()
 
-if(IS_MSVC)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W0")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W0")
-elseif(IS_GNU OR IS_CLANG)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -w")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w")
-endif()
-
 include(FetchContent)
 FetchContent_Declare(PoseLib
     GIT_REPOSITORY    https://github.com/PoseLib/PoseLib.git
