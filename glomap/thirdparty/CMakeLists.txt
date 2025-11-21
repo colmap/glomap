@@ -20,15 +20,16 @@ elseif(IS_GNU OR IS_CLANG)
 endif()
 
 include(FetchContent)
-FetchContent_Declare(PoseLib
+FetchContent_Declare(poselib
     GIT_REPOSITORY    https://github.com/PoseLib/PoseLib.git
     GIT_TAG           f119951fca625133112acde48daffa5f20eba451
     EXCLUDE_FROM_ALL
     SYSTEM
 )
 message(STATUS "Configuring PoseLib...")
-if (FETCH_POSELIB)
-    FetchContent_MakeAvailable(PoseLib)
+if(FETCH_POSELIB)
+    set(MARCH_NATIVE OFF CACHE BOOL "")
+    FetchContent_MakeAvailable(poselib)
 else()
     find_package(PoseLib REQUIRED)
 endif()
