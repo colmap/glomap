@@ -20,6 +20,17 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set_property(GLOBAL PROPERTY GLOBAL_DEPENDS_NO_CYCLES ON)
 
+# Determine project compiler.
+if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    set(IS_MSVC TRUE)
+endif()
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    set(IS_GNU TRUE)
+endif()
+if(CMAKE_CXX_COMPILER_ID MATCHES ".*Clang")
+    set(IS_CLANG TRUE)
+endif()
+
 include(cmake/FindDependencies.cmake)
 
 if (TESTS_ENABLED)
@@ -45,8 +56,7 @@ else()
     message(STATUS "Disabling ccache support")
 endif()
 
-
-if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+if(IS_MSVC)
     # Some fixes for the Glog library.
     add_definitions("-DGLOG_USE_GLOG_EXPORT")
     add_definitions("-DGLOG_NO_ABBREVIATED_SEVERITIES")
@@ -62,4 +72,5 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     endif()
 endif()
 
+add_subdirectory(thirdparty)
 add_subdirectory(glomap)

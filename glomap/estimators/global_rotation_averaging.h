@@ -1,11 +1,12 @@
 #pragma once
 
-#include "glomap/math/l1_solver.h"
 #include "glomap/scene/types_sfm.h"
 #include "glomap/types.h"
 
 #include <string>
 #include <vector>
+
+#include <Eigen/Sparse>
 
 // Code is adapted from Theia's RobustRotationEstimator
 // (http://www.theia-sfm.org/). For gravity aligned rotation averaging, refere

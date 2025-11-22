@@ -60,7 +60,6 @@ TEST(GlobalMapper, WithoutNoise) {
   synthetic_dataset_options.num_cameras_per_rig = 1;
   synthetic_dataset_options.num_frames_per_rig = 7;
   synthetic_dataset_options.num_points3D = 50;
-  synthetic_dataset_options.point2D_stddev = 0;
   colmap::SynthesizeDataset(
       synthetic_dataset_options, &gt_reconstruction, database.get());
 
@@ -97,7 +96,6 @@ TEST(GlobalMapper, WithoutNoiseWithNonTrivialKnownRig) {
   synthetic_dataset_options.num_cameras_per_rig = 2;
   synthetic_dataset_options.num_frames_per_rig = 7;
   synthetic_dataset_options.num_points3D = 50;
-  synthetic_dataset_options.point2D_stddev = 0;
   synthetic_dataset_options.sensor_from_rig_translation_stddev =
       0.1;                                                         // No noise
   synthetic_dataset_options.sensor_from_rig_rotation_stddev = 5.;  // No noise
@@ -137,7 +135,6 @@ TEST(GlobalMapper, WithoutNoiseWithNonTrivialUnknownRig) {
   synthetic_dataset_options.num_cameras_per_rig = 3;
   synthetic_dataset_options.num_frames_per_rig = 7;
   synthetic_dataset_options.num_points3D = 50;
-  synthetic_dataset_options.point2D_stddev = 0;
   synthetic_dataset_options.sensor_from_rig_translation_stddev =
       0.1;                                                         // No noise
   synthetic_dataset_options.sensor_from_rig_rotation_stddev = 5.;  // No noise
@@ -187,10 +184,13 @@ TEST(GlobalMapper, WithNoiseAndOutliers) {
   synthetic_dataset_options.num_cameras_per_rig = 1;
   synthetic_dataset_options.num_frames_per_rig = 4;
   synthetic_dataset_options.num_points3D = 100;
-  synthetic_dataset_options.point2D_stddev = 0.5;
   synthetic_dataset_options.inlier_match_ratio = 0.6;
   colmap::SynthesizeDataset(
       synthetic_dataset_options, &gt_reconstruction, database.get());
+  colmap::SyntheticNoiseOptions synthetic_noise_options;
+  synthetic_noise_options.point2D_stddev = 0.5;
+  colmap::SynthesizeNoise(
+      synthetic_noise_options, &gt_reconstruction, database.get());
 
   ViewGraph view_graph;
   std::unordered_map<camera_t, Camera> cameras;

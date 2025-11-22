@@ -1,7 +1,5 @@
 #include "glomap/scene/view_graph.h"
 
-#include "glomap/math/union_find.h"
-
 #include <queue>
 
 namespace glomap {

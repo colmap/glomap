@@ -3,12 +3,12 @@
 # This script applies clang-format to the whole repository.
 
 # Check version
-version_string=$(clang-format --version | sed -E 's/^.* ([0-9]+\.[0-9]+)\..*$/\1/')
-expected_version_string='19.1'
-if [[ "$version_string" == "$expected_version_string" ]]; then
-    echo "clang-format major.minor version '$version_string' matches expected '$expected_version_string'"
+version_string=$(clang-format --version | sed -E 's/^.*(\d+\.\d+\.\d+-.*).*$/\1/')
+expected_version_string='20.1.5'
+if [[ "$version_string" =~ "$expected_version_string" ]]; then
+    echo "clang-format version '$version_string' matches '$expected_version_string'"
 else
-    echo "clang-format major.minor version '$version_string' doesn't match expected '$expected_version_string'"
+    echo "clang-format version '$version_string' doesn't match '$expected_version_string'"
     exit 1
 fi
 
