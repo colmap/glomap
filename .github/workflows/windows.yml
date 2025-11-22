@@ -19,13 +19,6 @@ jobs:
           {
             os: windows-2025,
             cmakeBuildType: Release,
-            cudaEnabled: true,
-            testsEnabled: true,
-            exportPackage: true,
-          },
-          {
-            os: windows-2025,
-            cmakeBuildType: Release,
             cudaEnabled: false,
             testsEnabled: true,
             exportPackage: true,
