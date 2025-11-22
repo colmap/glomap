@@ -17,7 +17,7 @@ image_pair_t ViewGraphManipulater::SparsifyGraph(
   // Keep track of chosen edges
   std::unordered_set<image_pair_t> chosen_edges;
   const std::unordered_map<image_t, std::unordered_set<image_t>>&
-      adjacency_list = view_graph.GetAdjacencyList();
+      adjacency_list = view_graph.CreateImageAdjacencyList();
 
   // Here, the average is the mean of the degrees
   double average_degree = 0;
@@ -47,6 +47,7 @@ image_pair_t ViewGraphManipulater::SparsifyGraph(
       continue;
     }
 
+    // TODO: Replace rand() with thread-safe random number generator.
     if (rand() / double(RAND_MAX) <
         (expected_degree * average_degree) / (degree1 * degree2)) {
       chosen_edges.insert(pair_id);
@@ -208,9 +209,7 @@ void ViewGraphManipulater::UpdateImagePairsConfig(
   // pairs are valid, then set the camera to valid
   std::unordered_map<camera_t, bool> camera_validity;
   for (auto& [camera_id, counter] : camera_counter) {
-    if (counter.first == 0) {
-      camera_validity[camera_id] = false;
-    } else if (counter.second * 1. / counter.first > 0.5) {
+    if (counter.second * 1. / counter.first > 0.5) {
       camera_validity[camera_id] = true;
     } else {
       camera_validity[camera_id] = false;

@@ -121,7 +121,7 @@ void RotationEstimator::InitializeFromMaximumSpanningTree(
 
     // Directly use the relative pose for estimation rotation
     const ImagePair& image_pair = view_graph.image_pairs.at(
-        ImagePair::ImagePairToPairId(curr, parents[curr]));
+        colmap::ImagePairToPairId(curr, parents[curr]));
     if (image_pair.image_id1 == curr) {
       // 1_R_w = 2_R_1^T * 2_R_w
       cam_from_worlds[curr].rotation =

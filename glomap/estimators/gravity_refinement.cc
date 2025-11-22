@@ -9,12 +9,10 @@ namespace glomap {
 void GravityRefiner::RefineGravity(const ViewGraph& view_graph,
                                    std::unordered_map<frame_t, Frame>& frames,
                                    std::unordered_map<image_t, Image>& images) {
-  const std::unordered_map<image_pair_t, ImagePair>& image_pairs =
-      view_graph.image_pairs;
   const std::unordered_map<image_t, std::unordered_set<image_t>>&
-      adjacency_list = view_graph.GetAdjacencyList();
+      adjacency_list = view_graph.CreateImageAdjacencyList();
   if (adjacency_list.empty()) {
-    LOG(INFO) << "Adjacency list not established" << std::endl;
+    LOG(INFO) << "Adjacency list not established";
     return;
   }
 
@@ -24,16 +22,16 @@ void GravityRefiner::RefineGravity(const ViewGraph& view_graph,
   IdentifyErrorProneGravity(view_graph, frames, images, error_prone_frames);
 
   if (error_prone_frames.empty()) {
-    LOG(INFO) << "No error prone frames found" << std::endl;
+    LOG(INFO) << "No error prone frames found";
     return;
   }
   // Get the relevant pair ids for frames
   std::unordered_map<frame_t, std::unordered_set<image_pair_t>>
       adjacency_list_frames_to_pair_id;
   for (auto& [image_id, neighbors] : adjacency_list) {
-    for (auto neighbor : neighbors) {
+    for (const auto& neighbor : neighbors) {
       adjacency_list_frames_to_pair_id[images[image_id].frame_id].insert(
-          ImagePair::ImagePairToPairId(image_id, neighbor));
+          colmap::ImagePairToPairId(image_id, neighbor));
     }
   }
 
@@ -59,8 +57,8 @@ void GravityRefiner::RefineGravity(const ViewGraph& view_graph,
     int counter = 0;
     Eigen::Vector3d gravity = frames[frame_id].gravity_info.GetGravity();
     for (const auto& pair_id : neighbors) {
-      image_t image_id1 = image_pairs.at(pair_id).image_id1;
-      image_t image_id2 = image_pairs.at(pair_id).image_id2;
+      const image_t image_id1 = view_graph.image_pairs.at(pair_id).image_id1;
+      const image_t image_id2 = view_graph.image_pairs.at(pair_id).image_id2;
       if (!images.at(image_id1).HasGravity() ||
           !images.at(image_id2).HasGravity())
         continue;
@@ -82,17 +80,18 @@ void GravityRefiner::RefineGravity(const ViewGraph& view_graph,
       // consider a single cost term
       if (images.at(image_id1).frame_id == frame_id) {
         gravities.emplace_back(
-            (colmap::Inverse(image_pairs.at(pair_id).cam2_from_cam1 *
+            (colmap::Inverse(view_graph.image_pairs.at(pair_id).cam2_from_cam1 *
                              cam1_from_rig1)
                  .rotation.toRotationMatrix() *
              images[image_id2].GetRAlign())
                 .col(1));
       } else if (images.at(image_id2).frame_id == frame_id) {
-        gravities.emplace_back(((colmap::Inverse(cam2_from_rig2) *
-                                 image_pairs.at(pair_id).cam2_from_cam1)
-                                    .rotation.toRotationMatrix() *
-                                images[image_id1].GetRAlign())
-                                   .col(1));
+        gravities.emplace_back(
+            ((colmap::Inverse(cam2_from_rig2) *
+              view_graph.image_pairs.at(pair_id).cam2_from_cam1)
+                 .rotation.toRotationMatrix() *
+             images[image_id1].GetRAlign())
+                .col(1));
       }
 
       ceres::CostFunction* coor_cost =
@@ -123,9 +122,8 @@ void GravityRefiner::RefineGravity(const ViewGraph& view_graph,
       frames[frame_id].gravity_info.SetGravity(gravity);
     }
   }
-  std::cout << std::endl;
   LOG(INFO) << "Number of rectified frames: " << counter_rect << " / "
-            << error_prone_frames.size() << std::endl;
+            << error_prone_frames.size();
 }
 
 void GravityRefiner::IdentifyErrorProneGravity(
@@ -179,7 +177,6 @@ void GravityRefiner::IdentifyErrorProneGravity(
       error_prone_frames.insert(frame_id);
     }
   }
-  LOG(INFO) << "Number of error prone frames: " << error_prone_frames.size()
-            << std::endl;
+  LOG(INFO) << "Number of error prone frames: " << error_prone_frames.size();
 }
 }  // namespace glomap
