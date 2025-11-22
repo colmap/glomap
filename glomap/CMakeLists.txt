@@ -1,5 +1,3 @@
-add_subdirectory(thirdparty)
-
 set(SOURCES
     controllers/global_mapper.cc
     controllers/option_manager.cc
