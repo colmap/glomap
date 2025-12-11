@@ -45,15 +45,15 @@ void ReadRelPose(const std::string& file_path,
     if (name_idx.find(file1) == name_idx.end()) {
       max_image_id += 1;
       max_camera_id += 1;
-      images.insert(
-          std::make_pair(max_image_id, Image(max_image_id, max_camera_id, file1)));
+      images.insert(std::make_pair(max_image_id,
+                                   Image(max_image_id, max_camera_id, file1)));
       name_idx[file1] = max_image_id;
     }
     if (name_idx.find(file2) == name_idx.end()) {
       max_image_id += 1;
       max_camera_id += 1;
-      images.insert(
-          std::make_pair(max_image_id, Image(max_image_id, max_camera_id, file2)));
+      images.insert(std::make_pair(max_image_id,
+                                   Image(max_image_id, max_camera_id, file2)));
       name_idx[file2] = max_image_id;
     }
 
