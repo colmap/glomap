@@ -759,7 +759,7 @@ double RotationEstimator::ComputeAverageStepSize(
     const std::unordered_map<frame_t, Frame>& frames) {
   double total_update = 0;
   for (const auto& [frame_id, frame] : frames) {
-    if (frames.at(frame_id).is_registered) continue;
+    if (!frames.at(frame_id).is_registered) continue;
 
     if (options_.use_gravity && frame.HasGravity()) {
       total_update += std::abs(tangent_space_step_[frame_id_to_idx_[frame_id]]);
