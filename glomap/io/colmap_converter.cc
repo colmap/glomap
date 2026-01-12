@@ -330,7 +330,7 @@ void ConvertDatabaseToGlomap(const colmap::Database& database,
   // For images without frames, initialize trivial frames
   for (auto& [image_id, image] : images) {
     if (image.frame_id == colmap::kInvalidFrameId) {
-      frame_t frame_id = (max_frame_id > 0)? ++max_frame_id : image_id;
+      frame_t frame_id = (max_frame_id > 0) ? ++max_frame_id : image_id;
 
       CreateFrameForImage(Rigid3d(),
                           image,
