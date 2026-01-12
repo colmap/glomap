@@ -309,7 +309,7 @@ void ConvertDatabaseToGlomap(const colmap::Database& database,
   for (const auto& [camera_id, camera] : cameras) {
     if (cameras_id_to_rig_id.find(camera_id) == cameras_id_to_rig_id.end()) {
       Rig rig;
-      if (max_rig_id != 0)
+      if (max_rig_id > 0)
         rig.SetRigId(++max_rig_id);
       else
         rig.SetRigId(camera_id);
