@@ -25,13 +25,14 @@ if(TESTS_ENABLED)
 endif()
 
 include(FetchContent)
+
+# Use local PoseLib with EQUIRECTANGULAR support
 FetchContent_Declare(PoseLib
-    GIT_REPOSITORY    https://github.com/PoseLib/PoseLib.git
-    GIT_TAG           7e9f5f53372e43f89655040d4dfc4a00e5ace11c  # 2.0.5
+    SOURCE_DIR        /home/selstad/Desktop/colmap_workspace/PoseLib
     EXCLUDE_FROM_ALL
     SYSTEM
 )
-message(STATUS "Configuring PoseLib...")
+message(STATUS "Configuring PoseLib (local with EQUIRECTANGULAR)...")
 if (FETCH_POSELIB)
     FetchContent_MakeAvailable(PoseLib)
 else()
@@ -39,12 +40,12 @@ else()
 endif()
 message(STATUS "Configuring PoseLib... done")
 
+# Use local COLMAP with EQUIRECTANGULAR support
 FetchContent_Declare(COLMAP
-    GIT_REPOSITORY    https://github.com/colmap/colmap.git
-    GIT_TAG           c5f9cefc87e5dd596b638e4cee0ff543c7d14755  # Oct 23 2025
+    SOURCE_DIR        /home/selstad/Desktop/colmap_workspace/colmap
     EXCLUDE_FROM_ALL
 )
-message(STATUS "Configuring COLMAP...")
+message(STATUS "Configuring COLMAP (local with EQUIRECTANGULAR)...")
 set(UNINSTALL_ENABLED OFF CACHE INTERNAL "")
 set(GUI_ENABLED OFF CACHE INTERNAL "")
 if (FETCH_COLMAP)
