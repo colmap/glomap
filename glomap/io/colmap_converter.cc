@@ -380,19 +380,27 @@ void ConvertDatabaseToGlomap(const colmap::Database& database,
 
     // Collect the fundemental matrices
     if (two_view.config == colmap::TwoViewGeometry::UNCALIBRATED) {
-      image_pair.F = two_view.F;
+      if (two_view.F.has_value()) {
+        image_pair.F = two_view.F.value();
+      }
     } else if (two_view.config == colmap::TwoViewGeometry::CALIBRATED) {
-      FundamentalFromMotionAndCameras(
-          cameras.at(images.at(image_pair.image_id1).camera_id),
-          cameras.at(images.at(image_pair.image_id2).camera_id),
-          two_view.cam2_from_cam1,
-          &image_pair.F);
+      if (two_view.cam2_from_cam1.has_value()) {
+        FundamentalFromMotionAndCameras(
+            cameras.at(images.at(image_pair.image_id1).camera_id),
+            cameras.at(images.at(image_pair.image_id2).camera_id),
+            two_view.cam2_from_cam1.value(),
+            &image_pair.F);
+      }
     } else if (two_view.config == colmap::TwoViewGeometry::PLANAR ||
                two_view.config == colmap::TwoViewGeometry::PANORAMIC ||
                two_view.config ==
                    colmap::TwoViewGeometry::PLANAR_OR_PANORAMIC) {
-      image_pair.H = two_view.H;
-      image_pair.F = two_view.F;
+      if (two_view.H.has_value()) {
+        image_pair.H = two_view.H.value();
+      }
+      if (two_view.F.has_value()) {
+        image_pair.F = two_view.F.value();
+      }
     }
     image_pair.config = two_view.config;
 

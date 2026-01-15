@@ -288,11 +288,13 @@ void ViewGraphManipulater::DecomposeRelPose(
         return;
 
       image_pair.config = two_view_geometry.config;
-      image_pair.cam2_from_cam1 = two_view_geometry.cam2_from_cam1;
+      if (two_view_geometry.cam2_from_cam1.has_value()) {
+        image_pair.cam2_from_cam1 = two_view_geometry.cam2_from_cam1.value();
 
-      if (image_pair.cam2_from_cam1.translation.norm() > EPS) {
-        image_pair.cam2_from_cam1.translation =
-            image_pair.cam2_from_cam1.translation.normalized();
+        if (image_pair.cam2_from_cam1.translation.norm() > EPS) {
+          image_pair.cam2_from_cam1.translation =
+              image_pair.cam2_from_cam1.translation.normalized();
+        }
       }
     });
   }
