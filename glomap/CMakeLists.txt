@@ -47,11 +47,9 @@ set(HEADERS
     io/colmap_io.h
     io/pose_io.h
     math/gravity.h
-    math/l1_solver.h
     math/rigid3d.h
     math/tree.h
     math/two_view_geometry.h
-    math/union_find.h
     processors/image_pair_inliers.h
     processors/image_undistorter.h
     processors/reconstruction_normalizer.h
@@ -86,7 +84,6 @@ target_link_libraries(
     PUBLIC
         Eigen3::Eigen
         Ceres::ceres
-        SuiteSparse::CHOLMOD
         OpenMP::OpenMP_CXX
         ${BOOST_LIBRARIES}
 )
@@ -97,7 +94,6 @@ if(MSVC)
 else()
     target_compile_options(glomap PRIVATE
         -Wall
-        -Werror
         -Wno-sign-compare
         -Wno-unused-variable
     )

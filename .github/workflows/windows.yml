@@ -17,14 +17,7 @@ jobs:
       matrix:
         config: [
           {
-            os: windows-2022,
-            cmakeBuildType: Release,
-            cudaEnabled: true,
-            testsEnabled: true,
-            exportPackage: true,
-          },
-          {
-            os: windows-2022,
+            os: windows-2025,
             cmakeBuildType: Release,
             cudaEnabled: false,
             testsEnabled: true,
@@ -37,13 +30,13 @@ jobs:
       COMPILER_CACHE_DIR: ${{ github.workspace }}/compiler-cache
       CCACHE_DIR: ${{ github.workspace }}/compiler-cache/ccache
       CCACHE_BASEDIR: ${{ github.workspace }}
-      VCPKG_COMMIT_ID: bc3512a509f9d29b37346a7e7e929f9a26e66c7e
+      VCPKG_COMMIT_ID: 2ad7bd06128280e02bfe02361d8ffd7d465cfcf0
       GLOG_v: 1
       GLOG_logtostderr: 1
 
     steps:
       - uses: actions/checkout@v4
-      
+
       # We define the vcpkg binary sources using separate variables for read and
       # write operations:
       # * Read sources are defined as inline. These can be read by anyone and,
@@ -74,7 +67,7 @@ jobs:
           key: v${{ env.COMPILER_CACHE_VERSION }}-${{ matrix.config.os }}-${{ matrix.config.cmakeBuildType }}-${{ matrix.config.asanEnabled }}--${{ matrix.config.cudaEnabled }}-${{ github.run_id }}-${{ github.run_number }}
           restore-keys: v${{ env.COMPILER_CACHE_VERSION }}-${{ matrix.config.os }}-${{ matrix.config.cmakeBuildType }}-${{ matrix.config.asanEnabled }}--${{ matrix.config.cudaEnabled }}
           path: ${{ env.COMPILER_CACHE_DIR }}
-      
+
       - name: Install ccache
         shell: pwsh
         run: |

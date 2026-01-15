@@ -2,7 +2,7 @@
 
 #include "glomap/scene/types_sfm.h"
 
-#include "colmap/geometry/pose.h"
+#include <colmap/geometry/pose.h>
 
 namespace glomap {
 
@@ -16,4 +16,5 @@ colmap::Sim3d NormalizeReconstruction(
     double extent = 10.,
     double p0 = 0.1,
     double p1 = 0.9);
+
 }  // namespace glomap

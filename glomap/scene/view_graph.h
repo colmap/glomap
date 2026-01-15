@@ -1,73 +1,37 @@
 #pragma once
 
-#include "glomap/scene/camera.h"
 #include "glomap/scene/image.h"
 #include "glomap/scene/image_pair.h"
 #include "glomap/scene/types.h"
-#include "glomap/types.h"
+
+#include <unordered_map>
+#include <unordered_set>
 
 namespace glomap {
 
-class ViewGraph {
- public:
-  // Methods
-  inline void RemoveInvalidPair(image_pair_t pair_id);
+struct ViewGraph {
+  std::unordered_map<image_pair_t, ImagePair> image_pairs;
 
-  // Mark the image which is not connected to any other images as not registered
-  // Return: the number of images in the largest connected component
+  // Create the adjacency list for the images in the view graph.
+  std::unordered_map<image_t, std::unordered_set<image_t>>
+  CreateImageAdjacencyList() const;
+
+  // Create the adjacency list for the frames in the view graph.
+  std::unordered_map<frame_t, std::unordered_set<frame_t>>
+  CreateFrameAdjacencyList(
+      const std::unordered_map<image_t, Image>& images) const;
+
+  // Mark the images which are not connected to any other images as not
+  // registered Returns the number of images in the largest connected component.
   int KeepLargestConnectedComponents(
       std::unordered_map<frame_t, Frame>& frames,
       std::unordered_map<image_t, Image>& images);
 
-  // Mark the cluster of the cameras (cluster_id sort by the the number of
-  // images)
+  // Mark connected clusters of images, where the cluster_id is sorted by the
+  // the number of images.
   int MarkConnectedComponents(std::unordered_map<frame_t, Frame>& frames,
                               std::unordered_map<image_t, Image>& images,
                               int min_num_img = -1);
-
-  // Establish the adjacency list
-  void EstablishAdjacencyList();
-
-  // Establish the frame based adjacency list
-  void EstablishAdjacencyListFrame(std::unordered_map<image_t, Image>& images);
-
-  inline const std::unordered_map<image_t, std::unordered_set<image_t>>&
-  GetAdjacencyList() const;
-  inline const std::unordered_map<frame_t, std::unordered_set<frame_t>>&
-  GetAdjacencyListFrame() const;
-
-  // Data
-  std::unordered_map<image_pair_t, ImagePair> image_pairs;
-
-  image_t num_images = 0;
-  image_pair_t num_pairs = 0;
-
- private:
-  int FindConnectedComponent();
-
-  void BFS(image_t root,
-           std::unordered_map<image_t, bool>& visited,
-           std::unordered_set<image_t>& component);
-
-  // Data for processing
-  std::unordered_map<image_t, std::unordered_set<image_t>> adjacency_list;
-  std::unordered_map<frame_t, std::unordered_set<frame_t>> adjacency_list_frame;
-  std::vector<std::unordered_set<image_t>> connected_components;
 };
-
-const std::unordered_map<image_t, std::unordered_set<image_t>>&
-ViewGraph::GetAdjacencyList() const {
-  return adjacency_list;
-}
-
-const std::unordered_map<frame_t, std::unordered_set<frame_t>>&
-ViewGraph::GetAdjacencyListFrame() const {
-  return adjacency_list_frame;
-}
-
-void ViewGraph::RemoveInvalidPair(image_pair_t pair_id) {
-  ImagePair& pair = image_pairs.at(pair_id);
-  pair.is_valid = false;
-}
 
 }  // namespace glomap

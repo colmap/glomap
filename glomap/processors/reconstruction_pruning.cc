@@ -23,8 +23,8 @@ image_t PruneWeaklyConnectedImages(std::unordered_map<frame_t, Frame>& frames,
         image_t image_id2 = track.observations[j].first;
         frame_t frame_id2 = images[image_id2].frame_id;
         if (frame_id1 == frame_id2) continue;
-        image_pair_t pair_id =
-            ImagePair::ImagePairToPairId(frame_id1, frame_id2);
+        const image_pair_t pair_id =
+            colmap::ImagePairToPairId(frame_id1, frame_id2);
         if (pair_covisibility_count.find(pair_id) ==
             pair_covisibility_count.end()) {
           pair_covisibility_count[pair_id] = 1;
@@ -44,8 +44,7 @@ image_t PruneWeaklyConnectedImages(std::unordered_map<frame_t, Frame>& frames,
     // then require each pair to have at least 5 points
     if (count >= 5) {
       counter++;
-      image_t image_id1, image_id2;
-      ImagePair::PairIdToImagePair(pair_id, image_id1, image_id2);
+      const auto [image_id1, image_id2] = colmap::PairIdToImagePair(pair_id);
 
       if (frame_observation_count[image_id1] < min_num_observations ||
           frame_observation_count[image_id2] < min_num_observations)
@@ -76,10 +75,9 @@ image_t PruneWeaklyConnectedImages(std::unordered_map<frame_t, Frame>& frames,
 
   ViewGraph visibility_graph;
   for (auto& [pair_id, image_pair] : visibility_graph_frame.image_pairs) {
-    frame_t frame_id1, frame_id2;
-    ImagePair::PairIdToImagePair(pair_id, frame_id1, frame_id2);
-    image_t image_id1 = frame_id_to_begin_img[frame_id1];
-    image_t image_id2 = frame_id_to_begin_img[frame_id2];
+    const auto [frame_id1, frame_id2] = colmap::PairIdToImagePair(pair_id);
+    const image_t image_id1 = frame_id_to_begin_img[frame_id1];
+    const image_t image_id2 = frame_id_to_begin_img[frame_id2];
     visibility_graph.image_pairs.insert(
         std::make_pair(pair_id, ImagePair(image_id1, image_id2)));
     visibility_graph.image_pairs[pair_id].weight = image_pair.weight;
@@ -96,7 +94,7 @@ image_t PruneWeaklyConnectedImages(std::unordered_map<frame_t, Frame>& frames,
       if (image_id == begin_image_id || images.find(image_id) == images.end())
         continue;
       image_pair_t pair_id =
-          ImagePair::ImagePairToPairId(begin_image_id, image_id);
+          colmap::ImagePairToPairId(begin_image_id, image_id);
       visibility_graph.image_pairs.insert(
           std::make_pair(pair_id, ImagePair(begin_image_id, image_id)));
 

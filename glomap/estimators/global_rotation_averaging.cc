@@ -1,14 +1,17 @@
 #include "global_rotation_averaging.h"
 
 #include "glomap/estimators/rotation_initializer.h"
-#include "glomap/math/l1_solver.h"
 #include "glomap/math/rigid3d.h"
 #include "glomap/math/tree.h"
+
+#include <colmap/geometry/pose.h>
+#include <colmap/optim/least_absolute_deviations.h>
 
 #include <iostream>
 #include <queue>
 
-#include "colmap/geometry/pose.h"
+#include <Eigen/CholmodSupport>
+#include <Eigen/SparseCholesky>
 
 namespace glomap {
 namespace {
@@ -118,7 +121,7 @@ void RotationEstimator::InitializeFromMaximumSpanningTree(
 
     // Directly use the relative pose for estimation rotation
     const ImagePair& image_pair = view_graph.image_pairs.at(
-        ImagePair::ImagePairToPairId(curr, parents[curr]));
+        colmap::ImagePairToPairId(curr, parents[curr]));
     if (image_pair.image_id1 == curr) {
       // 1_R_w = 2_R_1^T * 2_R_w
       cam_from_worlds[curr].rotation =
@@ -477,11 +480,15 @@ bool RotationEstimator::SolveL1Regression(
     const ViewGraph& view_graph,
     std::unordered_map<frame_t, Frame>& frames,
     std::unordered_map<image_t, Image>& images) {
-  L1SolverOptions opt_l1_solver;
-  opt_l1_solver.max_num_iterations = 10;
+  colmap::LeastAbsoluteDeviationSolver::Options l1_solver_options;
+  l1_solver_options.max_num_iterations = 10;
+  l1_solver_options.solver_type = colmap::LeastAbsoluteDeviationSolver::
+      Options::SolverType::SupernodalCholmodLLT;
 
-  L1Solver<Eigen::SparseMatrix<double>> l1_solver(
-      opt_l1_solver, weights_.matrix().asDiagonal() * sparse_matrix_);
+  const Eigen::SparseMatrix<double> A =
+      weights_.matrix().asDiagonal() * sparse_matrix_;
+
+  colmap::LeastAbsoluteDeviationSolver l1_solver(l1_solver_options, A);
   double last_norm = 0;
   double curr_norm = 0;
 
@@ -526,8 +533,8 @@ bool RotationEstimator::SolveL1Regression(
       iteration++;
       break;
     }
-    opt_l1_solver.max_num_iterations =
-        std::min(opt_l1_solver.max_num_iterations * 2, 100);
+    l1_solver_options.max_num_iterations =
+        std::min(l1_solver_options.max_num_iterations * 2, 100);
   }
   VLOG(2) << "L1 ADMM total iteration: " << iteration;
   return true;
@@ -752,7 +759,7 @@ double RotationEstimator::ComputeAverageStepSize(
     const std::unordered_map<frame_t, Frame>& frames) {
   double total_update = 0;
   for (const auto& [frame_id, frame] : frames) {
-    if (frames.at(frame_id).is_registered) continue;
+    if (!frames.at(frame_id).is_registered) continue;
 
     if (options_.use_gravity && frame.HasGravity()) {
       total_update += std::abs(tangent_space_step_[frame_id_to_idx_[frame_id]]);
