@@ -309,7 +309,11 @@ void ConvertDatabaseToGlomap(const colmap::Database& database,
   for (const auto& [camera_id, camera] : cameras) {
     if (cameras_id_to_rig_id.find(camera_id) == cameras_id_to_rig_id.end()) {
       Rig rig;
-      rig.SetRigId(++max_rig_id);
+      if (max_rig_id > 0)
+        rig.SetRigId(++max_rig_id);
+      else
+        rig.SetRigId(camera_id);
+
       rig.AddRefSensor(camera.SensorId());
       rigs[rig.RigId()] = rig;
       cameras_id_to_rig_id[camera_id] = rig.RigId();
@@ -326,7 +330,7 @@ void ConvertDatabaseToGlomap(const colmap::Database& database,
   // For images without frames, initialize trivial frames
   for (auto& [image_id, image] : images) {
     if (image.frame_id == colmap::kInvalidFrameId) {
-      frame_t frame_id = ++max_frame_id;
+      frame_t frame_id = (max_frame_id > 0) ? ++max_frame_id : image_id;
 
       CreateFrameForImage(Rigid3d(),
                           image,
