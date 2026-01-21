@@ -54,6 +54,10 @@ void ViewGraphCalibrator::Reset(
   focals_.clear();
   focals_.reserve(cameras.size());
   for (const auto& [camera_id, camera] : cameras) {
+    // Skip spherical cameras - they don't have a focal length to estimate
+    if (camera.IsSpherical()) {
+      continue;
+    }
     focals_[camera_id] = camera.Focal();
   }
 
@@ -84,6 +88,12 @@ void ViewGraphCalibrator::AddImagePair(
     const std::unordered_map<image_t, Image>& images) {
   const camera_t camera_id1 = images.at(image_pair.image_id1).camera_id;
   const camera_t camera_id2 = images.at(image_pair.image_id2).camera_id;
+
+  // Skip image pairs involving spherical cameras
+  if (cameras.at(camera_id1).IsSpherical() ||
+      cameras.at(camera_id2).IsSpherical()) {
+    return;
+  }
 
   if (camera_id1 == camera_id2) {
     problem_->AddResidualBlock(
@@ -123,6 +133,11 @@ void ViewGraphCalibrator::CopyBackResults(
     std::unordered_map<camera_t, Camera>& cameras) {
   size_t counter = 0;
   for (auto& [camera_id, camera] : cameras) {
+    // Skip spherical cameras - they were not optimized
+    if (camera.IsSpherical()) {
+      continue;
+    }
+
     if (!problem_->HasParameterBlock(&(focals_[camera_id]))) continue;
 
     // if the estimated parameter is too crazy, reject it
