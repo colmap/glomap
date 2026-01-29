@@ -1,4 +1,4 @@
-:no_entry: [DEPRECATED] This project is no longer maintained and has been fully migrated to [COLMAP](https://github.com/colmap/colmap/), where it GLOMAP can be used using the "global" mapper.
+⚠️ [DEPRECATED] This project is no longer maintained and has been fully migrated to [COLMAP](https://github.com/colmap/colmap/), where GLOMAP functionality is exposed as the "global" mapper.
 
 # GLOMAP: Global Structure-from-Motion Revisited
 
