@@ -1,3 +1,5 @@
+⚠️ [DEPRECATED] This project is no longer maintained and has been fully migrated to [COLMAP](https://github.com/colmap/colmap/), where GLOMAP functionality is exposed as the "global" mapper.
+
 # GLOMAP: Global Structure-from-Motion Revisited
 
 [Project page](https://lpanaf.github.io/eccv24_glomap/) | [Paper](https://arxiv.org/pdf/2407.20219)
@@ -25,7 +27,7 @@ To use the seperate rotation averaging module, refer to [this README](docs/rotat
 ## Getting Started
 
 To build GLOMAP, first install [COLMAP](https://colmap.github.io/install.html#build-from-source)
-dependencies and then build GLOMAP using the following commands: 
+dependencies and then build GLOMAP using the following commands:
 ```shell
 mkdir build
 cd build
@@ -79,7 +81,7 @@ colmap feature_extractor \
     --image_path    ./data/south-building/images \
     --database_path ./data/south-building/database.db
 colmap exhaustive_matcher \
-    --database_path ./data/south-building/database.db 
+    --database_path ./data/south-building/database.db
 glomap mapper \
     --database_path ./data/south-building/database.db \
     --image_path    ./data/south-building/images \
