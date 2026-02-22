@@ -18,12 +18,11 @@ bool RetriangulateTracks(const TriangulatorOptions& options,
                          std::unordered_map<image_t, Image>& images,
                          std::unordered_map<track_t, Track>& tracks) {
   // Following code adapted from COLMAP
-  auto database_cache =
-      colmap::DatabaseCache::Create(database,
-                                    options.min_num_matches,
-                                    false,  // ignore_watermarks
-                                    {}      // reconstruct all possible images
-      );
+  colmap::DatabaseCache::Options cache_options;
+  cache_options.min_num_matches = options.min_num_matches;
+  cache_options.ignore_watermarks = false;
+  // image_names defaults to empty set (reconstruct all possible images)
+  auto database_cache = colmap::DatabaseCache::Create(database, cache_options);
 
   // Check whether the image is in the database cache. If not, set the image
   // as not registered to avoid memory error.

@@ -20,6 +20,39 @@ if(TESTS_ENABLED)
     find_package(GTest REQUIRED)
 endif()
 
+include(FetchContent)
+
+# PoseLib with EQUIRECTANGULAR support
+FetchContent_Declare(PoseLib
+    GIT_REPOSITORY    https://github.com/zalo/PoseLib.git
+    GIT_TAG           feature/equirectangular
+    EXCLUDE_FROM_ALL
+    SYSTEM
+)
+message(STATUS "Configuring PoseLib (with EQUIRECTANGULAR support)...")
+if (FETCH_POSELIB)
+    FetchContent_MakeAvailable(PoseLib)
+else()
+    find_package(PoseLib REQUIRED)
+endif()
+message(STATUS "Configuring PoseLib... done")
+
+# COLMAP with EQUIRECTANGULAR support
+FetchContent_Declare(COLMAP
+    GIT_REPOSITORY    https://github.com/zalo/colmap.git
+    GIT_TAG           feature/equirectangular
+    EXCLUDE_FROM_ALL
+)
+message(STATUS "Configuring COLMAP (with EQUIRECTANGULAR support)...")
+set(UNINSTALL_ENABLED OFF CACHE INTERNAL "")
+set(GUI_ENABLED OFF CACHE INTERNAL "")
+if (FETCH_COLMAP)
+    FetchContent_MakeAvailable(COLMAP)
+else()
+    find_package(COLMAP REQUIRED)
+endif()
+message(STATUS "Configuring COLMAP... done")
+
 set(CUDA_MIN_VERSION "7.0")
 if(CUDA_ENABLED)
     if(CMAKE_VERSION VERSION_LESS 3.17)
